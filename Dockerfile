@@ -15,5 +15,6 @@ COPY package*.json ./
 COPY prisma ./prisma
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy; echo 'migrations done'; node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy || true; echo 'starting node'; node dist/main"]
