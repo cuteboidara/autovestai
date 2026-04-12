@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { TransactionStatus, TransactionType } from '@prisma/client';
+import { Prisma, TransactionStatus, TransactionType } from '@prisma/client';
 
 import { KYC_APPROVAL_REQUIRED_MESSAGE } from '../src/modules/kyc/kyc.constants';
 import { WalletService } from '../src/modules/wallet/wallet.service';
@@ -99,18 +99,50 @@ describe('WalletService', () => {
       rejectWithdrawal: jest.fn(),
       requestWithdrawal: jest.fn(),
     };
+    const transactionFindUnique = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.PENDING,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: null,
+        approvedAt: null,
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:00:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.APPROVED,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: 'admin-1',
+        approvedAt: new Date('2026-04-12T10:05:00.000Z'),
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:05:00.000Z'),
+      });
     const service = new WalletService(
       {
         transaction: {
-          findUnique: jest.fn().mockResolvedValue({
-            id: 'tx-1',
-            type: TransactionType.WITHDRAW,
-            status: TransactionStatus.PENDING,
-            metadata: {
-              network: 'TRC20',
-              withdrawalRequestId: 'withdrawal-1',
-            },
-          }),
+          findUnique: transactionFindUnique,
         },
       } as never,
       {} as never,
@@ -127,9 +159,13 @@ describe('WalletService', () => {
       {} as never,
     );
 
-    await expect(service.decideTransaction('tx-1', 'admin-1', true, 'approved')).resolves.toEqual({
-      id: 'withdrawal-1',
-    });
+    await expect(service.decideTransaction('tx-1', 'admin-1', true, 'approved')).resolves.toEqual(
+      expect.objectContaining({
+        id: 'tx-1',
+        status: TransactionStatus.APPROVED,
+        amount: 100,
+      }),
+    );
 
     expect(withdrawalsService.approveWithdrawal).toHaveBeenCalledWith(
       'withdrawal-1',
@@ -145,18 +181,50 @@ describe('WalletService', () => {
       rejectWithdrawal: jest.fn().mockResolvedValue({ id: 'withdrawal-1' }),
       requestWithdrawal: jest.fn(),
     };
+    const transactionFindUnique = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.PENDING,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: null,
+        approvedAt: null,
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:00:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.REJECTED,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: 'admin-1',
+        approvedAt: new Date('2026-04-12T10:05:00.000Z'),
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:05:00.000Z'),
+      });
     const service = new WalletService(
       {
         transaction: {
-          findUnique: jest.fn().mockResolvedValue({
-            id: 'tx-1',
-            type: TransactionType.WITHDRAW,
-            status: TransactionStatus.PENDING,
-            metadata: {
-              network: 'TRC20',
-              withdrawalRequestId: 'withdrawal-1',
-            },
-          }),
+          findUnique: transactionFindUnique,
         },
       } as never,
       {} as never,
@@ -173,9 +241,13 @@ describe('WalletService', () => {
       {} as never,
     );
 
-    await expect(service.decideTransaction('tx-1', 'admin-1', false)).resolves.toEqual({
-      id: 'withdrawal-1',
-    });
+    await expect(service.decideTransaction('tx-1', 'admin-1', false)).resolves.toEqual(
+      expect.objectContaining({
+        id: 'tx-1',
+        status: TransactionStatus.REJECTED,
+        amount: 100,
+      }),
+    );
 
     expect(withdrawalsService.rejectWithdrawal).toHaveBeenCalledWith(
       'withdrawal-1',
@@ -183,5 +255,85 @@ describe('WalletService', () => {
       'Rejected by admin',
     );
     expect(withdrawalsService.approveWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('allows generic rejection of already approved linked withdrawals', async () => {
+    const withdrawalsService = {
+      approveWithdrawal: jest.fn(),
+      rejectWithdrawal: jest.fn().mockResolvedValue({ id: 'withdrawal-1' }),
+      requestWithdrawal: jest.fn(),
+    };
+    const transactionFindUnique = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.APPROVED,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: 'admin-1',
+        approvedAt: new Date('2026-04-12T10:05:00.000Z'),
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:05:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.WITHDRAW,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.REJECTED,
+        reference: null,
+        metadata: {
+          network: 'TRC20',
+          withdrawalRequestId: 'withdrawal-1',
+        },
+        approvedById: 'admin-1',
+        approvedAt: new Date('2026-04-12T10:10:00.000Z'),
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:10:00.000Z'),
+      });
+    const service = new WalletService(
+      {
+        transaction: {
+          findUnique: transactionFindUnique,
+        },
+      } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      withdrawalsService as never,
+      {} as never,
+    );
+
+    await expect(service.decideTransaction('tx-1', 'admin-1', false)).resolves.toEqual(
+      expect.objectContaining({
+        id: 'tx-1',
+        status: TransactionStatus.REJECTED,
+      }),
+    );
+
+    expect(withdrawalsService.rejectWithdrawal).toHaveBeenCalledWith(
+      'withdrawal-1',
+      'admin-1',
+      'Rejected by admin',
+    );
   });
 });

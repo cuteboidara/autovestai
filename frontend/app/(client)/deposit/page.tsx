@@ -37,7 +37,7 @@ const networks: Array<{
     confirmationsNeeded: '1',
     eta: '~1 minute',
     infoCopy:
-      'After sending, your balance will be credited automatically once the transaction is confirmed on the blockchain. This usually takes under 1 minute for TRC20.',
+      'After sending, the transfer will appear after on-chain confirmation and stay pending until an admin reviews and approves it. TRC20 confirmations usually arrive in under 1 minute.',
   },
   {
     network: 'ERC20',
@@ -48,7 +48,7 @@ const networks: Array<{
     confirmationsNeeded: '3',
     eta: '~5 minutes',
     infoCopy:
-      'After sending, your balance will be credited automatically once the transaction is confirmed on the blockchain. This usually takes around 5 minutes for ERC20.',
+      'After sending, the transfer will appear after on-chain confirmation and stay pending until an admin reviews and approves it. ERC20 confirmations usually take around 5 minutes.',
   },
 ]
 
@@ -83,21 +83,43 @@ function shortenHash(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`
 }
 
-function DepositStatusPill({ status }: { status: WalletDeposit['status'] }) {
-  if (status === 'COMPLETED') {
+function DepositStatusPill({ deposit }: { deposit: WalletDeposit }) {
+  if (deposit.approvalStatus === 'REJECTED') {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-[#0E3127] px-2.5 py-1 text-xs font-medium text-[#A7F3D0]">
-        <span className="h-2 w-2 rounded-full bg-[#10B981]" />
-        Completed
+      <span className="inline-flex items-center gap-2 rounded-full bg-[#3A1217] px-2.5 py-1 text-xs font-medium text-[#FCA5A5]">
+        <span className="h-2 w-2 rounded-full bg-[#EF4444]" />
+        Rejected
       </span>
     )
   }
 
-  if (status === 'CONFIRMING' || status === 'PENDING') {
+  if (
+    deposit.approvalStatus === 'APPROVED' ||
+    deposit.approvalStatus === 'COMPLETED' ||
+    deposit.creditedAt
+  ) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-[#0E3127] px-2.5 py-1 text-xs font-medium text-[#A7F3D0]">
+        <span className="h-2 w-2 rounded-full bg-[#10B981]" />
+        Credited
+      </span>
+    )
+  }
+
+  if (deposit.status === 'COMPLETED') {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-[#1E293B] px-2.5 py-1 text-xs font-medium text-[#BFDBFE]">
+        <span className="h-2 w-2 rounded-full bg-[#60A5FA]" />
+        Awaiting approval
+      </span>
+    )
+  }
+
+  if (deposit.status === 'CONFIRMING' || deposit.status === 'PENDING') {
     return (
       <span className="inline-flex items-center gap-2 rounded-full bg-[#3A2A0E] px-2.5 py-1 text-xs font-medium text-[#FCD34D]">
         <span className="h-2 w-2 rounded-full bg-[#F5A623]" />
-        {status === 'CONFIRMING' ? 'Confirming' : 'Pending'}
+        {deposit.status === 'CONFIRMING' ? 'Confirming' : 'Pending'}
       </span>
     )
   }
@@ -233,7 +255,7 @@ export default function DepositPage() {
           Deposit USDT
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-[#9CA3AF]">
-          Confirm the amount first, then send USDT on the matching network to your dedicated deposit address.
+          Confirm the amount first, then send USDT on the matching network to your dedicated deposit address. The balance updates only after admin approval.
         </p>
       </header>
 
@@ -394,7 +416,7 @@ export default function DepositPage() {
                       ['Amount to send', `${formatAmount(parsedAmount)} USDT`],
                       ['Min deposit', `${formatAmount(MIN_DEPOSIT)} USDT`],
                       ['Confirmations needed', selectedMeta.confirmationsNeeded],
-                      ['Estimated credit', selectedMeta.eta],
+                      ['Expected confirmation', selectedMeta.eta],
                     ].map(([label, value], index) => (
                       <div
                         key={label}
@@ -439,7 +461,7 @@ export default function DepositPage() {
             <div className="space-y-2">
               <p className="text-lg font-semibold text-[#F9FAFB]">No deposits yet</p>
               <p className="max-w-sm text-sm leading-6 text-[#9CA3AF]">
-                Your USDT deposit history will appear here after the first on-chain confirmation.
+                Your USDT deposit history will appear here after the first on-chain detection.
               </p>
             </div>
           </div>
@@ -468,7 +490,7 @@ export default function DepositPage() {
                       {entry.network}
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4">
-                      <DepositStatusPill status={entry.status} />
+                      <DepositStatusPill deposit={entry} />
                     </td>
                     <td className="border-b border-[#1F2937] py-4 text-[#9CA3AF]">
                       {formatDateTime(entry.createdAt)}

@@ -100,6 +100,9 @@ export const adminApi = {
   listWalletTransactions(query?: string) {
     return apiRequest<WalletTransaction[]>(`/admin/wallet/transactions${query ? `?${query}` : ''}`);
   },
+  listPendingTransactions() {
+    return apiRequest<WalletTransaction[]>('/admin/transactions/pending');
+  },
   listDepositAddresses() {
     return apiRequest<AdminDepositAddressRecord[]>('/admin/wallet/deposit-addresses');
   },

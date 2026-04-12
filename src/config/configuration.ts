@@ -91,7 +91,6 @@ export default () => ({
     etherscanApiKey: process.env.ETHERSCAN_API_KEY ?? '',
     bscRpcUrl: process.env.BSC_RPC_URL ?? 'https://bsc-dataseed.binance.org',
     blockstreamApiUrl: process.env.BLOCKSTREAM_API_URL ?? 'https://blockstream.info/api',
-    depositAutoApprove: process.env.DEPOSIT_AUTO_APPROVE === 'true',
     masterWalletTrc20:
       process.env.MASTER_WALLET_TRC20 ??
       process.env.TREASURY_MASTER_WALLET_ADDRESS ??

@@ -205,7 +205,7 @@ export default function AdminWithdrawalsPage() {
       <PageHeader
         eyebrow="Finance"
         title="Withdrawals"
-        description="Review, approve, reject, and complete client cash-out requests."
+        description="Review pending cash-out requests, debit balances on approval, and complete payouts after they are sent."
       />
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -235,7 +235,7 @@ export default function AdminWithdrawalsPage() {
 
       <Panel
         title="Withdrawal Queue"
-        description="Priority review for pending and approved payout requests."
+        description="Pending requests do not debit balances until approval. Approved requests are awaiting treasury payout."
         actions={
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -367,7 +367,9 @@ export default function AdminWithdrawalsPage() {
         title="Reject withdrawal"
         description={
           pendingReject
-            ? `Reject ${formatCurrency(pendingReject.amount)} withdrawal for ${pendingReject.user.email}. The funds will be returned to the client account.`
+            ? pendingReject.status === 'APPROVED'
+              ? `Reject ${formatCurrency(pendingReject.amount)} withdrawal for ${pendingReject.user.email}. The approved debit will be returned to the client account.`
+              : `Reject ${formatCurrency(pendingReject.amount)} withdrawal for ${pendingReject.user.email}. No balance debit will be applied.`
             : ''
         }
         confirmLabel="Reject withdrawal"

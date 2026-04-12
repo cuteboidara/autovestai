@@ -73,6 +73,7 @@ export interface WalletDeposit {
   confirmations: number
   status: 'PENDING' | 'CONFIRMING' | 'COMPLETED' | 'FAILED'
   creditedAt?: string | null
+  approvalStatus?: WalletTransaction['status'] | null
   createdAt: string
 }
 

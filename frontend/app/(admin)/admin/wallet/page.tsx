@@ -26,6 +26,7 @@ export default function AdminWalletPage() {
   const { hasPermission } = useAuth();
   const pushNotification = useNotificationStore((state) => state.push);
   const [items, setItems] = useState<WalletTransaction[]>([]);
+  const [pendingItems, setPendingItems] = useState<WalletTransaction[]>([]);
   const [depositAddresses, setDepositAddresses] = useState<AdminDepositAddressRecord[]>([]);
   const [incomingTransactions, setIncomingTransactions] = useState<
     AdminIncomingWalletTransaction[]
@@ -46,10 +47,10 @@ export default function AdminWalletPage() {
 
   const pendingCounts = useMemo(
     () => ({
-      deposits: items.filter((item) => item.type === 'DEPOSIT' && item.status === 'PENDING').length,
-      withdrawals: items.filter((item) => item.type === 'WITHDRAW' && item.status === 'PENDING').length,
+      deposits: pendingItems.filter((item) => item.type === 'DEPOSIT').length,
+      withdrawals: pendingItems.filter((item) => item.type === 'WITHDRAW').length,
     }),
-    [items],
+    [pendingItems],
   );
   const addressCounts = useMemo(() => {
     return depositAddresses.reduce<Record<string, number>>((accumulator, entry) => {
@@ -74,6 +75,11 @@ export default function AdminWalletPage() {
     setItems(response);
   }
 
+  async function refreshPendingTransactions() {
+    const response = await adminApi.listPendingTransactions();
+    setPendingItems(response);
+  }
+
   async function refreshSupplemental() {
     const [addresses, incoming] = await Promise.all([
       adminApi.listDepositAddresses(),
@@ -88,7 +94,11 @@ export default function AdminWalletPage() {
       return;
     }
 
-    void Promise.all([refreshTransactions(), refreshSupplemental()]);
+    void Promise.all([
+      refreshTransactions(),
+      refreshPendingTransactions(),
+      refreshSupplemental(),
+    ]);
   }, [canViewTransactions]);
 
   function canDecideTransaction(item: WalletTransaction) {
@@ -139,7 +149,11 @@ export default function AdminWalletPage() {
       });
       setPendingAction(null);
       setReason('');
-      await Promise.all([refreshTransactions(), refreshSupplemental()]);
+      await Promise.all([
+        refreshTransactions(),
+        refreshPendingTransactions(),
+        refreshSupplemental(),
+      ]);
     } catch (error) {
       pushNotification({
         title: 'Transaction action failed',
@@ -165,8 +179,62 @@ export default function AdminWalletPage() {
       </div>
 
       <Panel
-        title="Wallet Transaction Queue"
-        description="Filter transaction history and process pending operations."
+        title="Pending Review Queue"
+        description="All pending deposit and withdrawal transactions awaiting manual admin approval."
+      >
+        <DataTable
+          columns={[
+            {
+              key: 'created',
+              header: 'Created',
+              render: (item) => formatDateTime(item.createdAt),
+            },
+            { key: 'user', header: 'User', render: (item) => item.userId },
+            { key: 'type', header: 'Type', render: (item) => item.type },
+            {
+              key: 'amount',
+              header: 'Amount',
+              align: 'right',
+              render: (item) => formatCurrency(item.amount),
+            },
+            {
+              key: 'reference',
+              header: 'Reference',
+              render: (item) =>
+                String(
+                  (typeof item.metadata?.blockchainTxId === 'string'
+                    ? item.metadata.blockchainTxId
+                    : item.reference) ?? '--',
+                ),
+            },
+            {
+              key: 'actions',
+              header: 'Actions',
+              render: (item) =>
+                canDecideTransaction(item) ? (
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => setPendingAction({ type: 'approve', item })}>
+                      Approve
+                    </Button>
+                    <Button variant="danger" onClick={() => setPendingAction({ type: 'reject', item })}>
+                      Reject
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-secondary">No approval access</span>
+                ),
+            },
+          ]}
+          data={pendingItems}
+          rowKey={(item) => item.id}
+          emptyTitle="No pending wallet requests"
+          emptyDescription="New deposits and withdrawals waiting for review will appear here."
+        />
+      </Panel>
+
+      <Panel
+        title="Wallet Transaction History"
+        description="Filter the full wallet ledger and process pending operations."
         actions={
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             <Select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
@@ -374,7 +442,13 @@ export default function AdminWalletPage() {
         title={pendingAction ? `${pendingAction.type === 'approve' ? 'Approve' : 'Reject'} transaction` : ''}
         description={
           pendingAction
-            ? `${pendingAction.item.type} ${formatCurrency(pendingAction.item.amount)} will be ${pendingAction.type}d.`
+            ? pendingAction.type === 'approve'
+              ? pendingAction.item.type === 'DEPOSIT'
+                ? `Approving this deposit will credit ${formatCurrency(pendingAction.item.amount)} to the client account.`
+                : `Approving this withdrawal will debit ${formatCurrency(pendingAction.item.amount)} from the client account and move it into the payout flow.`
+              : pendingAction.item.type === 'DEPOSIT'
+                ? `Rejecting this deposit will leave the transfer recorded without crediting the client account.`
+                : 'Rejecting this withdrawal will cancel the request and return any already-approved debit.'
             : ''
         }
         confirmLabel={pendingAction?.type === 'approve' ? 'Approve' : 'Reject'}

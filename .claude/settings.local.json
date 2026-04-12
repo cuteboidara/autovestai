@@ -12,7 +12,14 @@
       "Bash(grep -E \"^dist|^\\\\.env$|^node_modules|frontend/.next|frontend/node\")",
       "Bash(git:*)",
       "Bash(NODE_ENV=production node dist/main)",
-      "Bash(echo \"EXIT CODE: $?\")"
+      "Bash(echo \"EXIT CODE: $?\")",
+      "Bash(grep -r \"http://localhost\\\\|127\\\\.0\\\\.0\\\\.1\" C:/Users/daram/autovestai/frontend/ --include=*.ts --include=*.tsx --include=*.js)",
+      "Bash(grep -r \"env\\\\.apiUrl\\\\|baseURL\\\\|baseUrl\\\\|fetch\\(\" C:/Users/daram/autovestai/frontend --include=*.ts --include=*.tsx)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); providers={''''binance'''':0,''''forex-api'''':0,''''yahoo-finance'''':0}; [None for e in data if True]; print\\(f''''Total entries: {len\\(data\\)}''''\\); [print\\(f''''  {k}: {v}''''\\) for k,v in sorted\\({e.get\\(''''backend_seed'''',{}\\).get\\(''''quote_source'''',''''UNKNOWN''''\\):0 for e in data}.items\\(\\)\\)]\")",
+      "Bash(node -e \":*)",
+      "Bash(npx ts-node:*)",
+      "Bash(railway:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_SxkuX6KFh2EN@ep-super-moon-amwlfrw3-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx ts-node scripts/reset-admin.ts)"
     ]
   }
 }

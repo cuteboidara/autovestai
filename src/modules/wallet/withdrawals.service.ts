@@ -129,18 +129,6 @@ export class WithdrawalsService {
 
     const { withdrawal, ledgerTransaction } = await this.prismaService.$transaction(
       async (tx) => {
-        await tx.account.update({
-          where: { id: account.id },
-          data: {
-            balance: {
-              decrement: toDecimal(params.amount),
-            },
-            equity: {
-              decrement: toDecimal(params.amount),
-            },
-          },
-        });
-
         const withdrawal = await tx.withdrawalRequest.create({
           data: {
             userId,
@@ -222,6 +210,26 @@ export class WithdrawalsService {
   }
 
   async approveWithdrawal(withdrawalId: string, adminId: string, reason?: string) {
+    const pendingWithdrawal = await this.prismaService.withdrawalRequest.findUnique({
+      where: { id: withdrawalId },
+    });
+
+    if (!pendingWithdrawal) {
+      throw new NotFoundException('Withdrawal request not found');
+    }
+
+    if (pendingWithdrawal.status !== WithdrawalStatus.PENDING) {
+      throw new ConflictException('Withdrawal already processed');
+    }
+
+    const metrics = await this.accountsService.getAccountMetrics(pendingWithdrawal.accountId);
+
+    if (metrics.freeMargin < (toNumber(pendingWithdrawal.amount) ?? 0)) {
+      throw new BadRequestException('Insufficient free margin at time of approval');
+    }
+
+    const decisionReason = reason?.trim() || null;
+    const now = new Date();
     const updated = await this.prismaService.$transaction(async (tx) => {
       const withdrawal = await tx.withdrawalRequest.findUnique({
         where: { id: withdrawalId },
@@ -237,20 +245,35 @@ export class WithdrawalsService {
 
       const account = await tx.account.findUnique({
         where: { id: withdrawal.accountId },
-        select: { balance: true },
+        select: {
+          balance: true,
+          equity: true,
+        },
       });
 
       if (!account || account.balance.lt(withdrawal.amount)) {
         throw new BadRequestException('Insufficient funds at time of approval');
       }
 
+      await tx.account.update({
+        where: { id: withdrawal.accountId },
+        data: {
+          balance: {
+            decrement: withdrawal.amount,
+          },
+          equity: {
+            decrement: withdrawal.amount,
+          },
+        },
+      });
+
       return tx.withdrawalRequest.update({
         where: { id: withdrawalId },
         data: {
           status: WithdrawalStatus.APPROVED,
-          adminNote: reason?.trim() || null,
+          adminNote: decisionReason,
           reviewedById: adminId,
-          reviewedAt: new Date(),
+          reviewedAt: now,
         },
       });
     });
@@ -258,10 +281,10 @@ export class WithdrawalsService {
     await this.syncLedgerTransaction(updated, {
       status: TransactionStatus.APPROVED,
       approvedById: adminId,
-      approvedAt: new Date(),
+      approvedAt: now,
       metadata: {
-        decisionReason: reason?.trim() || null,
-        approvedAt: new Date().toISOString(),
+        decisionReason,
+        approvedAt: now.toISOString(),
       },
     });
 
@@ -273,7 +296,7 @@ export class WithdrawalsService {
       entityId: updated.id,
       targetUserId: updated.userId,
       metadataJson: {
-        reason: reason?.trim() || null,
+        reason: decisionReason,
       },
     });
 
@@ -288,41 +311,43 @@ export class WithdrawalsService {
   }
 
   async rejectWithdrawal(withdrawalId: string, adminId: string, reason: string) {
-    const withdrawal = await this.prismaService.withdrawalRequest.findUnique({
-      where: { id: withdrawalId },
-    });
-
-    if (!withdrawal) {
-      throw new NotFoundException('Withdrawal request not found');
-    }
-
-    if (
-      withdrawal.status !== WithdrawalStatus.PENDING &&
-      withdrawal.status !== WithdrawalStatus.APPROVED
-    ) {
-      throw new BadRequestException('Withdrawal request cannot be rejected');
-    }
-
+    const rejectionReason = reason.trim();
     const now = new Date();
-
     const updated = await this.prismaService.$transaction(async (tx) => {
-      await tx.account.update({
-        where: { id: withdrawal.accountId },
-        data: {
-          balance: {
-            increment: withdrawal.amount,
-          },
-          equity: {
-            increment: withdrawal.amount,
-          },
-        },
+      const withdrawal = await tx.withdrawalRequest.findUnique({
+        where: { id: withdrawalId },
       });
+
+      if (!withdrawal) {
+        throw new NotFoundException('Withdrawal request not found');
+      }
+
+      if (
+        withdrawal.status !== WithdrawalStatus.PENDING &&
+        withdrawal.status !== WithdrawalStatus.APPROVED
+      ) {
+        throw new BadRequestException('Withdrawal request cannot be rejected');
+      }
+
+      if (withdrawal.status === WithdrawalStatus.APPROVED) {
+        await tx.account.update({
+          where: { id: withdrawal.accountId },
+          data: {
+            balance: {
+              increment: withdrawal.amount,
+            },
+            equity: {
+              increment: withdrawal.amount,
+            },
+          },
+        });
+      }
 
       return tx.withdrawalRequest.update({
         where: { id: withdrawalId },
         data: {
           status: WithdrawalStatus.REJECTED,
-          adminNote: reason.trim(),
+          adminNote: rejectionReason,
           reviewedById: adminId,
           reviewedAt: now,
         },
@@ -334,7 +359,7 @@ export class WithdrawalsService {
       approvedById: adminId,
       approvedAt: now,
       metadata: {
-        decisionReason: reason.trim(),
+        decisionReason: rejectionReason,
         rejectedAt: now.toISOString(),
       },
     });
@@ -347,7 +372,7 @@ export class WithdrawalsService {
       entityId: updated.id,
       targetUserId: updated.userId,
       metadataJson: {
-        reason: reason.trim(),
+        reason: rejectionReason,
       },
     });
 
@@ -424,6 +449,18 @@ export class WithdrawalsService {
     ]);
 
     return this.serializeWithdrawal(updated);
+  }
+
+  async getWithdrawalById(withdrawalId: string) {
+    const withdrawal = await this.prismaService.withdrawalRequest.findUnique({
+      where: { id: withdrawalId },
+    });
+
+    if (!withdrawal) {
+      throw new NotFoundException('Withdrawal request not found');
+    }
+
+    return this.serializeWithdrawal(withdrawal);
   }
 
   private async sendWithdrawalSentEmail(

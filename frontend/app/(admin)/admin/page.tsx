@@ -52,7 +52,7 @@ export default function AdminOverviewPage() {
         canViewReadiness ? adminApi.getReadiness() : Promise.resolve([]),
         hasPermission('kyc.approve') ? kycApi.listAdmin().catch(() => []) : Promise.resolve([]),
         hasPermission('transactions.view')
-          ? adminApi.listWalletTransactions('status=PENDING').catch(() => [])
+          ? adminApi.listPendingTransactions().catch(() => [])
           : Promise.resolve([]),
         canViewOverview ? adminApi.listOpenPositions().catch(() => []) : Promise.resolve([]),
       ]);
@@ -195,7 +195,7 @@ export default function AdminOverviewPage() {
           />
         </Panel>
 
-        <Panel title="Recent Wallet Requests" description="Pending deposit and withdrawal requests.">
+        <Panel title="Recent Wallet Requests" description="Pending deposit and withdrawal approvals waiting for review.">
           <DataTable
             columns={[
               {

@@ -38,10 +38,6 @@ function resolveTransactionMethod(transaction: WalletTransaction) {
 }
 
 function resolveTransactionStatus(transaction: WalletTransaction) {
-  if (transaction.status === 'APPROVED') {
-    return 'COMPLETED';
-  }
-
   if (transaction.status === 'REJECTED') {
     return 'FAILED';
   }

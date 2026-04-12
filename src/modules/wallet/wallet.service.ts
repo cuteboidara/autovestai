@@ -127,31 +127,53 @@ export class WalletService {
       userId,
       query.accountId,
     );
-    const deposits = await this.prismaService.deposit.findMany({
-      where: {
-        userId,
-        accountId: account.id,
-        status: query.status,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
+    const [deposits, transactions] = await Promise.all([
+      this.prismaService.deposit.findMany({
+        where: {
+          userId,
+          accountId: account.id,
+          status: query.status,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      this.prismaService.transaction.findMany({
+        where: {
+          userId,
+          accountId: account.id,
+          type: TransactionType.DEPOSIT,
+        },
+        select: transactionSelect,
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+      }),
+    ]);
 
-    return deposits.map((deposit) => ({
-      id: deposit.id,
-      userId: deposit.userId,
-      accountId: deposit.accountId,
-      txHash: deposit.txHash,
-      network: deposit.network,
-      amount: deposit.amount.toNumber(),
-      usdtAmount: deposit.usdtAmount.toNumber(),
-      fromAddress: deposit.fromAddress,
-      toAddress: deposit.toAddress,
-      confirmations: deposit.confirmations,
-      status: deposit.status,
-      creditedAt: deposit.creditedAt,
-      createdAt: deposit.createdAt,
-    }));
+    return deposits.map((deposit) => {
+      const linkedTransaction = this.findLinkedTransactionByHash(
+        transactions,
+        deposit.txHash,
+      );
+
+      return {
+        id: deposit.id,
+        userId: deposit.userId,
+        accountId: deposit.accountId,
+        txHash: deposit.txHash,
+        network: deposit.network,
+        amount: deposit.amount.toNumber(),
+        usdtAmount: deposit.usdtAmount.toNumber(),
+        fromAddress: deposit.fromAddress,
+        toAddress: deposit.toAddress,
+        confirmations: deposit.confirmations,
+        status: deposit.status,
+        creditedAt: deposit.creditedAt,
+        approvalStatus:
+          linkedTransaction?.status ??
+          (deposit.creditedAt ? TransactionStatus.APPROVED : TransactionStatus.PENDING),
+        createdAt: deposit.createdAt,
+      };
+    });
   }
 
   async listWithdrawals(userId: string, query: ListWithdrawalsQueryDto = {}) {
@@ -333,6 +355,7 @@ export class WalletService {
         confirmations: true,
         fromAddress: true,
         toAddress: true,
+        creditedAt: true,
         createdAt: true,
         user: {
           select: {
@@ -344,44 +367,93 @@ export class WalletService {
       orderBy: { createdAt: 'desc' },
       take: 250,
     });
+    const transactions = deposits.length
+      ? await this.prismaService.transaction.findMany({
+          where: {
+            userId: {
+              in: [...new Set(deposits.map((deposit) => deposit.userId))],
+            },
+            accountId: {
+              in: [...new Set(deposits.map((deposit) => deposit.accountId))],
+            },
+            type: TransactionType.DEPOSIT,
+          },
+          select: transactionSelect,
+          orderBy: { createdAt: 'desc' },
+          take: 500,
+        })
+      : [];
 
-    return deposits.map((deposit) => ({
-      id: deposit.id,
-      userId: deposit.userId,
-      walletId: null,
-      accountId: deposit.accountId,
-      type: TransactionType.DEPOSIT,
-      amount: deposit.amount.toNumber(),
-      asset: 'USDT',
-      status:
-        deposit.status === DepositStatus.COMPLETED
-          ? TransactionStatus.COMPLETED
-          : deposit.status === DepositStatus.FAILED
+    return deposits.map((deposit) => {
+      const linkedTransaction = this.findLinkedTransactionByHash(
+        transactions,
+        deposit.txHash,
+      );
+
+      return {
+        id: deposit.id,
+        userId: deposit.userId,
+        walletId: linkedTransaction?.walletId ?? null,
+        accountId: deposit.accountId,
+        type: TransactionType.DEPOSIT,
+        amount: deposit.amount.toNumber(),
+        asset: 'USDT',
+        status:
+          linkedTransaction?.status ??
+          (deposit.status === DepositStatus.FAILED
             ? TransactionStatus.REJECTED
-            : TransactionStatus.PENDING,
-      reference: deposit.txHash,
-      metadata: {
-        network: deposit.network,
-        blockchainTxId: deposit.txHash,
-        confirmations: deposit.confirmations,
-        fromAddress: deposit.fromAddress,
-        toAddress: deposit.toAddress,
-      },
-      createdAt: deposit.createdAt,
-      updatedAt: deposit.createdAt,
-      user: deposit.user,
-    }));
+            : deposit.creditedAt
+              ? TransactionStatus.APPROVED
+              : TransactionStatus.PENDING),
+        reference: deposit.txHash,
+        metadata: {
+          ...(linkedTransaction?.metadata &&
+          typeof linkedTransaction.metadata === 'object' &&
+          !Array.isArray(linkedTransaction.metadata)
+            ? linkedTransaction.metadata
+            : {}),
+          network: deposit.network,
+          blockchainTxId: deposit.txHash,
+          confirmations: deposit.confirmations,
+          fromAddress: deposit.fromAddress,
+          toAddress: deposit.toAddress,
+        },
+        approvedById: linkedTransaction?.approvedById ?? null,
+        approvedAt: linkedTransaction?.approvedAt ?? null,
+        createdAt: deposit.createdAt,
+        updatedAt: linkedTransaction?.updatedAt ?? deposit.createdAt,
+        user: deposit.user,
+      };
+    });
   }
 
   listWithdrawalRequests(status?: WithdrawalStatus) {
     return this.withdrawalsService.listAdminWithdrawals(status);
   }
 
-  approveWithdrawalRequest(withdrawalId: string, adminId: string, reason?: string) {
+  async approveWithdrawalRequest(
+    withdrawalId: string,
+    adminId: string,
+    reason?: string,
+  ) {
+    const linkedTransaction = await this.findLinkedWithdrawalTransaction(withdrawalId);
+
+    if (linkedTransaction) {
+      await this.decideTransaction(linkedTransaction.id, adminId, true, reason);
+      return this.withdrawalsService.getWithdrawalById(withdrawalId);
+    }
+
     return this.withdrawalsService.approveWithdrawal(withdrawalId, adminId, reason);
   }
 
-  rejectWithdrawalRequest(withdrawalId: string, adminId: string, reason: string) {
+  async rejectWithdrawalRequest(withdrawalId: string, adminId: string, reason: string) {
+    const linkedTransaction = await this.findLinkedWithdrawalTransaction(withdrawalId);
+
+    if (linkedTransaction) {
+      await this.decideTransaction(linkedTransaction.id, adminId, false, reason);
+      return this.withdrawalsService.getWithdrawalById(withdrawalId);
+    }
+
     return this.withdrawalsService.rejectWithdrawal(withdrawalId, adminId, reason);
   }
 
@@ -410,10 +482,6 @@ export class WalletService {
       throw new NotFoundException('Transaction not found');
     }
 
-    if (transaction.status !== TransactionStatus.PENDING) {
-      throw new BadRequestException('Transaction has already been processed');
-    }
-
     const linkedWithdrawalRequestId = this.getLinkedWithdrawalRequestId(
       transaction.type,
       transaction.metadata,
@@ -426,17 +494,48 @@ export class WalletService {
         );
       }
 
-      return approve
-        ? this.withdrawalsService.approveWithdrawal(
-            linkedWithdrawalRequestId,
-            adminId,
-            reason,
-          )
-        : this.withdrawalsService.rejectWithdrawal(
-            linkedWithdrawalRequestId,
-            adminId,
-            reason ?? 'Rejected by admin',
-          );
+      if (
+        approve &&
+        transaction.status !== TransactionStatus.PENDING
+      ) {
+        throw new BadRequestException('Transaction has already been processed');
+      }
+
+      if (
+        !approve &&
+        transaction.status !== TransactionStatus.PENDING &&
+        transaction.status !== TransactionStatus.APPROVED
+      ) {
+        throw new BadRequestException('Transaction has already been processed');
+      }
+
+      if (approve) {
+        await this.withdrawalsService.approveWithdrawal(
+          linkedWithdrawalRequestId,
+          adminId,
+          reason,
+        );
+      } else {
+        await this.withdrawalsService.rejectWithdrawal(
+          linkedWithdrawalRequestId,
+          adminId,
+          reason ?? 'Rejected by admin',
+        );
+      }
+
+      const updatedLinkedTransaction = await this.prismaService.transaction.findUnique({
+        where: { id: transactionId },
+      });
+
+      if (!updatedLinkedTransaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+
+      return serializeTransaction(updatedLinkedTransaction);
+    }
+
+    if (transaction.status !== TransactionStatus.PENDING) {
+      throw new BadRequestException('Transaction has already been processed');
     }
 
     if (!approve) {
@@ -526,6 +625,9 @@ export class WalletService {
             balance: {
               decrement: pendingTransaction.amount,
             },
+            equity: {
+              decrement: pendingTransaction.amount,
+            },
           },
         });
       }
@@ -535,6 +637,9 @@ export class WalletService {
           where: { id: account.id },
           data: {
             balance: {
+              increment: pendingTransaction.amount,
+            },
+            equity: {
               increment: pendingTransaction.amount,
             },
           },
@@ -559,13 +664,15 @@ export class WalletService {
       `Transaction ${transactionId} approved by admin ${adminId} (${updatedTransaction.type})`,
     );
 
+    if (updatedTransaction.type === TransactionType.DEPOSIT) {
+      await this.markDepositAsCredited(updatedTransaction);
+    }
+
     await this.auditService.log({
       actorUserId: adminId ?? null,
       actorRole,
       action:
-        actorRole === 'system' && updatedTransaction.type === TransactionType.DEPOSIT
-          ? 'WALLET_DEPOSIT_AUTO_APPROVED'
-          : updatedTransaction.type === TransactionType.DEPOSIT
+        updatedTransaction.type === TransactionType.DEPOSIT
           ? 'WALLET_DEPOSIT_APPROVED'
           : 'WALLET_WITHDRAWAL_APPROVED',
       entityType: 'transaction',
@@ -682,6 +789,101 @@ export class WalletService {
     return typeof withdrawalRequestId === 'string' && withdrawalRequestId.trim()
       ? withdrawalRequestId
       : null;
+  }
+
+  private async findLinkedWithdrawalTransaction(withdrawalId: string) {
+    const withdrawal = await this.prismaService.withdrawalRequest.findUnique({
+      where: { id: withdrawalId },
+      select: {
+        userId: true,
+        accountId: true,
+      },
+    });
+
+    if (!withdrawal) {
+      return null;
+    }
+
+    const transactions = await this.prismaService.transaction.findMany({
+      where: {
+        userId: withdrawal.userId,
+        accountId: withdrawal.accountId,
+        type: TransactionType.WITHDRAW,
+      },
+      select: transactionSelect,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    return (
+      transactions.find(
+        (transaction) =>
+          this.getLinkedWithdrawalRequestId(transaction.type, transaction.metadata) ===
+          withdrawalId,
+      ) ?? null
+    );
+  }
+
+  private extractTransactionHash(transaction: {
+    reference: string | null;
+    metadata: Prisma.JsonValue | null;
+  }): string | null {
+    const metadata = this.readMetadata(transaction.metadata);
+    const candidates = [
+      metadata.blockchainTxId,
+      metadata.transactionHash,
+      metadata.txHash,
+      transaction.reference,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+
+    return null;
+  }
+
+  private findLinkedTransactionByHash<
+    T extends {
+      reference: string | null;
+      metadata: Prisma.JsonValue | null;
+    },
+  >(transactions: T[], txHash: string): T | null {
+    const normalizedHash = txHash.trim().toLowerCase();
+
+    return (
+      transactions.find((transaction) => {
+        const linkedHash = this.extractTransactionHash(transaction);
+        return linkedHash?.toLowerCase() === normalizedHash;
+      }) ?? null
+    );
+  }
+
+  private async markDepositAsCredited(transaction: {
+    userId: string;
+    accountId: string;
+    reference: string | null;
+    metadata: Prisma.JsonValue | null;
+    approvedAt: Date | null;
+  }) {
+    const txHash = this.extractTransactionHash(transaction);
+
+    if (!txHash) {
+      return;
+    }
+
+    await this.prismaService.deposit.updateMany({
+      where: {
+        userId: transaction.userId,
+        accountId: transaction.accountId,
+        txHash,
+      },
+      data: {
+        creditedAt: transaction.approvedAt ?? new Date(),
+      },
+    });
   }
 
   private normalizeAlphaWalletOperation(

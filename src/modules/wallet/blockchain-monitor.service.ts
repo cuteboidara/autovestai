@@ -349,87 +349,108 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       where: { userId: addressRecord.userId },
       select: { id: true },
     });
-
-    let didCredit = false;
+    let shouldNotifyPendingReview = false;
+    let shouldRefreshWalletView = !existing;
+    let depositRecordId = existing?.id ?? detection.txHash;
 
     await this.prismaService.$transaction(async (tx) => {
-      if (existing) {
-        await tx.deposit.update({
-          where: { id: existing.id },
-          data: {
-            confirmations: detection.confirmations,
-            status: DepositStatus.COMPLETED,
-            creditedAt: new Date(),
-          },
-        });
-      } else {
-        await tx.deposit.create({
-          data: {
-            userId: addressRecord.userId,
-            accountId: addressRecord.accountId,
-            txHash: detection.txHash,
-            network: detection.network,
-            amount: toDecimal(detection.amount),
-            usdtAmount: toDecimal(detection.amount),
-            fromAddress: detection.fromAddress,
-            toAddress: detection.toAddress,
-            confirmations: detection.confirmations,
-            status: DepositStatus.COMPLETED,
-            creditedAt: new Date(),
-            createdAt: detection.detectedAt,
-          },
-        });
-      }
+      const depositRecord = existing
+        ? await tx.deposit.update({
+            where: { id: existing.id },
+            data: {
+              confirmations: detection.confirmations,
+              status: DepositStatus.COMPLETED,
+              creditedAt: null,
+            },
+          })
+        : await tx.deposit.create({
+            data: {
+              userId: addressRecord.userId,
+              accountId: addressRecord.accountId,
+              txHash: detection.txHash,
+              network: detection.network,
+              amount: toDecimal(detection.amount),
+              usdtAmount: toDecimal(detection.amount),
+              fromAddress: detection.fromAddress,
+              toAddress: detection.toAddress,
+              confirmations: detection.confirmations,
+              status: DepositStatus.COMPLETED,
+              creditedAt: null,
+              createdAt: detection.detectedAt,
+            },
+          });
 
-      const existingLedger = await tx.transaction.findFirst({
+      depositRecordId = depositRecord.id;
+      shouldRefreshWalletView =
+        shouldRefreshWalletView ||
+        !existing ||
+        existing.status !== DepositStatus.COMPLETED ||
+        existing.confirmations !== detection.confirmations;
+
+      const recentLedgerTransactions = await tx.transaction.findMany({
         where: {
           userId: addressRecord.userId,
           accountId: addressRecord.accountId,
           type: TransactionType.DEPOSIT,
-          reference: detection.txHash,
         },
+        select: {
+          id: true,
+          walletId: true,
+          amount: true,
+          status: true,
+          reference: true,
+          metadata: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
       });
 
-      if (!existingLedger || existingLedger.status !== TransactionStatus.COMPLETED) {
-        didCredit = true;
+      const linkedLedger = this.findMatchingDepositLedgerTransaction(
+        recentLedgerTransactions,
+        detection,
+      );
 
-        await tx.account.update({
-          where: { id: addressRecord.accountId },
-          data: {
-            balance: {
-              increment: toDecimal(detection.amount),
-            },
-            equity: {
-              increment: toDecimal(detection.amount),
-            },
-          },
-        });
-      }
+      if (linkedLedger) {
+        const currentHash = this.extractTransactionHash(linkedLedger);
+        const txHashChanged =
+          currentHash?.toLowerCase() !== detection.txHash.trim().toLowerCase();
+        const metadata = this.readMetadata(linkedLedger.metadata);
+        const nextLedgerStatus = this.resolveDetectedDepositLedgerStatus(linkedLedger.status);
 
-      if (existingLedger) {
+        shouldNotifyPendingReview =
+          nextLedgerStatus === TransactionStatus.PENDING &&
+          (txHashChanged || !existing || existing.status !== DepositStatus.COMPLETED);
+        shouldRefreshWalletView =
+          shouldRefreshWalletView ||
+          txHashChanged ||
+          linkedLedger.status !== nextLedgerStatus ||
+          linkedLedger.walletId !== (wallet?.id ?? linkedLedger.walletId) ||
+          metadata.confirmations !== detection.confirmations;
+
         await tx.transaction.update({
-          where: { id: existingLedger.id },
+          where: { id: linkedLedger.id },
           data: {
-            walletId: wallet?.id ?? existingLedger.walletId,
-            status: TransactionStatus.COMPLETED,
+            walletId: wallet?.id ?? linkedLedger.walletId,
+            status: nextLedgerStatus,
             reference: detection.txHash,
             metadata: {
-              ...(existingLedger.metadata &&
-              typeof existingLedger.metadata === 'object' &&
-              !Array.isArray(existingLedger.metadata)
-                ? (existingLedger.metadata as Prisma.JsonObject)
-                : {}),
+              ...metadata,
               network: detection.network,
               blockchainTxId: detection.txHash,
               fromAddress: detection.fromAddress,
               toAddress: detection.toAddress,
               confirmations: detection.confirmations,
               autoDetected: true,
+              depositId: depositRecord.id,
               explorerUrl: `${NETWORK_EXPLORER_BASES[detection.network]}${detection.txHash}`,
             } as Prisma.InputJsonObject,
           },
         });
       } else {
+        shouldNotifyPendingReview = true;
+        shouldRefreshWalletView = true;
+
         await tx.transaction.create({
           data: {
             userId: addressRecord.userId,
@@ -438,7 +459,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
             type: TransactionType.DEPOSIT,
             amount: toDecimal(detection.amount),
             asset: 'USDT',
-            status: TransactionStatus.COMPLETED,
+            status: TransactionStatus.PENDING,
             reference: detection.txHash,
             metadata: {
               network: detection.network,
@@ -447,6 +468,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
               toAddress: detection.toAddress,
               confirmations: detection.confirmations,
               autoDetected: true,
+              depositId: depositRecord.id,
               explorerUrl: `${NETWORK_EXPLORER_BASES[detection.network]}${detection.txHash}`,
             } as Prisma.InputJsonObject,
           },
@@ -454,15 +476,27 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    if (!didCredit) {
+    if (shouldRefreshWalletView) {
+      await this.accountsService.syncLegacyWalletSnapshot(
+        addressRecord.userId,
+        addressRecord.accountId,
+      );
+      await this.responseCacheService.invalidateUserResources(addressRecord.userId, [
+        'transactions',
+        'accounts',
+        'positions',
+      ]);
+    }
+
+    if (!shouldNotifyPendingReview) {
       return;
     }
 
     await this.auditService.log({
       actorRole: 'system',
-      action: 'WALLET_DEPOSIT_AUTO_APPROVED',
+      action: 'WALLET_DEPOSIT_PENDING_REVIEW',
       entityType: 'deposit',
-      entityId: detection.txHash,
+      entityId: depositRecordId,
       targetUserId: addressRecord.userId,
       metadataJson: {
         txHash: detection.txHash,
@@ -471,58 +505,19 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    await this.accountsService.syncLegacyWalletSnapshot(
+    await this.sendDepositPendingReviewEmail(
       addressRecord.userId,
-      addressRecord.accountId,
+      detection.amount,
+      detection.txHash,
+      detection.network,
     );
-    await this.responseCacheService.invalidateUserResources(addressRecord.userId, [
-      'transactions',
-      'accounts',
-      'positions',
-    ]);
-
-    await this.sendDepositEmail(addressRecord.userId, detection.amount, detection.txHash);
     await this.adminChatService.postSystemAlert(
       'general',
-      `New deposit credited: ${detection.amount.toLocaleString('en-US')} USDT via ${detection.network} for ${addressRecord.userId}`,
+      `Deposit pending review: ${detection.amount.toLocaleString('en-US')} USDT via ${detection.network} for ${addressRecord.userId}`,
     );
     this.logger.log(
-      `Deposit credited for ${addressRecord.userId}: ${detection.amount} USDT (${detection.network})`,
+      `Deposit pending review for ${addressRecord.userId}: ${detection.amount} USDT (${detection.network})`,
     );
-  }
-
-  private async findLedgerTransactionByTxHash(
-    userId: string,
-    accountId: string,
-    txHash: string,
-  ) {
-    const transactions = await this.prismaService.transaction.findMany({
-      where: {
-        userId,
-        accountId,
-        type: TransactionType.DEPOSIT,
-      },
-      select: {
-        id: true,
-        reference: true,
-        metadata: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-
-    return transactions.find((entry) => {
-      if (entry.reference === txHash) {
-        return true;
-      }
-
-      const metadata =
-        entry.metadata && typeof entry.metadata === 'object' && !Array.isArray(entry.metadata)
-          ? (entry.metadata as Record<string, unknown>)
-          : {};
-
-      return metadata.blockchainTxId === txHash;
-    });
   }
 
   private async getLastScannedBlock(address: string): Promise<number> {
@@ -545,16 +540,119 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async sendDepositEmail(userId: string, amount: number, txHash: string) {
+  private findMatchingDepositLedgerTransaction(
+    transactions: Array<{
+      id: string;
+      walletId: string | null;
+      amount: Prisma.Decimal;
+      status: TransactionStatus;
+      reference: string | null;
+      metadata: Prisma.JsonValue | null;
+      createdAt: Date;
+    }>,
+    detection: DepositDetection,
+  ) {
+    const exactMatch = transactions.find((entry) => {
+      const txHash = this.extractTransactionHash(entry);
+      return txHash?.toLowerCase() === detection.txHash.trim().toLowerCase();
+    });
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    return (
+      transactions.find((entry) =>
+        this.isPendingDepositCandidateMatch(entry, detection),
+      ) ?? null
+    );
+  }
+
+  private isPendingDepositCandidateMatch(
+    transaction: {
+      amount: Prisma.Decimal;
+      status: TransactionStatus;
+      reference: string | null;
+      metadata: Prisma.JsonValue | null;
+      createdAt: Date;
+    },
+    detection: DepositDetection,
+  ) {
+    if (transaction.status !== TransactionStatus.PENDING) {
+      return false;
+    }
+
+    if (this.extractTransactionHash(transaction)) {
+      return false;
+    }
+
+    const metadata = this.readMetadata(transaction.metadata);
+    const networkMatches = metadata.network === detection.network;
+    const amountMatches =
+      Math.abs(transaction.amount.toNumber() - detection.amount) <= 0.00000001;
+    const withinReviewWindow =
+      Math.abs(transaction.createdAt.getTime() - detection.detectedAt.getTime()) <=
+      7 * 24 * 60 * 60 * 1000;
+
+    return networkMatches && amountMatches && withinReviewWindow;
+  }
+
+  private resolveDetectedDepositLedgerStatus(status: TransactionStatus) {
+    if (
+      status === TransactionStatus.APPROVED ||
+      status === TransactionStatus.COMPLETED ||
+      status === TransactionStatus.REJECTED
+    ) {
+      return status;
+    }
+
+    return TransactionStatus.PENDING;
+  }
+
+  private extractTransactionHash(transaction: {
+    reference: string | null;
+    metadata: Prisma.JsonValue | null;
+  }): string | null {
+    const metadata = this.readMetadata(transaction.metadata);
+    const candidates = [
+      metadata.blockchainTxId,
+      metadata.transactionHash,
+      metadata.txHash,
+      transaction.reference,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+
+    return null;
+  }
+
+  private readMetadata(metadata: Prisma.JsonValue | null): Record<string, unknown> {
+    return metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? (metadata as Record<string, unknown>)
+      : {};
+  }
+
+  private async sendDepositPendingReviewEmail(
+    userId: string,
+    amount: number,
+    txHash: string,
+    network: Network,
+  ) {
     try {
       await this.crmService.sendDirectEmailToUser({
         toUserId: userId,
         sentById: userId,
-        subject: 'Your AutovestAI deposit has been credited',
+        subject: 'Your AutovestAI deposit is pending review',
         body: `
-          <p>Your deposit has been credited to your trading account.</p>
+          <p>Your deposit has been received on-chain and is pending manual review.</p>
           <p><strong>Amount:</strong> ${amount.toFixed(2)} USDT</p>
+          <p><strong>Network:</strong> ${network}</p>
           <p><strong>Transaction hash:</strong> ${txHash}</p>
+          <p>Your trading balance will update after an admin approves the deposit.</p>
         `,
       });
     } catch {

@@ -238,7 +238,7 @@ export default function WithdrawPage() {
           <div className="border-b border-[#1F2937] pb-4">
             <h2 className="text-lg font-semibold text-[#F9FAFB]">Withdrawal Request</h2>
             <p className="mt-1 text-sm text-[#9CA3AF]">
-              Withdrawals are processed manually after control-tower approval.
+              Withdrawals are processed manually after control-tower approval. Your balance is debited only when the request is approved.
             </p>
           </div>
 
@@ -323,7 +323,7 @@ export default function WithdrawPage() {
             </Button>
 
             <p className="text-sm leading-6 text-[#9CA3AF]">
-              Withdrawals require admin approval and may take 1-2 business days. You will receive an email confirmation once processed.
+              Withdrawals require admin approval and may take 1-2 business days. Pending requests do not reduce your balance until they are approved.
             </p>
           </form>
         </div>

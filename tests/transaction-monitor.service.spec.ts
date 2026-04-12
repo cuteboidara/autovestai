@@ -93,8 +93,7 @@ describe('BlockchainMonitorService', () => {
     expect(prismaService.$transaction).not.toHaveBeenCalled();
   });
 
-  it('credits completed deposits and writes a completed ledger transaction', async () => {
-    const txAccountUpdate = jest.fn().mockResolvedValue(undefined);
+  it('records completed deposits as pending admin review without crediting balances', async () => {
     const txTransactionCreate = jest.fn().mockResolvedValue(undefined);
     const prismaService = {
       deposit: {
@@ -108,16 +107,18 @@ describe('BlockchainMonitorService', () => {
       $transaction: jest.fn(async (callback: (tx: any) => unknown) =>
         callback({
           deposit: {
-            create: jest.fn().mockResolvedValue(undefined),
-            update: jest.fn().mockResolvedValue(undefined),
+            create: jest.fn().mockResolvedValue({
+              id: 'deposit-1',
+            }),
+            update: jest.fn().mockResolvedValue({
+              id: 'deposit-1',
+            }),
           },
           transaction: {
             findFirst: jest.fn().mockResolvedValue(null),
+            findMany: jest.fn().mockResolvedValue([]),
             create: txTransactionCreate,
             update: jest.fn(),
-          },
-          account: {
-            update: txAccountUpdate,
           },
         })),
     };
@@ -163,17 +164,6 @@ describe('BlockchainMonitorService', () => {
       },
     );
 
-    expect(txAccountUpdate).toHaveBeenCalledWith({
-      where: { id: 'account-1' },
-      data: {
-        balance: {
-          increment: new Prisma.Decimal(100),
-        },
-        equity: {
-          increment: new Prisma.Decimal(100),
-        },
-      },
-    });
     expect(txTransactionCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -181,7 +171,7 @@ describe('BlockchainMonitorService', () => {
           walletId: 'wallet-1',
           type: 'DEPOSIT',
           asset: 'USDT',
-          status: TransactionStatus.COMPLETED,
+          status: TransactionStatus.PENDING,
           reference: 'trx-1',
         }),
       }),
@@ -193,5 +183,6 @@ describe('BlockchainMonitorService', () => {
     expect(responseCacheService.invalidateUserResources).toHaveBeenCalled();
     expect(auditService.log).toHaveBeenCalled();
     expect(adminChatService.postSystemAlert).toHaveBeenCalled();
+    expect(crmService.sendDirectEmailToUser).toHaveBeenCalled();
   });
 });

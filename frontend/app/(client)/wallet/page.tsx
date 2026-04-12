@@ -37,12 +37,27 @@ function formatDateTime(value: string) {
   }).format(date)
 }
 
-function StatusPill({ status }: { status: WalletTransaction['status'] }) {
-  if (status === 'COMPLETED' || status === 'APPROVED') {
+function StatusPill({
+  status,
+  type,
+}: {
+  status: WalletTransaction['status']
+  type: WalletTransaction['type']
+}) {
+  if (status === 'COMPLETED') {
     return (
       <span className="inline-flex items-center gap-2 rounded-full bg-[#0E3127] px-2.5 py-1 text-xs font-medium text-[#A7F3D0]">
         <span className="h-2 w-2 rounded-full bg-[#10B981]" />
         Completed
+      </span>
+    )
+  }
+
+  if (status === 'APPROVED') {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-[#0E3127] px-2.5 py-1 text-xs font-medium text-[#A7F3D0]">
+        <span className="h-2 w-2 rounded-full bg-[#10B981]" />
+        {type === 'WITHDRAW' ? 'Approved' : 'Approved'}
       </span>
     )
   }
@@ -260,10 +275,10 @@ export default function WalletPage() {
               Send only USDT on TRC20 or ERC20 to your assigned address. Any other token or network can result in permanent loss.
             </div>
             <div className="rounded-md border border-[#1F2937] bg-[#0A0E1A] p-4">
-              Deposits are credited automatically after on-chain confirmation.
+              Deposits are credited only after on-chain confirmation and manual admin approval.
             </div>
             <div className="rounded-md border border-[#1F2937] bg-[#0A0E1A] p-4">
-              Withdrawals require control-tower approval before they are sent from treasury.
+              Withdrawals remain pending until approval. Your balance is only reduced when the request is approved.
             </div>
           </div>
         </div>
@@ -328,7 +343,7 @@ export default function WalletPage() {
                       {formatAmount(entry.amount)} {entry.asset}
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4">
-                      <StatusPill status={entry.status} />
+                      <StatusPill status={entry.status} type={entry.type} />
                     </td>
                     <td className="border-b border-[#1F2937] py-4 font-mono text-xs text-[#9CA3AF]">
                       {entry.reference ?? 'System'}
