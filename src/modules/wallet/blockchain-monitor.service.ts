@@ -28,6 +28,14 @@ import {
   TRON_USDT_CONTRACT,
 } from './wallet.constants';
 
+const ERC20_TRANSFER_TOPIC =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+const ERC20_USDT_DECIMALS = 6;
+const ETHEREUM_AVERAGE_BLOCK_TIME_MS = 12_000;
+const ETHEREUM_LOG_SCAN_CHUNK_SIZE = 50_000;
+const INITIAL_ERC20_SCAN_BUFFER_BLOCKS = 7_200;
+const ETHEREUM_RPC_FALLBACK_URL = 'https://ethereum.publicnode.com';
+
 interface DepositDetection {
   txHash: string;
   network: Network;
@@ -45,6 +53,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
   private isRunning = false;
   private readonly tronApiUrl: string;
   private readonly tronApiKey: string;
+  private readonly ethRpcUrls: string[];
   private readonly etherscanApiKey: string;
 
   constructor(
@@ -59,6 +68,10 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
   ) {
     this.tronApiUrl = configService.get<string>('wallet.tronApiUrl') ?? 'https://api.trongrid.io';
     this.tronApiKey = configService.get<string>('wallet.tronApiKey') ?? '';
+    this.ethRpcUrls = [
+      configService.get<string>('wallet.ethRpcUrl') ?? 'https://eth.llamarpc.com',
+      ETHEREUM_RPC_FALLBACK_URL,
+    ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index);
     this.etherscanApiKey = configService.get<string>('wallet.etherscanApiKey') ?? '';
   }
 
@@ -209,67 +222,16 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
         accountId: true,
         address: true,
         network: true,
+        createdAt: true,
       },
     });
 
     for (const entry of addresses) {
-      const url = new URL('https://api.etherscan.io/api');
-      url.searchParams.set('module', 'account');
-      url.searchParams.set('action', 'tokentx');
-      url.searchParams.set('contractaddress', ETH_USDT_CONTRACT);
-      url.searchParams.set('address', entry.address);
-      url.searchParams.set('sort', 'desc');
-
-      if (this.etherscanApiKey) {
-        url.searchParams.set('apikey', this.etherscanApiKey);
-      }
-
       try {
-        const response = await fetch(url.toString(), {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            Accept: 'application/json',
-          },
-        });
+        const detections = await this.fetchERC20Detections(entry.address, entry.createdAt);
 
-        if (!response.ok) {
-          throw new Error(`Etherscan API ${response.status}`);
-        }
-
-        const data = (await response.json()) as {
-          result?: Array<{
-            hash?: string;
-            from?: string;
-            to?: string;
-            value?: string;
-            tokenDecimal?: string;
-            confirmations?: string;
-            timeStamp?: string;
-          }>;
-        };
-
-        for (const tx of data.result ?? []) {
-          if (!tx.hash || !tx.to || tx.to.toLowerCase() !== entry.address.toLowerCase()) {
-            continue;
-          }
-
-          const decimals = Number(tx.tokenDecimal ?? '6');
-          const amount = Number(tx.value ?? '0') / 10 ** decimals;
-          const confirmations = Number(tx.confirmations ?? '0');
-
-          if (!Number.isFinite(amount) || amount <= 0) {
-            continue;
-          }
-
-          await this.processDeposit(entry, {
-            txHash: tx.hash,
-            network: Network.ERC20,
-            amount,
-            fromAddress: tx.from ?? '',
-            toAddress: entry.address,
-            confirmations,
-            detectedAt: new Date(Number(tx.timeStamp ?? '0') * 1000 || Date.now()),
-          });
+        for (const detection of detections) {
+          await this.processDeposit(entry, detection);
         }
       } catch (error) {
         this.logger.warn(
@@ -630,6 +592,283 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       });
     } catch {
       return;
+    }
+  }
+
+  private async fetchERC20Detections(address: string, createdAt: Date) {
+    if (this.etherscanApiKey) {
+      try {
+        return await this.fetchERC20DetectionsFromEtherscan(address);
+      } catch (error) {
+        this.logger.warn(
+          `Etherscan ERC20 scan failed for ${address}, falling back to RPC: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+    }
+
+    return this.fetchERC20DetectionsFromRpc(address, createdAt);
+  }
+
+  private async fetchERC20DetectionsFromEtherscan(address: string): Promise<DepositDetection[]> {
+    const url = new URL('https://api.etherscan.io/v2/api');
+    url.searchParams.set('chainid', '1');
+    url.searchParams.set('module', 'account');
+    url.searchParams.set('action', 'tokentx');
+    url.searchParams.set('contractaddress', ETH_USDT_CONTRACT);
+    url.searchParams.set('address', address);
+    url.searchParams.set('sort', 'desc');
+    url.searchParams.set('page', '1');
+    url.searchParams.set('offset', '100');
+    url.searchParams.set('apikey', this.etherscanApiKey);
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Etherscan API ${response.status}`);
+    }
+
+    const data = (await response.json()) as {
+      status?: string;
+      message?: string;
+      result?:
+        | string
+        | Array<{
+            hash?: string;
+            from?: string;
+            to?: string;
+            value?: string;
+            tokenDecimal?: string;
+            confirmations?: string;
+            timeStamp?: string;
+          }>;
+    };
+
+    if (!Array.isArray(data.result)) {
+      const message =
+        typeof data.result === 'string' && data.result.trim()
+          ? data.result
+          : data.message ?? 'Invalid Etherscan response';
+      throw new Error(message);
+    }
+
+    return data.result
+      .filter((tx) => tx.hash && tx.to && tx.to.toLowerCase() === address.toLowerCase())
+      .map((tx) => {
+        const decimals = Number(tx.tokenDecimal ?? String(ERC20_USDT_DECIMALS));
+        const amount = Number(tx.value ?? '0') / 10 ** decimals;
+        const confirmations = Number(tx.confirmations ?? '0');
+
+        return {
+          txHash: tx.hash ?? '',
+          network: Network.ERC20,
+          amount,
+          fromAddress: tx.from ?? '',
+          toAddress: address,
+          confirmations,
+          detectedAt: new Date(Number(tx.timeStamp ?? '0') * 1000 || Date.now()),
+        };
+      })
+      .filter((tx) => Number.isFinite(tx.amount) && tx.amount > 0);
+  }
+
+  private async fetchERC20DetectionsFromRpc(
+    address: string,
+    createdAt: Date,
+  ): Promise<DepositDetection[]> {
+    const latestBlockNumber = await this.fetchEthereumLatestBlockNumber();
+    const startBlockNumber = await this.resolveEthereumScanStartBlock(
+      address,
+      createdAt,
+      latestBlockNumber,
+    );
+    const blockTimestampCache = new Map<number, Date>();
+    const detections: DepositDetection[] = [];
+
+    for (
+      let fromBlockNumber = startBlockNumber;
+      fromBlockNumber <= latestBlockNumber;
+      fromBlockNumber += ETHEREUM_LOG_SCAN_CHUNK_SIZE
+    ) {
+      const toBlockNumber = Math.min(
+        fromBlockNumber + ETHEREUM_LOG_SCAN_CHUNK_SIZE - 1,
+        latestBlockNumber,
+      );
+      const logs = await this.fetchEthereumRpc<
+        Array<{
+          transactionHash?: string;
+          blockNumber?: string;
+          topics?: string[];
+          data?: string;
+        }>
+      >('eth_getLogs', [
+        {
+          address: ETH_USDT_CONTRACT,
+          fromBlock: this.toEthereumHex(fromBlockNumber),
+          toBlock: this.toEthereumHex(toBlockNumber),
+          topics: [ERC20_TRANSFER_TOPIC, null, this.toEthereumTopicAddress(address)],
+        },
+      ]);
+
+      for (const log of logs) {
+        if (!log.transactionHash || !log.blockNumber) {
+          continue;
+        }
+
+        const blockNumber = this.fromEthereumHex(log.blockNumber);
+        const amount = this.parseErc20Amount(log.data);
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+          continue;
+        }
+
+        detections.push({
+          txHash: log.transactionHash,
+          network: Network.ERC20,
+          amount,
+          fromAddress: this.extractAddressFromTopic(log.topics?.[1]),
+          toAddress: address,
+          confirmations: latestBlockNumber - blockNumber + 1,
+          detectedAt: await this.fetchEthereumBlockTimestamp(blockNumber, blockTimestampCache),
+        });
+      }
+    }
+
+    await this.setLastScannedBlock(address, latestBlockNumber);
+    return detections.sort(
+      (left, right) => right.detectedAt.getTime() - left.detectedAt.getTime(),
+    );
+  }
+
+  private async resolveEthereumScanStartBlock(
+    address: string,
+    createdAt: Date,
+    latestBlockNumber: number,
+  ) {
+    const lastScannedBlock = await this.getLastScannedBlock(address);
+
+    if (lastScannedBlock > 0 && lastScannedBlock <= latestBlockNumber) {
+      return Math.max(
+        lastScannedBlock - NETWORK_CONFIRMATIONS_REQUIRED.ERC20,
+        0,
+      );
+    }
+
+    const ageMs = Math.max(Date.now() - createdAt.getTime(), 0);
+    const estimatedBlocksAgo = Math.ceil(ageMs / ETHEREUM_AVERAGE_BLOCK_TIME_MS);
+
+    return Math.max(
+      latestBlockNumber - estimatedBlocksAgo - INITIAL_ERC20_SCAN_BUFFER_BLOCKS,
+      0,
+    );
+  }
+
+  private async fetchEthereumLatestBlockNumber() {
+    const latestBlockHex = await this.fetchEthereumRpc<string>('eth_blockNumber', []);
+    return this.fromEthereumHex(latestBlockHex);
+  }
+
+  private async fetchEthereumBlockTimestamp(
+    blockNumber: number,
+    cache: Map<number, Date>,
+  ): Promise<Date> {
+    const cached = cache.get(blockNumber);
+
+    if (cached) {
+      return cached;
+    }
+
+    const block = await this.fetchEthereumRpc<{ timestamp?: string } | null>(
+      'eth_getBlockByNumber',
+      [this.toEthereumHex(blockNumber), false],
+    );
+    const timestamp = block?.timestamp
+      ? new Date(this.fromEthereumHex(block.timestamp) * 1000)
+      : new Date();
+
+    cache.set(blockNumber, timestamp);
+    return timestamp;
+  }
+
+  private async fetchEthereumRpc<T>(method: string, params: unknown[]): Promise<T> {
+    let lastError: Error | null = null;
+
+    for (const rpcUrl of this.ethRpcUrls) {
+      try {
+        const response = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: `${method}-${Date.now()}`,
+            method,
+            params,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`RPC ${response.status}`);
+        }
+
+        const text = await response.text();
+        const payload = JSON.parse(text) as {
+          result?: T;
+          error?: {
+            message?: string;
+          };
+        };
+
+        if (payload.error) {
+          throw new Error(payload.error.message ?? 'Unknown RPC error');
+        }
+
+        return payload.result as T;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    throw lastError ?? new Error(`Ethereum RPC ${method} failed`);
+  }
+
+  private toEthereumHex(value: number) {
+    return `0x${Math.max(0, Math.floor(value)).toString(16)}`;
+  }
+
+  private fromEthereumHex(value: string) {
+    return Number.parseInt(value, 16);
+  }
+
+  private toEthereumTopicAddress(address: string) {
+    return `0x000000000000000000000000${address.trim().toLowerCase().replace(/^0x/, '')}`;
+  }
+
+  private extractAddressFromTopic(topic?: string) {
+    if (!topic || topic.length < 40) {
+      return '';
+    }
+
+    return `0x${topic.slice(-40)}`.toLowerCase();
+  }
+
+  private parseErc20Amount(value?: string) {
+    if (!value || value === '0x') {
+      return 0;
+    }
+
+    try {
+      return Number(BigInt(value)) / 10 ** ERC20_USDT_DECIMALS;
+    } catch {
+      return 0;
     }
   }
 }
