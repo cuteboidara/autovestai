@@ -16,5 +16,7 @@ COPY prisma ./prisma
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy || true; echo 'starting node'; node dist/main"]
+CMD ["./start.sh"]
