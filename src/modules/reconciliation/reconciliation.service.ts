@@ -16,6 +16,7 @@ import {
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { roundTo, toDecimal, toNumber } from '../../common/utils/decimal';
+import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
 import { normalizeTreasuryNetwork } from '../treasury/treasury.constants';
 import {
@@ -270,6 +271,7 @@ export class ReconciliationService implements OnModuleInit, OnModuleDestroy {
     private readonly treasuryService: TreasuryService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly brokerSettingsService: BrokerSettingsService,
   ) {}
 
   onModuleInit(): void {
@@ -534,18 +536,16 @@ export class ReconciliationService implements OnModuleInit, OnModuleDestroy {
   }
 
   private getConfigSnapshot(): ReconciliationConfigSnapshot {
+    const treasuryWalletSettings = this.brokerSettingsService.getTreasuryWalletSettings();
+
     return {
       asset:
         (this.configService.get<string>('treasury.asset') ??
           RECONCILIATION_SUPPORTED_ASSET)
           .trim()
           .toUpperCase(),
-      network: normalizeTreasuryNetwork(
-        this.configService.get<string>('treasury.network') ?? 'TRC20',
-      ),
-      configuredTreasuryWalletAddress:
-        this.configService.get<string>('treasury.masterWalletAddress')?.trim() ||
-        null,
+      network: treasuryWalletSettings.network,
+      configuredTreasuryWalletAddress: treasuryWalletSettings.masterWalletAddress,
       tolerance:
         this.configService.get<number>('reconciliation.tolerance') ??
         RECONCILIATION_DEFAULT_TOLERANCE,

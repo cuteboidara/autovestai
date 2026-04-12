@@ -23,6 +23,13 @@ export interface AffiliateLevelRates {
   level3Percent: number;
 }
 
+export interface TreasuryWalletSettings {
+  network: 'TRC20' | 'ERC20';
+  masterWalletTrc20: string | null;
+  masterWalletErc20: string | null;
+  masterWalletAddress: string | null;
+}
+
 export const BROKER_SETTINGS_KEYS = {
   tradingEnabled: 'features.tradingEnabled',
   registrationsEnabled: 'features.registrationsEnabled',
@@ -35,6 +42,8 @@ export const BROKER_SETTINGS_KEYS = {
   affiliateLevel1Percent: 'affiliate.level1Percent',
   affiliateLevel2Percent: 'affiliate.level2Percent',
   affiliateLevel3Percent: 'affiliate.level3Percent',
+  masterWalletTrc20: 'treasury.masterWalletTrc20',
+  masterWalletErc20: 'treasury.masterWalletErc20',
 } as const;
 
 export const DEFAULT_BROKER_FEATURE_SETTINGS: BrokerFeatureSettings = {

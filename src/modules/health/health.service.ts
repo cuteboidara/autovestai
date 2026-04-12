@@ -155,6 +155,7 @@ export class HealthService {
   }
 
   async getReadinessChecklist() {
+    const treasuryWalletSettings = this.brokerSettingsService.getTreasuryWalletSettings();
     const [
       database,
       redis,
@@ -185,11 +186,8 @@ export class HealthService {
       getTreasuryBalanceSnapshotModel(this.prismaService).findFirst({
         where: {
           asset: 'USDT',
-          network: normalizeTreasuryNetwork(
-            this.configService.get<string>('treasury.network') ?? 'TRC20',
-          ),
-          walletAddress:
-            this.configService.get<string>('treasury.masterWalletAddress')?.trim() || undefined,
+          network: treasuryWalletSettings.network,
+          walletAddress: treasuryWalletSettings.masterWalletAddress || undefined,
         },
         orderBy: [{ observedAt: 'desc' }, { createdAt: 'desc' }],
       }),
@@ -197,8 +195,7 @@ export class HealthService {
     ]);
 
     const symbolConfigs = this.brokerSettingsService.getAllSymbolConfigs();
-    const treasuryWalletAddress =
-      this.configService.get<string>('treasury.masterWalletAddress')?.trim() ?? '';
+    const treasuryWalletAddress = treasuryWalletSettings.masterWalletAddress ?? '';
     const treasurySnapshotStaleHours =
       this.configService.get<number>('treasury.staleSnapshotHours') ?? 24;
     const treasurySnapshotAgeHours = latestTreasurySnapshot

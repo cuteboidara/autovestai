@@ -287,6 +287,10 @@ export interface BrokerSettingsResponse {
     level2Percent: number;
     level3Percent: number;
   };
+  treasury: {
+    masterWalletTrc20: string | null;
+    masterWalletErc20: string | null;
+  };
 }
 
 export interface SymbolConfigRecord {

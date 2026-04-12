@@ -74,6 +74,8 @@ export default function AdminSettingsPage() {
         level1Percent: settings.affiliateLevels.level1Percent,
         level2Percent: settings.affiliateLevels.level2Percent,
         level3Percent: settings.affiliateLevels.level3Percent,
+        masterWalletTrc20: settings.treasury.masterWalletTrc20,
+        masterWalletErc20: settings.treasury.masterWalletErc20,
       });
       pushNotification({
         title: 'Settings updated',
@@ -337,6 +339,42 @@ export default function AdminSettingsPage() {
                           affiliateLevels: {
                             ...current.affiliateLevels,
                             level3Percent: Number(event.target.value),
+                          },
+                        }
+                      : current,
+                  )
+                }
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input
+                label="TRC20 master wallet"
+                value={settings.treasury.masterWalletTrc20 ?? ''}
+                onChange={(event) =>
+                  setSettings((current) =>
+                    current
+                      ? {
+                          ...current,
+                          treasury: {
+                            ...current.treasury,
+                            masterWalletTrc20: event.target.value,
+                          },
+                        }
+                      : current,
+                  )
+                }
+              />
+              <Input
+                label="ERC20 master wallet"
+                value={settings.treasury.masterWalletErc20 ?? ''}
+                onChange={(event) =>
+                  setSettings((current) =>
+                    current
+                      ? {
+                          ...current,
+                          treasury: {
+                            ...current.treasury,
+                            masterWalletErc20: event.target.value,
                           },
                         }
                       : current,

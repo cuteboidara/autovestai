@@ -5,6 +5,7 @@ import { Prisma, TransactionStatus, TransactionType } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { roundTo, toDecimal, toNumber } from '../../common/utils/decimal';
+import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateTreasuryBalanceSnapshotDto } from './dto/create-treasury-balance-snapshot.dto';
 import { ListTreasuryBalanceSnapshotsQueryDto } from './dto/list-treasury-balance-snapshots-query.dto';
@@ -95,6 +96,7 @@ export class TreasuryService {
     private readonly prismaService: PrismaService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly brokerSettingsService: BrokerSettingsService,
     private readonly manualTreasuryBalanceProvider: ManualTreasuryBalanceProvider,
     private readonly explorerTreasuryBalanceProvider: ExplorerTreasuryBalanceProvider,
   ) {}
@@ -393,18 +395,17 @@ export class TreasuryService {
   }
 
   private getConfigSnapshot(): TreasuryConfigSnapshot {
+    const treasuryWalletSettings = this.brokerSettingsService.getTreasuryWalletSettings();
+
     return {
       asset: TREASURY_SUPPORTED_ASSET,
-      network: normalizeTreasuryNetwork(
-        this.configService.get<string>('treasury.network') ?? 'TRC20',
-      ),
-      masterWalletAddress:
-        this.configService.get<string>('treasury.masterWalletAddress')?.trim() || null,
+      network: treasuryWalletSettings.network,
+      masterWalletAddress: treasuryWalletSettings.masterWalletAddress,
       explorerBaseUrl:
         this.configService.get<string>('treasury.explorerBaseUrl')?.trim() || null,
       monitoringMode:
         (this.configService.get<string>('treasury.monitoringMode') ?? 'manual').toLowerCase() ===
-        'api'
+          'api'
           ? 'api'
           : 'manual',
       staleSnapshotHours:

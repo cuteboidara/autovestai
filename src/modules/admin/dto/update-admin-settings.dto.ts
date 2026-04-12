@@ -59,4 +59,14 @@ export class UpdateAdminSettingsDto {
   @Min(0)
   @Max(100)
   level3Percent?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  masterWalletTrc20?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  masterWalletErc20?: string;
 }

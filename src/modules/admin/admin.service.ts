@@ -210,6 +210,7 @@ export class AdminService {
   }
 
   async getOverview() {
+    const treasuryWalletSettings = this.brokerSettingsService.getTreasuryWalletSettings();
     const [
       totalUsers,
       totalBalances,
@@ -327,10 +328,8 @@ export class AdminService {
       },
       affiliateCommissions,
       treasury: {
-        masterWalletTrc20:
-          this.configService.get<string>('wallet.masterWalletTrc20')?.trim() || null,
-        masterWalletErc20:
-          this.configService.get<string>('wallet.masterWalletErc20')?.trim() || null,
+        masterWalletTrc20: treasuryWalletSettings.masterWalletTrc20,
+        masterWalletErc20: treasuryWalletSettings.masterWalletErc20,
         pendingWithdrawalAmount: toNumber(pendingWithdrawalAmount._sum.netAmount) ?? 0,
       },
     };

@@ -4,10 +4,12 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { SymbolsService } from '../symbols/symbols.service';
+import { normalizeTreasuryNetwork } from '../treasury/treasury.constants';
 import {
   AffiliateLevelRates,
   BROKER_SETTINGS_KEYS,
@@ -15,6 +17,7 @@ import {
   BrokerSymbolConfig,
   DEFAULT_AFFILIATE_LEVEL_RATES,
   DEFAULT_BROKER_FEATURE_SETTINGS,
+  TreasuryWalletSettings,
 } from './broker-settings.constants';
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
 import { UpdateSymbolConfigDto } from './dto/update-symbol-config.dto';
@@ -26,6 +29,7 @@ export class BrokerSettingsService implements OnModuleInit {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly symbolsService: SymbolsService,
+    private readonly configService: ConfigService,
   ) {
     this.seedDefaultCache();
   }
@@ -91,6 +95,32 @@ export class BrokerSettingsService implements OnModuleInit {
         BROKER_SETTINGS_KEYS.affiliateLevel3Percent,
         DEFAULT_AFFILIATE_LEVEL_RATES.level3Percent,
       ),
+    };
+  }
+
+  getTreasuryWalletSettings(): TreasuryWalletSettings {
+    const network = normalizeTreasuryNetwork(
+      this.configService.get<string>('treasury.network') ?? 'TRC20',
+    ) as TreasuryWalletSettings['network'];
+    const legacyMasterWalletAddress =
+      this.readConfigString('treasury.masterWalletAddress');
+    const masterWalletTrc20 =
+      this.getOptionalStringValue(BROKER_SETTINGS_KEYS.masterWalletTrc20) ??
+      this.readConfigString('wallet.masterWalletTrc20') ??
+      (network === 'TRC20' ? legacyMasterWalletAddress : null);
+    const masterWalletErc20 =
+      this.getOptionalStringValue(BROKER_SETTINGS_KEYS.masterWalletErc20) ??
+      this.readConfigString('wallet.masterWalletErc20') ??
+      (network === 'ERC20' ? legacyMasterWalletAddress : null);
+
+    return {
+      network,
+      masterWalletTrc20,
+      masterWalletErc20,
+      masterWalletAddress:
+        network === 'TRC20'
+          ? masterWalletTrc20 ?? legacyMasterWalletAddress
+          : masterWalletErc20 ?? legacyMasterWalletAddress,
     };
   }
 
@@ -169,6 +199,10 @@ export class BrokerSettingsService implements OnModuleInit {
     return {
       features: this.getFeatureSettings(),
       affiliateLevels: this.getAffiliateLevelRates(),
+      treasury: {
+        masterWalletTrc20: this.getTreasuryWalletSettings().masterWalletTrc20,
+        masterWalletErc20: this.getTreasuryWalletSettings().masterWalletErc20,
+      },
     };
   }
 
@@ -274,6 +308,24 @@ export class BrokerSettingsService implements OnModuleInit {
       );
     }
 
+    if (dto.masterWalletTrc20 !== undefined) {
+      operations.push(
+        this.setSettingValue(
+          BROKER_SETTINGS_KEYS.masterWalletTrc20,
+          dto.masterWalletTrc20.trim(),
+        ),
+      );
+    }
+
+    if (dto.masterWalletErc20 !== undefined) {
+      operations.push(
+        this.setSettingValue(
+          BROKER_SETTINGS_KEYS.masterWalletErc20,
+          dto.masterWalletErc20.trim(),
+        ),
+      );
+    }
+
     await Promise.all(operations);
     return this.getSettingsSummary();
   }
@@ -362,6 +414,8 @@ export class BrokerSettingsService implements OnModuleInit {
         BROKER_SETTINGS_KEYS.affiliateLevel3Percent,
         DEFAULT_AFFILIATE_LEVEL_RATES.level3Percent,
       ],
+      [BROKER_SETTINGS_KEYS.masterWalletTrc20, ''],
+      [BROKER_SETTINGS_KEYS.masterWalletErc20, ''],
       ...this.symbolsService.listSymbols().flatMap((symbol) => {
         const defaults = this.getDefaultSymbolConfig(symbol);
 
@@ -452,6 +506,28 @@ export class BrokerSettingsService implements OnModuleInit {
     }
 
     return fallback;
+  }
+
+  private getOptionalStringValue(key: string): string | null {
+    const value = this.cache.get(key);
+
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  private readConfigString(key: string): string | null {
+    const value = this.configService.get<string>(key);
+
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : null;
   }
 
   private getSymbolKey(
