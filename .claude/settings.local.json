@@ -10,7 +10,9 @@
       "Bash(npm test:*)",
       "Bash(npm --prefix frontend run build)",
       "Bash(grep -E \"^dist|^\\\\.env$|^node_modules|frontend/.next|frontend/node\")",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(NODE_ENV=production node dist/main)",
+      "Bash(echo \"EXIT CODE: $?\")"
     ]
   }
 }
