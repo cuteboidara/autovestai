@@ -19,15 +19,12 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log'],
     });
     app.enableCors({
-      origin:
-        process.env.NODE_ENV === 'production'
-          ? [
-              'https://autovestai.io',
-              'https://www.autovestai.io',
-              'https://autovestai.vercel.app',
-              process.env.FRONTEND_URL,
-            ].filter((v): v is string => Boolean(v))
-          : ['http://localhost:3001', 'http://localhost:3000'],
+      origin: [
+        'https://autovestai.io',
+        'https://www.autovestai.io',
+        'https://autovestai.vercel.app',
+        process.env.FRONTEND_URL,
+      ].filter((v): v is string => Boolean(v)),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
