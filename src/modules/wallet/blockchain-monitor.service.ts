@@ -299,6 +299,13 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
         : detection.confirmations > 0
           ? DepositStatus.CONFIRMING
           : DepositStatus.PENDING;
+    const wallet = await this.prismaService.wallet.findUnique({
+      where: { userId: addressRecord.userId },
+      select: { id: true },
+    });
+    let shouldNotifyPendingReview = false;
+    let shouldRefreshWalletView = false;
+    let depositRecordId = existing?.id ?? detection.txHash;
 
     if (existing?.creditedAt) {
       if (existing.confirmations !== detection.confirmations) {
@@ -313,53 +320,13 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    if (nextStatus !== DepositStatus.COMPLETED) {
-      if (!existing) {
-        await this.prismaService.deposit.create({
-          data: {
-            userId: addressRecord.userId,
-            accountId: addressRecord.accountId,
-            txHash: detection.txHash,
-            network: detection.network,
-            amount: toDecimal(detection.amount),
-            usdtAmount: toDecimal(detection.amount),
-            fromAddress: detection.fromAddress,
-            toAddress: detection.toAddress,
-            confirmations: detection.confirmations,
-            status: nextStatus,
-            creditedAt: null,
-            createdAt: detection.detectedAt,
-          },
-        });
-      } else {
-        await this.prismaService.deposit.update({
-          where: { id: existing.id },
-          data: {
-            confirmations: detection.confirmations,
-            status: nextStatus,
-            creditedAt: null,
-          },
-        });
-      }
-
-      return;
-    }
-
-    const wallet = await this.prismaService.wallet.findUnique({
-      where: { userId: addressRecord.userId },
-      select: { id: true },
-    });
-    let shouldNotifyPendingReview = false;
-    let shouldRefreshWalletView = !existing;
-    let depositRecordId = existing?.id ?? detection.txHash;
-
     await this.prismaService.$transaction(async (tx) => {
       const depositRecord = existing
         ? await tx.deposit.update({
             where: { id: existing.id },
             data: {
               confirmations: detection.confirmations,
-              status: DepositStatus.COMPLETED,
+              status: nextStatus,
               creditedAt: null,
             },
           })
@@ -374,7 +341,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
               fromAddress: detection.fromAddress,
               toAddress: detection.toAddress,
               confirmations: detection.confirmations,
-              status: DepositStatus.COMPLETED,
+              status: nextStatus,
               creditedAt: null,
               createdAt: detection.detectedAt,
             },
@@ -384,7 +351,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       shouldRefreshWalletView =
         shouldRefreshWalletView ||
         !existing ||
-        existing.status !== DepositStatus.COMPLETED ||
+        existing.status !== nextStatus ||
         existing.confirmations !== detection.confirmations;
 
       const recentLedgerTransactions = await tx.transaction.findMany({
@@ -419,6 +386,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
         const nextLedgerStatus = this.resolveDetectedDepositLedgerStatus(linkedLedger.status);
 
         shouldNotifyPendingReview =
+          nextStatus === DepositStatus.COMPLETED &&
           nextLedgerStatus === TransactionStatus.PENDING &&
           (txHashChanged || !existing || existing.status !== DepositStatus.COMPLETED);
         shouldRefreshWalletView =
@@ -426,7 +394,8 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
           txHashChanged ||
           linkedLedger.status !== nextLedgerStatus ||
           linkedLedger.walletId !== (wallet?.id ?? linkedLedger.walletId) ||
-          metadata.confirmations !== detection.confirmations;
+          metadata.confirmations !== detection.confirmations ||
+          metadata.depositStatus !== nextStatus;
 
         await tx.transaction.update({
           where: { id: linkedLedger.id },
@@ -441,14 +410,16 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
               fromAddress: detection.fromAddress,
               toAddress: detection.toAddress,
               confirmations: detection.confirmations,
+              confirmationsRequired,
               autoDetected: true,
               depositId: depositRecord.id,
+              depositStatus: nextStatus,
               explorerUrl: `${NETWORK_EXPLORER_BASES[detection.network]}${detection.txHash}`,
             } as Prisma.InputJsonObject,
           },
         });
       } else {
-        shouldNotifyPendingReview = true;
+        shouldNotifyPendingReview = nextStatus === DepositStatus.COMPLETED;
         shouldRefreshWalletView = true;
 
         await tx.transaction.create({
@@ -467,8 +438,10 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
               fromAddress: detection.fromAddress,
               toAddress: detection.toAddress,
               confirmations: detection.confirmations,
+              confirmationsRequired,
               autoDetected: true,
               depositId: depositRecord.id,
+              depositStatus: nextStatus,
               explorerUrl: `${NETWORK_EXPLORER_BASES[detection.network]}${detection.txHash}`,
             } as Prisma.InputJsonObject,
           },
@@ -488,7 +461,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
       ]);
     }
 
-    if (!shouldNotifyPendingReview) {
+    if (nextStatus !== DepositStatus.COMPLETED || !shouldNotifyPendingReview) {
       return;
     }
 

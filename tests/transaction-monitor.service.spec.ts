@@ -53,15 +53,44 @@ describe('BlockchainMonitorService', () => {
   }
 
   it('stores incomplete deposits without crediting balances', async () => {
+    const txTransactionCreate = jest.fn().mockResolvedValue(undefined);
     const prismaService = {
       deposit: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue(undefined),
         update: jest.fn(),
       },
-      $transaction: jest.fn(),
+      wallet: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'wallet-1',
+        }),
+      },
+      $transaction: jest.fn(async (callback: (tx: any) => unknown) =>
+        callback({
+          deposit: {
+            create: jest.fn().mockResolvedValue({
+              id: 'deposit-1',
+            }),
+            update: jest.fn(),
+          },
+          transaction: {
+            findMany: jest.fn().mockResolvedValue([]),
+            create: txTransactionCreate,
+            update: jest.fn(),
+          },
+        })),
     };
-    const service = createService({ prismaService });
+    const accountsService = {
+      syncLegacyWalletSnapshot: jest.fn().mockResolvedValue(undefined),
+    };
+    const responseCacheService = {
+      invalidateUserResources: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = createService({
+      prismaService,
+      accountsService,
+      responseCacheService,
+    });
 
     await (service as any).processDeposit(
       {
@@ -81,16 +110,29 @@ describe('BlockchainMonitorService', () => {
       },
     );
 
-    expect(prismaService.deposit.create).toHaveBeenCalledWith(
+    expect(txTransactionCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          txHash: 'trx-1',
-          status: DepositStatus.PENDING,
-          amount: new Prisma.Decimal(100),
+          userId: 'user-1',
+          walletId: 'wallet-1',
+          type: 'DEPOSIT',
+          asset: 'USDT',
+          status: TransactionStatus.PENDING,
+          reference: 'trx-1',
+          metadata: expect.objectContaining({
+            autoDetected: true,
+            depositId: 'deposit-1',
+            depositStatus: DepositStatus.PENDING,
+            confirmations: 0,
+          }),
         }),
       }),
     );
-    expect(prismaService.$transaction).not.toHaveBeenCalled();
+    expect(accountsService.syncLegacyWalletSnapshot).toHaveBeenCalledWith(
+      'user-1',
+      'account-1',
+    );
+    expect(responseCacheService.invalidateUserResources).toHaveBeenCalled();
   });
 
   it('records completed deposits as pending admin review without crediting balances', async () => {
@@ -173,6 +215,12 @@ describe('BlockchainMonitorService', () => {
           asset: 'USDT',
           status: TransactionStatus.PENDING,
           reference: 'trx-1',
+          metadata: expect.objectContaining({
+            autoDetected: true,
+            depositId: 'deposit-1',
+            depositStatus: DepositStatus.COMPLETED,
+            confirmations: 1,
+          }),
         }),
       }),
     );

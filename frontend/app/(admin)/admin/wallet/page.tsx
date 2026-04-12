@@ -119,9 +119,10 @@ export default function AdminWalletPage() {
     }
 
     return Boolean(
-      item.metadata?.autoDetected === true ||
-        (typeof item.metadata?.depositId === 'string' &&
-          item.metadata.depositId.trim().length > 0),
+      item.metadata?.autoDetected === true &&
+        typeof item.metadata?.depositId === 'string' &&
+        item.metadata.depositId.trim().length > 0 &&
+        item.metadata?.depositStatus === 'COMPLETED',
     );
   }
 
