@@ -28,6 +28,7 @@ import { AccountsService } from '../accounts/accounts.service';
 import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
 import { KycService } from '../kyc/kyc.service';
+import { EmailService } from '../email/email.service';
 import { CopyExecutionService } from './copy-execution.service';
 import { CopyTradingQueueService } from './copy-trading-queue.service';
 import {
@@ -137,6 +138,7 @@ export class CopyTradingService {
     private readonly accountsService: AccountsService,
     private readonly copyTradingQueueService: CopyTradingQueueService,
     private readonly copyExecutionService: CopyExecutionService,
+    private readonly emailService: EmailService,
   ) {}
 
   async listProviders(query: ListSignalProvidersQueryDto) {
@@ -466,6 +468,11 @@ export class CopyTradingService {
     });
 
     await this.refreshProviderStats(provider.id);
+
+    this.emailService
+      .sendCopyStarted(userId, provider.displayName)
+      .catch(() => {});
+
     return this.getCopyRelationById(userId, relation.id);
   }
 
@@ -574,6 +581,16 @@ export class CopyTradingService {
     });
 
     await this.refreshProviderStats(existing.providerId);
+
+    const provider = await this.prismaService.signalProvider.findUnique({
+      where: { id: existing.providerId },
+      select: { displayName: true },
+    });
+
+    this.emailService
+      .sendCopyStopped(userId, provider?.displayName ?? 'Unknown')
+      .catch(() => {});
+
     return { success: true };
   }
 

@@ -22,7 +22,7 @@ const navLinks = [
   { label: 'Platforms', href: '#platforms' },
   { label: 'Copy Trading', href: '#platforms' },
   { label: 'Affiliate', href: '#platforms' },
-  { label: 'About', href: '#about' },
+  { label: 'About', href: '/about' },
 ] as const;
 
 const trustBadges = [
@@ -81,15 +81,30 @@ const stats = [
 const footerColumns = [
   {
     title: 'Products',
-    links: ['Terminal', 'Copy Trading', 'Affiliate', 'API'],
+    links: [
+      { label: 'Terminal', href: '/login' },
+      { label: 'Copy Trading', href: '/login' },
+      { label: 'Affiliate', href: '/login' },
+      { label: 'API', href: '/login' },
+    ],
   },
   {
     title: 'Company',
-    links: ['About', 'Careers', 'Legal', 'Privacy Policy'],
+    links: [
+      { label: 'About', href: '/about' },
+      { label: 'Careers', href: '/careers' },
+      { label: 'Legal', href: '/legal' },
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+    ],
   },
   {
     title: 'Support',
-    links: ['Help Center', 'Contact', 'FAQ', 'Status'],
+    links: [
+      { label: 'Help Center', href: '/help-center' },
+      { label: 'Contact', href: '/contact' },
+      { label: 'FAQ', href: '/faq' },
+      { label: 'Status', href: '/status' },
+    ],
   },
 ] as const;
 
@@ -597,11 +612,11 @@ export function MarketingHomePage() {
               <div className="mt-5 flex flex-col gap-3">
                 {column.links.map((link) => (
                   <Link
-                    key={link}
-                    href="#"
+                    key={link.label}
+                    href={link.href}
                     className="text-sm text-[#9CA3AF] transition hover:text-white"
                   >
-                    {link}
+                    {link.label}
                   </Link>
                 ))}
               </div>

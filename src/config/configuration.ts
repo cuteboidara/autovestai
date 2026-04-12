@@ -76,6 +76,9 @@ export default () => ({
       process.env.EMAIL_ENCRYPTION_SECRET ??
       process.env.JWT_SECRET ??
       'local-dev-secret',
+    sendgridApiKey: process.env.SENDGRID_API_KEY ?? '',
+    sendgridFromEmail:
+      process.env.SENDGRID_FROM_EMAIL ?? 'noreply@autovestai.com',
   },
   wallet: {
     masterMnemonic:

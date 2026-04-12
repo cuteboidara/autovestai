@@ -14,6 +14,7 @@ import {
   serializeTransaction,
 } from '../../common/utils/serializers';
 import { AuditService } from '../audit/audit.service';
+import { EmailService } from '../email/email.service';
 import { PricingService } from '../pricing/pricing.service';
 import { RiskService } from '../risk/risk.service';
 import { TradingEventsService } from '../trading/trading-events.service';
@@ -39,6 +40,7 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
   private readonly intervalMs = 1000;
   private timer?: NodeJS.Timeout;
   private isProcessing = false;
+  private readonly marginCallSentAt = new Map<string, number>();
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -47,6 +49,7 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
     private readonly positionsService: PositionsService,
     private readonly auditService: AuditService,
     private readonly tradingEventsService: TradingEventsService,
+    private readonly emailService: EmailService,
   ) {}
 
   onModuleInit(): void {
@@ -234,6 +237,16 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
           });
         }
 
+        if (marginLevel !== null && marginLevel <= 100 && marginLevel > 50) {
+          const lastSent = this.marginCallSentAt.get(account.userId) ?? 0;
+          if (Date.now() - lastSent > 30 * 60 * 1000) {
+            this.marginCallSentAt.set(account.userId, Date.now());
+            this.emailService
+              .sendMarginCall(account.userId, marginLevel.toFixed(2))
+              .catch(() => {});
+          }
+        }
+
         await this.handleLiquidationIfNeeded(account.userId, account, userPositions, {
           equity,
           usedMargin,
@@ -264,6 +277,10 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
     this.logger.warn(
       `Stop out triggered for ${userId} at margin level ${metrics.marginLevel.toFixed(4)}`,
     );
+
+    this.emailService
+      .sendStopOut(userId, metrics.marginLevel.toFixed(2))
+      .catch(() => {});
 
     const liquidationQueue = [...userPositions].sort((left, right) => left.pnl - right.pnl);
     let currentUsedMargin = metrics.usedMargin;

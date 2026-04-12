@@ -29,6 +29,7 @@ import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { KycService } from '../kyc/kyc.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import { TradingEventsService } from '../trading/trading-events.service';
+import { EmailService } from '../email/email.service';
 import { AddressGeneratorService } from './address-generator.service';
 import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
 import { ListDepositsQueryDto } from './dto/list-deposits-query.dto';
@@ -72,6 +73,7 @@ export class WalletService {
     private readonly addressGeneratorService: AddressGeneratorService,
     private readonly withdrawalsService: WithdrawalsService,
     private readonly responseCacheService: ResponseCacheService,
+    private readonly emailService: EmailService,
   ) {}
 
   async getWallet(userId: string) {
@@ -238,6 +240,10 @@ export class WalletService {
       'transactions',
       'accounts',
     ]);
+
+    this.emailService
+      .sendDepositPending(userId, dto.amount.toFixed(2))
+      .catch(() => {});
 
     return serializeTransaction(transaction);
   }
@@ -576,6 +582,16 @@ export class WalletService {
         },
       });
 
+      if (transaction.type === TransactionType.DEPOSIT) {
+        this.emailService
+          .sendDepositRejected(
+            rejected.userId,
+            rejected.amount.toNumber().toFixed(2),
+            reason ?? 'Rejected by admin',
+          )
+          .catch(() => {});
+      }
+
       return serializeTransaction(rejected);
     }
 
@@ -695,6 +711,15 @@ export class WalletService {
         type: updatedTransaction.type,
       },
     });
+
+    if (updatedTransaction.type === TransactionType.DEPOSIT) {
+      this.emailService
+        .sendDepositApproved(
+          updatedTransaction.userId,
+          updatedTransaction.amount.toNumber().toFixed(2),
+        )
+        .catch(() => {});
+    }
 
     if (
       updatedTransaction.type === TransactionType.DEPOSIT &&

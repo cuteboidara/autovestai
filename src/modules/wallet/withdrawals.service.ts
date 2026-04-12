@@ -22,6 +22,7 @@ import { AdminChatService } from '../admin-chat/admin-chat.service';
 import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
+import { EmailService } from '../email/email.service';
 import { KycService } from '../kyc/kyc.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import {
@@ -42,6 +43,7 @@ export class WithdrawalsService {
     private readonly surveillanceService: SurveillanceService,
     private readonly responseCacheService: ResponseCacheService,
     private readonly crmService: CrmService,
+    private readonly emailService: EmailService,
   ) {}
 
   async listUserWithdrawals(userId: string, accountId?: string | null) {
@@ -196,6 +198,10 @@ export class WithdrawalsService {
       `Withdrawal request: ${params.amount.toLocaleString('en-US')} USDT (${params.network}) from ${userId} to ${params.toAddress.trim()}`,
     );
 
+    this.emailService
+      .sendWithdrawalRequested(userId, params.amount.toFixed(2))
+      .catch(() => {});
+
     await this.accountsService.syncLegacyWalletSnapshot(userId, account.id);
     await this.responseCacheService.invalidateUserResources(userId, [
       'transactions',
@@ -300,6 +306,13 @@ export class WithdrawalsService {
       },
     });
 
+    this.emailService
+      .sendWithdrawalApproved(
+        updated.userId,
+        (toNumber(updated.amount) ?? 0).toFixed(2),
+      )
+      .catch(() => {});
+
     await this.accountsService.syncLegacyWalletSnapshot(updated.userId, updated.accountId);
     await this.responseCacheService.invalidateUserResources(updated.userId, [
       'transactions',
@@ -375,6 +388,14 @@ export class WithdrawalsService {
         reason: rejectionReason,
       },
     });
+
+    this.emailService
+      .sendWithdrawalRejected(
+        updated.userId,
+        (toNumber(updated.amount) ?? 0).toFixed(2),
+        rejectionReason,
+      )
+      .catch(() => {});
 
     await this.accountsService.syncLegacyWalletSnapshot(updated.userId, updated.accountId);
     await this.responseCacheService.invalidateUserResources(updated.userId, [

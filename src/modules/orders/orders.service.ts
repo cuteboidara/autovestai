@@ -40,6 +40,7 @@ import { PricingService } from '../pricing/pricing.service';
 import { RebatesService } from '../rebates/rebates.service';
 import { RiskService } from '../risk/risk.service';
 import { SymbolsService } from '../symbols/symbols.service';
+import { EmailService } from '../email/email.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import { TradingEventsService } from '../trading/trading-events.service';
 import { KycService } from '../kyc/kyc.service';
@@ -95,6 +96,7 @@ export class OrdersService {
     @Inject(forwardRef(() => CopyTradingService))
     private readonly copyTradingService: CopyTradingService,
     private readonly dealingDeskService: DealingDeskService,
+    private readonly emailService: EmailService,
   ) {}
 
   async placeOrder(userId: string, dto: PlaceOrderDto) {
@@ -508,6 +510,18 @@ export class OrdersService {
         ),
         execution: serializeTradeExecution(result.execution),
       });
+
+      if (order.sourceType === OrderSourceType.MANUAL) {
+        const priorTradeCount = await this.prismaService.tradeExecution.count({
+          where: { userId: order.userId },
+        });
+        if (priorTradeCount === 1) {
+          this.emailService
+            .sendFirstTrade(order.userId, order.symbol)
+            .catch(() => {});
+        }
+      }
+
       await this.accountsService.syncLegacyWalletSnapshot(
         order.userId,
         order.accountId,

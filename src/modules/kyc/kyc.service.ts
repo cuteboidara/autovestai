@@ -10,6 +10,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { AdminChatService } from '../admin-chat/admin-chat.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
+import { EmailService } from '../email/email.service';
 import { SubmitKycDto } from './dto/submit-kyc.dto';
 import {
   KYC_APPROVAL_REQUIRED_MESSAGE,
@@ -22,6 +23,7 @@ export class KycService {
     private readonly prismaService: PrismaService,
     private readonly auditService: AuditService,
     private readonly crmService: CrmService,
+    private readonly emailService: EmailService,
     private readonly adminChatService: AdminChatService,
   ) {}
 
@@ -97,6 +99,8 @@ export class KycService {
         `${user.accountNumber} submitted KYC documents for review`,
       );
     }
+
+    this.emailService.sendKycSubmitted(userId).catch(() => {});
 
     return submission;
   }
@@ -312,6 +316,8 @@ export class KycService {
       status: KycStatus.APPROVED,
     });
 
+    this.emailService.sendKycApproved(approved.userId).catch(() => {});
+
     return approved;
   }
 
@@ -375,6 +381,10 @@ export class KycService {
       status: KycStatus.REJECTED,
       reason,
     });
+
+    this.emailService
+      .sendKycRejected(rejected.userId, reason ?? 'Additional information required')
+      .catch(() => {});
 
     return rejected;
   }

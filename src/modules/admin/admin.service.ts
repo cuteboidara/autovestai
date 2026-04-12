@@ -26,6 +26,7 @@ import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
 import { UpdateSymbolConfigDto } from './dto/update-symbol-config.dto';
 import { DealingDeskService } from '../dealing-desk/dealing-desk.service';
+import { EmailService } from '../email/email.service';
 import { KycService } from '../kyc/kyc.service';
 import { AdminPolicyService } from '../rbac/admin-policy.service';
 import { SymbolsService } from '../symbols/symbols.service';
@@ -47,6 +48,7 @@ export class AdminService {
     private readonly auditService: AuditService,
     private readonly symbolsService: SymbolsService,
     private readonly pricingService: PricingService,
+    private readonly emailService: EmailService,
   ) {}
 
   listPendingTransactions() {
@@ -931,6 +933,12 @@ export class AdminService {
         accountIds: user.accounts.map((account) => account.id),
       },
     });
+
+    if (nextStatus === AccountStatus.SUSPENDED) {
+      this.emailService.sendAccountSuspended(user.id).catch(() => {});
+    } else if (nextStatus === AccountStatus.ACTIVE) {
+      this.emailService.sendAccountActivated(user.id).catch(() => {});
+    }
 
     const defaultAccount = user.accounts.find((account) => account.isDefault) ?? user.accounts[0];
 

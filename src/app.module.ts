@@ -42,6 +42,7 @@ import { ReconciliationModule } from './modules/reconciliation/reconciliation.mo
 import { SurveillanceModule } from './modules/surveillance/surveillance.module';
 import { TreasuryModule } from './modules/treasury/treasury.module';
 import { CrmModule } from './modules/crm/crm.module';
+import { EmailModule } from './modules/email/email.module';
 import { AdminChatModule } from './modules/admin-chat/admin-chat.module';
 
 @Module({
@@ -80,6 +81,7 @@ import { AdminChatModule } from './modules/admin-chat/admin-chat.module';
     DealingDeskModule,
     KycModule,
     CrmModule,
+    EmailModule,
     AdminChatModule,
     OrdersModule,
     PositionsModule,

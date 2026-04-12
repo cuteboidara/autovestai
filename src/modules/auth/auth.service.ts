@@ -17,6 +17,7 @@ import { AffiliatesService } from '../affiliates/affiliates.service';
 import { AdminChatService } from '../admin-chat/admin-chat.service';
 import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { CrmService } from '../crm/crm.service';
+import { EmailService } from '../email/email.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import { UsersService } from '../users/users.service';
@@ -38,6 +39,7 @@ export class AuthService {
     private readonly surveillanceService: SurveillanceService,
     private readonly prismaService: PrismaService,
     private readonly crmService: CrmService,
+    private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -244,6 +246,12 @@ export class AuthService {
     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     try {
+      await this.emailService.sendPasswordReset(user.id, resetLink);
+    } catch {
+      // Email failure is non-fatal
+    }
+
+    try {
       await this.crmService.sendDirectEmailToUser({
         toUserId: user.id,
         sentById: user.id,
@@ -280,6 +288,8 @@ export class AuthService {
         where: { id: record.id },
       });
     });
+
+    this.emailService.sendPasswordChanged(record.userId).catch(() => {});
   }
 
   async sendVerificationEmail(userId: string, email: string): Promise<void> {
@@ -302,6 +312,12 @@ export class AuthService {
 
     const frontendUrl = this.configService.get<string>('app.frontendUrl') ?? '';
     const verifyLink = `${frontendUrl}/verify-email?token=${rawToken}`;
+
+    try {
+      await this.emailService.sendWelcome(userId, verifyLink);
+    } catch {
+      // Email failure is non-fatal
+    }
 
     try {
       await this.crmService.sendDirectEmailToUser({
@@ -338,6 +354,8 @@ export class AuthService {
         where: { id: record.id },
       });
     });
+
+    this.emailService.sendEmailVerified(record.userId).catch(() => {});
   }
 
   async resendVerification(userId: string): Promise<void> {
