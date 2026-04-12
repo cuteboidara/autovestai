@@ -5,16 +5,16 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  console.log('🚀 Bootstrap starting...');
-  console.log('ENV:', {
-    NODE_ENV: process.env.NODE_ENV,
-    PORT: process.env.PORT,
-    HAS_DB: !!process.env.DATABASE_URL,
-    HAS_REDIS: !!process.env.REDIS_URL,
-    HAS_JWT: !!process.env.JWT_SECRET,
-    HAS_MNEMONIC: !!process.env.WALLET_MASTER_MNEMONIC,
-  });
   try {
+    console.log('🚀 Bootstrap starting...');
+    console.log('ENV:', {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      HAS_DB: !!process.env.DATABASE_URL,
+      HAS_REDIS: !!process.env.REDIS_URL,
+      HAS_JWT: !!process.env.JWT_SECRET,
+      HAS_MNEMONIC: !!process.env.WALLET_MASTER_MNEMONIC,
+    });
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],
     });

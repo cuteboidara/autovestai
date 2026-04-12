@@ -373,17 +373,12 @@ export class BrokerSettingsService implements OnModuleInit {
       }),
     ];
 
-    for (let i = 0; i < defaultEntries.length; i += 10) {
-      const batch = defaultEntries.slice(i, i + 10);
-      await Promise.all(
-        batch.map(([key, value]) =>
-          this.prismaService.brokerSetting.upsert({
-            where: { key },
-            create: { key, value },
-            update: {},
-          }),
-        ),
-      );
+    for (const [key, value] of defaultEntries) {
+      await this.prismaService.brokerSetting.upsert({
+        where: { key },
+        create: { key, value },
+        update: {},
+      });
     }
   }
 
