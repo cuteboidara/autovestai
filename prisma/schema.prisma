@@ -1,0 +1,1076 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  COMPLIANCE
+  SUPPORT
+  RISK
+  FINANCE
+}
+
+enum SymbolCategory {
+  FOREX
+  METALS
+  INDICES
+  COMMODITIES
+  CRYPTO
+  STOCKS
+  ETFS
+}
+
+enum QuoteSource {
+  BINANCE
+  FOREX_API
+  YAHOO
+  SYNTHETIC
+  MANUAL
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  TRADE
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum Network {
+  TRC20
+  ERC20
+}
+
+enum DepositStatus {
+  PENDING
+  CONFIRMING
+  COMPLETED
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  SENT
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum AccountType {
+  LIVE
+  DEMO
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum TreasuryBalanceSource {
+  MANUAL
+  API
+}
+
+enum ReconciliationStatus {
+  OK
+  WARNING
+  ERROR
+}
+
+enum ReconciliationRunSource {
+  MANUAL
+  SCHEDULED
+  ON_DEMAND
+  SYSTEM
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  PENDING
+  OPEN
+  PROCESSING
+  EXECUTED
+  REJECTED
+  CANCELLED
+}
+
+enum OrderSourceType {
+  MANUAL
+  COPY
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+enum CopyStatus {
+  ACTIVE
+  PAUSED
+  STOPPED
+}
+
+enum CopyMasterStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum CopyAllocationType {
+  FIXED
+  BALANCE_RATIO
+  EQUITY_RATIO
+}
+
+enum CopyTradeStatus {
+  OPEN
+  CLOSED
+  FAILED
+  SKIPPED
+}
+
+enum AffiliateStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum AffiliateCommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum HedgeActionType {
+  HEDGE_BUY
+  HEDGE_SELL
+  REDUCE
+  CLOSE
+}
+
+enum HedgeActionStatus {
+  SUGGESTED
+  APPROVED
+  SENT
+  FAILED
+  REJECTED
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NoteType {
+  GENERAL
+  COMPLIANCE
+  SUPPORT
+  RISK
+  FINANCIAL
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+  BOUNCED
+}
+
+enum KycDocumentKind {
+  DOCUMENT_FRONT
+  DOCUMENT_BACK
+  SELFIE
+  PROOF_OF_ADDRESS
+  ADDITIONAL
+}
+
+enum SurveillanceSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SurveillanceAlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  CLOSED
+}
+
+enum SurveillanceCaseStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  ESCALATED
+}
+
+model User {
+  id                           String                 @id @default(uuid())
+  email                        String                 @unique
+  accountNumber                String                 @unique
+  password                     String
+  role                         UserRole               @default(USER)
+  createdAt                    DateTime               @default(now())
+  updatedAt                    DateTime               @updatedAt
+  wallet                       Wallet?
+  accounts                     Account[]
+  transactions                 Transaction[]
+  orders                       Order[]
+  positions                    Position[]
+  tradeExecutions              TradeExecution[]
+  copyMaster                   CopyMaster?
+  signalProvider               SignalProvider?
+  copyFollowers                CopyFollower[]         @relation("CopyFollowerUser")
+  copyTrades                   CopyTrade[]            @relation("CopyTradeFollowerUser")
+  copyRelations                CopyRelation[]
+  affiliate                    Affiliate?
+  affiliateReferral            AffiliateReferral?
+  referredAffiliateCommissions AffiliateCommission[]  @relation("CommissionReferredUser")
+  kycSubmission                KycSubmission?
+  auditActorLogs               AuditLog[]             @relation("AuditActorUser")
+  auditTargetLogs              AuditLog[]             @relation("AuditTargetUser")
+  sessions                     UserSession[]
+  trustedDevices               TrustedDevice[]
+  depositAddresses             UserDepositAddress[]
+  walletDepositAddresses       DepositAddress[]
+  deposits                     Deposit[]
+  withdrawalRequests           WithdrawalRequest[]
+  surveillanceAlerts           SurveillanceAlert[]    @relation("SurveillanceAlertUser")
+  acknowledgedSurveillanceAlerts SurveillanceAlert[]  @relation("SurveillanceAlertAcknowledgedBy")
+  closedSurveillanceAlerts     SurveillanceAlert[]    @relation("SurveillanceAlertClosedBy")
+  surveillanceCases            SurveillanceCase[]     @relation("SurveillanceCaseUser")
+  assignedSurveillanceCases    SurveillanceCase[]     @relation("SurveillanceCaseAssignedTo")
+  createdTreasuryBalanceSnapshots TreasuryBalanceSnapshot[] @relation("TreasuryBalanceSnapshotCreator")
+  initiatedReconciliationRuns  ReconciliationRun[]    @relation("ReconciliationRunInitiator")
+  clientNotes                  ClientNote[]           @relation("ClientNoteClient")
+  authoredClientNotes          ClientNote[]           @relation("ClientNoteAuthor")
+  receivedEmailLogs            EmailLog[]             @relation("EmailLogRecipient")
+  sentEmailLogs                EmailLog[]             @relation("EmailLogSender")
+  authoredAdminMessages        AdminMessage[]         @relation("AdminMessageAuthor")
+  kycDecisionLogs              KycDecisionLog[]       @relation("KycDecisionLogUser")
+  reviewedKycDecisionLogs      KycDecisionLog[]       @relation("KycDecisionLogReviewer")
+  passwordResetTokens          PasswordResetToken[]
+  isEmailVerified              Boolean                @default(false)
+  emailVerificationTokens      EmailVerificationToken[]
+}
+
+model AdminUser {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          AdminRole   @default(SUPPORT)
+  permissions   String[]
+  isActive      Boolean     @default(true)
+  lastLoginAt   DateTime?
+  createdById   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  createdBy     AdminUser?  @relation("AdminUserCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAdmins AdminUser[] @relation("AdminUserCreator")
+
+  @@index([role, isActive])
+  @@index([createdById, createdAt])
+}
+
+model Wallet {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  balance      Decimal       @default(0) @db.Decimal(20, 8)
+  lockedMargin Decimal       @default(0) @db.Decimal(20, 8)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+model Account {
+  id            String        @id @default(cuid())
+  userId        String
+  type          AccountType   @default(LIVE)
+  name          String
+  accountNo     String        @unique
+  balance       Decimal       @default(0) @db.Decimal(18, 8)
+  equity        Decimal       @default(0) @db.Decimal(18, 8)
+  currency      String        @default("USDT")
+  status        AccountStatus @default(ACTIVE)
+  isDefault     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  positions     Position[]
+  orders        Order[]
+  transactions  Transaction[]
+  walletDepositAddresses DepositAddress[]
+  deposits      Deposit[]
+  withdrawalRequests WithdrawalRequest[]
+  providers     SignalProvider[]
+  copyRelations CopyRelation[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@index([userId, isDefault])
+}
+
+model Transaction {
+  id           String            @id @default(uuid())
+  userId       String
+  walletId     String?
+  accountId    String
+  type         TransactionType
+  amount       Decimal           @db.Decimal(20, 8)
+  asset        String            @default("USDT")
+  status       TransactionStatus @default(PENDING)
+  reference    String?
+  metadata     Json?
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet       Wallet?           @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  account      Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([type, status])
+}
+
+model UserDepositAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  network   String
+  address   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network])
+  @@unique([network, address])
+  @@index([network, createdAt])
+}
+
+model DepositAddress {
+  id              String   @id @default(cuid())
+  userId          String
+  accountId       String
+  network         Network  @default(TRC20)
+  address         String   @unique
+  derivationIndex Int
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network])
+  @@unique([network, address])
+  @@index([accountId])
+  @@index([network, createdAt])
+  @@index([derivationIndex])
+}
+
+model Deposit {
+  id            String        @id @default(cuid())
+  userId        String
+  accountId     String
+  txHash        String        @unique
+  network       Network
+  amount        Decimal       @db.Decimal(18, 8)
+  usdtAmount    Decimal       @db.Decimal(18, 8)
+  fromAddress   String
+  toAddress     String
+  confirmations Int           @default(0)
+  status        DepositStatus @default(PENDING)
+  creditedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account       Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([network, status])
+}
+
+model WithdrawalRequest {
+  id           String           @id @default(cuid())
+  userId       String
+  accountId    String
+  amount       Decimal          @db.Decimal(18, 8)
+  fee          Decimal          @default(2) @db.Decimal(18, 8)
+  netAmount    Decimal          @db.Decimal(18, 8)
+  network      Network
+  toAddress    String
+  status       WithdrawalStatus @default(PENDING)
+  adminNote    String?
+  txHash       String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account      Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([network, status])
+  @@index([reviewedById, reviewedAt])
+}
+
+model Order {
+  id                  String                @id @default(uuid())
+  userId              String
+  accountId           String
+  clientRequestId     String?
+  type                OrderType
+  side                OrderSide
+  symbol              String
+  volume              Decimal               @db.Decimal(20, 8)
+  leverage            Int
+  requestedPrice      Decimal?              @db.Decimal(20, 8)
+  executionPrice      Decimal?              @db.Decimal(20, 8)
+  sourceType          OrderSourceType       @default(MANUAL)
+  metadata            Json?
+  status              OrderStatus           @default(PENDING)
+  rejectionReason     String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account             Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  position            Position?
+  executions          TradeExecution[]
+  affiliateCommissions AffiliateCommission[]
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([symbol, status, type])
+  @@unique([userId, clientRequestId])
+}
+
+model Position {
+  id               String         @id @default(uuid())
+  userId           String
+  accountId        String
+  orderId          String         @unique
+  copiedFromTradeId String?
+  symbol           String
+  side             OrderSide
+  entryPrice       Decimal        @db.Decimal(20, 8)
+  exitPrice        Decimal?       @db.Decimal(20, 8)
+  volume           Decimal        @db.Decimal(20, 8)
+  contractSize     Decimal        @default(1) @db.Decimal(20, 8)
+  leverage         Int
+  margin           Decimal        @db.Decimal(20, 8)
+  marginUsed       Decimal        @default(0) @db.Decimal(20, 8)
+  liquidationPrice Decimal?       @db.Decimal(20, 8)
+  pnl              Decimal        @default(0) @db.Decimal(20, 8)
+  status           PositionStatus @default(OPEN)
+  openedAt         DateTime       @default(now())
+  closedAt         DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account          Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  copiedFromTrade  Position?      @relation("CopiedTradeLink", fields: [copiedFromTradeId], references: [id], onDelete: SetNull)
+  copiedTrades     Position[]     @relation("CopiedTradeLink")
+  masterCopyTrades CopyTrade[]    @relation("MasterCopyPosition")
+  followerCopyTrades CopyTrade[]  @relation("FollowerCopyPosition")
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([copiedFromTradeId])
+  @@index([symbol, status])
+}
+
+model Symbol {
+  id                String         @id @default(uuid())
+  symbol            String         @unique
+  description       String
+  category          SymbolCategory
+  marketGroup       String?
+  lotSize           Decimal        @db.Decimal(20, 8)
+  marginRetailPct   Decimal        @db.Decimal(10, 4)
+  marginProPct      Decimal        @db.Decimal(10, 4)
+  swapLong          Decimal        @db.Decimal(20, 8)
+  swapShort         Decimal        @db.Decimal(20, 8)
+  digits            Int
+  minTickIncrement  Decimal        @db.Decimal(20, 8)
+  minTradeSizeLots  Decimal        @db.Decimal(20, 8)
+  maxTradeSizeLots  Decimal        @db.Decimal(20, 8)
+  pipValue          String
+  tradingHours      String
+  isActive          Boolean        @default(true)
+  defaultSpread     Decimal        @default(0) @db.Decimal(20, 8)
+  quoteSource       QuoteSource    @default(MANUAL)
+  quoteSymbol       String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([category, isActive])
+  @@index([quoteSource, isActive])
+  @@index([marketGroup, isActive])
+}
+
+model TradeExecution {
+  id          String   @id @default(uuid())
+  userId      String
+  orderId     String
+  symbol      String
+  side        OrderSide
+  volume      Decimal  @db.Decimal(20, 8)
+  price       Decimal  @db.Decimal(20, 8)
+  realizedPnl Decimal? @db.Decimal(20, 8)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+}
+
+model MarketCandle {
+  id         String   @id @default(uuid())
+  symbol     String
+  resolution Int
+  timestamp  DateTime
+  open       Decimal  @db.Decimal(20, 8)
+  high       Decimal  @db.Decimal(20, 8)
+  low        Decimal  @db.Decimal(20, 8)
+  close      Decimal  @db.Decimal(20, 8)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([symbol, resolution, timestamp])
+  @@index([symbol, resolution, timestamp])
+}
+
+model CopyMaster {
+  id                   String           @id @default(uuid())
+  userId               String           @unique
+  displayName          String
+  status               CopyMasterStatus @default(PENDING)
+  performanceFeePercent Decimal         @default(0) @db.Decimal(10, 4)
+  minFollowerBalance   Decimal          @default(0) @db.Decimal(20, 8)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  followers            CopyFollower[]
+  copyTrades           CopyTrade[]
+
+  @@index([status])
+}
+
+model CopyFollower {
+  id                String             @id @default(uuid())
+  masterId          String
+  followerUserId    String
+  allocationType    CopyAllocationType
+  allocationValue   Decimal            @db.Decimal(20, 8)
+  maxAllocation     Decimal            @db.Decimal(20, 8)
+  maxOpenTrades     Int
+  slippageTolerance Decimal            @db.Decimal(20, 8)
+  symbolWhitelist   String[]
+  symbolBlacklist   String[]
+  enabled           Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  master            CopyMaster         @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  followerUser      User               @relation("CopyFollowerUser", fields: [followerUserId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, followerUserId])
+  @@index([followerUserId, enabled])
+}
+
+model CopyTrade {
+  id               String          @id @default(uuid())
+  masterPositionId String
+  followerPositionId String?
+  masterId         String
+  followerUserId   String
+  status           CopyTradeStatus @default(OPEN)
+  reason           String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  master           CopyMaster      @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  followerUser     User            @relation("CopyTradeFollowerUser", fields: [followerUserId], references: [id], onDelete: Cascade)
+  masterPosition   Position        @relation("MasterCopyPosition", fields: [masterPositionId], references: [id], onDelete: Cascade)
+  followerPosition Position?       @relation("FollowerCopyPosition", fields: [followerPositionId], references: [id], onDelete: SetNull)
+
+  @@index([masterPositionId, status])
+  @@index([followerUserId, status])
+  @@unique([masterPositionId, followerUserId])
+}
+
+model SignalProvider {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  displayName    String
+  bio            String?
+  avatarUrl      String?
+  strategy       String?
+  accountId      String
+  totalReturn    Decimal   @default(0) @db.Decimal(10, 4)
+  monthlyReturn  Decimal   @default(0) @db.Decimal(10, 4)
+  winRate        Decimal   @default(0) @db.Decimal(5, 2)
+  maxDrawdown    Decimal   @default(0) @db.Decimal(5, 2)
+  totalTrades    Int       @default(0)
+  activeCopiers  Int       @default(0)
+  minCopyAmount  Decimal   @default(100) @db.Decimal(18, 8)
+  feePercent     Decimal   @default(10) @db.Decimal(5, 2)
+  isPublic       Boolean   @default(true)
+  isAccepting    Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account        Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  copiers        CopyRelation[]
+
+  @@index([isPublic, isAccepting, createdAt])
+  @@index([accountId])
+}
+
+model CopyRelation {
+  id              String         @id @default(cuid())
+  copierId        String
+  copyAccountId   String
+  providerId      String
+  allocatedAmount Decimal        @db.Decimal(18, 8)
+  copyRatio       Decimal        @default(1.0) @db.Decimal(5, 2)
+  status          CopyStatus     @default(ACTIVE)
+  totalCopiedPnl  Decimal        @default(0) @db.Decimal(18, 8)
+  feesPaid        Decimal        @default(0) @db.Decimal(18, 8)
+  startedAt       DateTime       @default(now())
+  stoppedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  copier          User           @relation(fields: [copierId], references: [id], onDelete: Cascade)
+  copyAccount     Account        @relation(fields: [copyAccountId], references: [id], onDelete: Cascade)
+  provider        SignalProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([copierId, providerId, copyAccountId])
+  @@index([providerId, status])
+  @@index([copierId, status])
+  @@index([copyAccountId, status])
+}
+
+model Affiliate {
+  id                String            @id @default(uuid())
+  userId            String            @unique
+  referralCode      String            @unique
+  parentAffiliateId String?
+  level             Int               @default(1)
+  status            AffiliateStatus   @default(ACTIVE)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentAffiliate   Affiliate?        @relation("AffiliateHierarchy", fields: [parentAffiliateId], references: [id], onDelete: SetNull)
+  childAffiliates   Affiliate[]       @relation("AffiliateHierarchy")
+  referrals         AffiliateReferral[]
+  commissions       AffiliateCommission[] @relation("CommissionAffiliate")
+
+  @@index([referralCode, status])
+}
+
+model AffiliateReferral {
+  id             String    @id @default(uuid())
+  affiliateId    String
+  referredUserId String    @unique
+  createdAt      DateTime  @default(now())
+  affiliate      Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  referredUser   User      @relation(fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+}
+
+model AffiliateCommission {
+  id               String                    @id @default(uuid())
+  affiliateId      String
+  referredUserId   String
+  orderId          String
+  symbol           String
+  volume           Decimal                   @db.Decimal(20, 8)
+  commissionAmount Decimal                   @db.Decimal(20, 8)
+  level            Int
+  status           AffiliateCommissionStatus @default(PENDING)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  affiliate        Affiliate                 @relation("CommissionAffiliate", fields: [affiliateId], references: [id], onDelete: Cascade)
+  referredUser     User                      @relation("CommissionReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  order            Order                     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, status])
+  @@index([referredUserId, createdAt])
+  @@index([orderId])
+  @@unique([affiliateId, orderId])
+}
+
+model SymbolExposureSnapshot {
+  id                   String   @id @default(uuid())
+  symbol               String
+  longVolume           Decimal  @db.Decimal(20, 8)
+  shortVolume          Decimal  @db.Decimal(20, 8)
+  netVolume            Decimal  @db.Decimal(20, 8)
+  weightedAvgLongPrice Decimal? @db.Decimal(20, 8)
+  weightedAvgShortPrice Decimal? @db.Decimal(20, 8)
+  timestamp            DateTime @default(now())
+
+  @@index([symbol, timestamp])
+}
+
+model HedgeAction {
+  id         String           @id @default(uuid())
+  symbol     String
+  actionType HedgeActionType
+  volume     Decimal          @db.Decimal(20, 8)
+  reason     String
+  status     HedgeActionStatus @default(SUGGESTED)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([symbol, status])
+}
+
+model BrokerSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasuryBalanceSnapshot {
+  id              String               @id @default(uuid())
+  asset           String
+  network         String
+  walletAddress   String
+  balance         Decimal              @db.Decimal(20, 8)
+  source          TreasuryBalanceSource
+  sourceReference String?
+  observedAt      DateTime
+  createdByUserId String?
+  createdAt       DateTime             @default(now())
+  createdByUser   User?                @relation("TreasuryBalanceSnapshotCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  reconciliationRuns ReconciliationRun[] @relation("ReconciliationRunTreasuryBalanceSnapshot")
+
+  @@index([asset, network, observedAt])
+  @@index([walletAddress, createdAt])
+  @@index([createdByUserId, createdAt])
+}
+
+model ReconciliationRun {
+  id                                 String                   @id @default(uuid())
+  asset                              String
+  network                            String
+  treasuryWalletAddress              String?
+  latestTreasuryBalanceSnapshotId    String?
+  treasuryBalance                    Decimal?                 @db.Decimal(20, 8)
+  internalClientLiabilities          Decimal                  @db.Decimal(20, 8)
+  pendingDepositsTotal               Decimal                  @db.Decimal(20, 8)
+  pendingWithdrawalsTotal            Decimal                  @db.Decimal(20, 8)
+  approvedButNotSentWithdrawalsTotal Decimal                  @db.Decimal(20, 8)
+  grossDifference                    Decimal?                 @db.Decimal(20, 8)
+  operationalDifference              Decimal?                 @db.Decimal(20, 8)
+  toleranceUsed                      Decimal                  @db.Decimal(20, 8)
+  status                             ReconciliationStatus
+  warningsJson                       Json
+  source                             ReconciliationRunSource
+  initiatedByUserId                  String?
+  createdAt                          DateTime                 @default(now())
+  latestTreasuryBalanceSnapshot      TreasuryBalanceSnapshot? @relation("ReconciliationRunTreasuryBalanceSnapshot", fields: [latestTreasuryBalanceSnapshotId], references: [id], onDelete: SetNull)
+  initiatedByUser                    User?                    @relation("ReconciliationRunInitiator", fields: [initiatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([asset, network, createdAt])
+  @@index([status, createdAt])
+  @@index([source, createdAt])
+  @@index([initiatedByUserId, createdAt])
+  @@index([latestTreasuryBalanceSnapshotId, createdAt])
+}
+
+model KycSubmission {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  status           KycStatus @default(PENDING)
+  fullName         String
+  dateOfBirth      String
+  country          String
+  addressLine1     String
+  city             String
+  postalCode       String
+  documentType     String
+  documentNumber   String
+  documentFrontUrl String?
+  documentBackUrl  String?
+  selfieUrl        String?
+  proofOfAddressUrl String?
+  rejectionReason  String?
+  reviewedById     String?
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents        KycDocument[]
+  decisionLogs     KycDecisionLog[]
+
+  @@index([status, createdAt])
+}
+
+model ClientNote {
+  id         String   @id @default(cuid())
+  clientId   String
+  authorId   String
+  content    String   @db.Text
+  noteType   NoteType @default(GENERAL)
+  isInternal Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  client     User     @relation("ClientNoteClient", fields: [clientId], references: [id], onDelete: Cascade)
+  author     User     @relation("ClientNoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailLog {
+  id        String      @id @default(cuid())
+  toUserId  String
+  fromEmail String
+  subject   String
+  body      String      @db.Text
+  status    EmailStatus @default(SENT)
+  sentAt    DateTime    @default(now())
+  sentById  String
+  toUser    User        @relation("EmailLogRecipient", fields: [toUserId], references: [id], onDelete: Cascade)
+  sentBy    User        @relation("EmailLogSender", fields: [sentById], references: [id], onDelete: Cascade)
+
+  @@index([toUserId, sentAt])
+  @@index([sentById, sentAt])
+}
+
+model EmailSenderConfig {
+  id        String   @id @default(cuid())
+  name      String
+  fromEmail String   @unique
+  smtpHost  String
+  smtpPort  Int
+  smtpUser  String
+  smtpPass  String   @db.Text
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KycDocument {
+  id           String          @id @default(cuid())
+  submissionId String
+  kind         KycDocumentKind
+  label        String?
+  fileUrl      String
+  mimeType     String
+  originalName String
+  createdAt    DateTime        @default(now())
+  submission   KycSubmission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, kind, createdAt])
+}
+
+model KycDecisionLog {
+  id           String     @id @default(cuid())
+  submissionId String
+  userId       String
+  reviewerId   String?
+  fromStatus   KycStatus?
+  toStatus     KycStatus
+  note         String?    @db.Text
+  createdAt    DateTime   @default(now())
+  submission   KycSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user         User       @relation("KycDecisionLogUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer     User?      @relation("KycDecisionLogReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([submissionId, createdAt])
+  @@index([userId, createdAt])
+  @@index([reviewerId, createdAt])
+}
+
+model AdminMessage {
+  id        String   @id @default(cuid())
+  authorId  String?
+  content   String   @db.Text
+  channel   String   @default("general")
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readBy    String[]
+  author    User?    @relation("AdminMessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([channel, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorUserId String?
+  actorRole   String
+  action      String
+  entityType  String
+  entityId    String
+  targetUserId String?
+  metadataJson Json?
+  ipAddress   String?
+  userAgent   String?
+  requestId   String?
+  createdAt   DateTime @default(now())
+  actorUser   User?    @relation("AuditActorUser", fields: [actorUserId], references: [id], onDelete: SetNull)
+  targetUser  User?    @relation("AuditTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@index([action, createdAt])
+  @@index([requestId, createdAt])
+}
+
+model SurveillanceAlert {
+  id                 String                  @id @default(uuid())
+  userId             String?
+  symbol             String?
+  alertType          String
+  severity           SurveillanceSeverity
+  status             SurveillanceAlertStatus @default(OPEN)
+  title              String
+  description        String
+  metadataJson       Json?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  acknowledgedByUserId String?
+  closedByUserId     String?
+  user               User?                   @relation("SurveillanceAlertUser", fields: [userId], references: [id], onDelete: SetNull)
+  acknowledgedByUser User?                   @relation("SurveillanceAlertAcknowledgedBy", fields: [acknowledgedByUserId], references: [id], onDelete: SetNull)
+  closedByUser       User?                   @relation("SurveillanceAlertClosedBy", fields: [closedByUserId], references: [id], onDelete: SetNull)
+  cases              SurveillanceCase[]
+
+  @@index([status, severity, createdAt])
+  @@index([userId, createdAt])
+  @@index([alertType, createdAt])
+}
+
+model SurveillanceCase {
+  id               String                 @id @default(uuid())
+  userId           String?
+  alertId          String?
+  status           SurveillanceCaseStatus @default(OPEN)
+  assignedToUserId String?
+  notesJson        Json?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  user             User?                  @relation("SurveillanceCaseUser", fields: [userId], references: [id], onDelete: SetNull)
+  alert            SurveillanceAlert?     @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  assignedToUser   User?                  @relation("SurveillanceCaseAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@index([assignedToUserId, createdAt])
+}
+
+model UserSession {
+  id                String   @id @default(uuid())
+  userId            String
+  refreshTokenHash  String   @unique
+  deviceFingerprint String
+  ipAddress         String?
+  userAgent         String?
+  lastSeenAt        DateTime
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([userId, revokedAt, expiresAt])
+  @@index([deviceFingerprint, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+model TrustedDevice {
+  id                String   @id @default(uuid())
+  userId            String
+  deviceFingerprint String
+  label             String
+  lastSeenAt        DateTime
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceFingerprint])
+  @@index([deviceFingerprint])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

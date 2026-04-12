@@ -1,0 +1,46 @@
+{
+  "name": "autovestai-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "set NEXT_DIST_DIR=.next-dev&& next dev -p 3001",
+    "build": "set NEXT_DIST_DIR=.next-build&& next build",
+    "start": "set NEXT_DIST_DIR=.next-build&& next start -p 3001",
+    "prelint": "set NEXT_DIST_DIR=.next-build&& next typegen",
+    "lint": "tsc --noEmit --incremental false",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.66.0",
+    "clsx": "^2.1.1",
+    "critters": "^0.0.23",
+    "framer-motion": "^12.38.0",
+    "lightweight-charts": "^5.0.9",
+    "lucide-react": "^0.474.0",
+    "next": "^15.2.4",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-qr-code": "^2.0.18",
+    "recharts": "^3.8.1",
+    "socket.io-client": "^4.8.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.10.1",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
+}

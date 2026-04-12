@@ -1,0 +1,4621 @@
+[
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "ASX SPI 200 Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 AUD per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^AXJO",
+      "swap_long": -4.85,
+      "swap_short": -4.85,
+      "symbol": "ASX-CASH",
+      "trading_hours": "22:50-24:00 00:00-05:30; 06:10-20:00; 22:50-24:00 00:00-05:30; 06:10-20:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ASX200",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "ASX 200",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-asx200",
+    "metadata": {
+      "broker_description": "ASX SPI 200 Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 AUD per 1",
+        "swap_long": -4.85,
+        "swap_short": -4.85,
+        "trading_hours": "22:50-24:00 00:00-05:30; 06:10-20:00; 22:50-24:00 00:00-05:30; 06:10-20:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "ASX SPI 200 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^asx"
+      },
+      "twelve_data": {
+        "symbol": "ASX200"
+      },
+      "yahoo_finance": {
+        "symbol": "^AXJO"
+      }
+    },
+    "quote_currency": "AUD",
+    "raw_pdf_symbol": "ASX-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "CAC 40 Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 EUR per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^FCHI",
+      "swap_long": -39.25,
+      "swap_short": -39.25,
+      "symbol": "CAC-CASH",
+      "trading_hours": "- 07:00-21:00 07:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "CAC40",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "CAC 40",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-cac40",
+    "metadata": {
+      "broker_description": "CAC 40 Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 EUR per 0.1",
+        "swap_long": -39.25,
+        "swap_short": -39.25,
+        "trading_hours": "- 07:00-21:00 07:00-21:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "CAC 40 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^cac"
+      },
+      "twelve_data": {
+        "symbol": "CAC40"
+      },
+      "yahoo_finance": {
+        "symbol": "^FCHI"
+      }
+    },
+    "quote_currency": "EUR",
+    "raw_pdf_symbol": "CAC-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "DAX 30 Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 25.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "2.50 EUR per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^GDAXI",
+      "swap_long": -97.04,
+      "swap_short": -97.04,
+      "symbol": "DAX-CASH",
+      "trading_hours": "23:05-24:00 00:15-22:00; 23:00-24:00 00:15-20:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DAX40",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "DAX 40",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-dax40",
+    "metadata": {
+      "broker_description": "DAX 30 Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 25.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "2.50 EUR per 0.1",
+        "swap_long": -97.04,
+        "swap_short": -97.04,
+        "trading_hours": "23:05-24:00 00:15-22:00; 23:00-24:00 00:15-20:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "DAX 30 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^dax"
+      },
+      "twelve_data": {
+        "symbol": "DAX"
+      },
+      "yahoo_finance": {
+        "symbol": "^GDAXI"
+      }
+    },
+    "quote_currency": "EUR",
+    "raw_pdf_symbol": "DAX-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "DJ Euro Stoxx Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 EUR per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^STOXX50E",
+      "swap_long": -152.84,
+      "swap_short": -152.84,
+      "symbol": "EUSX-CASH",
+      "trading_hours": "- 07:00-21:00 07:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SX5E",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Euro Stoxx 50",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-sx5e",
+    "metadata": {
+      "broker_description": "DJ Euro Stoxx Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 EUR per 0.1",
+        "swap_long": -152.84,
+        "swap_short": -152.84,
+        "trading_hours": "- 07:00-21:00 07:00-21:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "DJ Euro Stoxx Index",
+    "notes": [
+      "Mapped to Euro Stoxx 50 benchmark.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "STOXX50"
+      },
+      "yahoo_finance": {
+        "symbol": "^STOXX50E"
+      }
+    },
+    "quote_currency": "EUR",
+    "raw_pdf_symbol": "EUSX-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "IBEX 35 Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 EUR per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^IBEX",
+      "swap_long": -7.62,
+      "swap_short": -7.62,
+      "symbol": "IBEX-CASH",
+      "trading_hours": "- 07:00-19:00 07:00-19:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "IBEX35",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "IBEX 35",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-ibex35",
+    "metadata": {
+      "broker_description": "IBEX 35 Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 EUR per 1",
+        "swap_long": -7.62,
+        "swap_short": -7.62,
+        "trading_hours": "- 07:00-19:00 07:00-19:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "IBEX 35 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "IBEX35"
+      },
+      "yahoo_finance": {
+        "symbol": "^IBEX"
+      }
+    },
+    "quote_currency": "EUR",
+    "raw_pdf_symbol": "IBEX-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "FTSE/MIB Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 5.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "5 EUR per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "FTSEMIB.MI",
+      "swap_long": -21.19,
+      "swap_short": -21.19,
+      "symbol": "MIB-CASH",
+      "trading_hours": "- 07:00-21:00 07:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "FTSEMIB",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "FTSE MIB",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-ftsemib",
+    "metadata": {
+      "broker_description": "FTSE/MIB Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 5.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "5 EUR per 1",
+        "swap_long": -21.19,
+        "swap_short": -21.19,
+        "trading_hours": "- 07:00-21:00 07:00-21:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "FTSE/MIB Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "FTSEMIB"
+      },
+      "yahoo_finance": {
+        "symbol": "FTSEMIB.MI"
+      }
+    },
+    "quote_currency": "EUR",
+    "raw_pdf_symbol": "MIB-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "SMI 20 Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 CHF per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^SSMI",
+      "swap_long": -5.53,
+      "swap_short": -5.53,
+      "symbol": "SMI-CASH",
+      "trading_hours": "- 07:00-21:00 07:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SMI20",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "SMI 20",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-smi20",
+    "metadata": {
+      "broker_description": "SMI 20 Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 CHF per 1",
+        "swap_long": -5.53,
+        "swap_short": -5.53,
+        "trading_hours": "- 07:00-21:00 07:00-21:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "SMI 20 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "SMI"
+      },
+      "yahoo_finance": {
+        "symbol": "^SSMI"
+      }
+    },
+    "quote_currency": "CHF",
+    "raw_pdf_symbol": "SMI-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "FTSE 100 Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 GBP per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^FTSE",
+      "swap_long": -51.46,
+      "swap_short": -51.46,
+      "symbol": "FTSE-CASH",
+      "trading_hours": "23:05-24:00 00:00-22:00; 23:00-24:00 00:00-20:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "FTSE100",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "FTSE 100",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-ftse100",
+    "metadata": {
+      "broker_description": "FTSE 100 Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 GBP per 0.1",
+        "swap_long": -51.46,
+        "swap_short": -51.46,
+        "trading_hours": "23:05-24:00 00:00-22:00; 23:00-24:00 00:00-20:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "FTSE 100 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^ftx"
+      },
+      "twelve_data": {
+        "symbol": "FTSE"
+      },
+      "yahoo_finance": {
+        "symbol": "^FTSE"
+      }
+    },
+    "quote_currency": "GBP",
+    "raw_pdf_symbol": "FTSE-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.005,
+      "description": "US Dollar Index",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 1000.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "DX-Y.NYB",
+      "swap_long": -55.17,
+      "swap_short": -55.17,
+      "symbol": "DXY-CASH",
+      "trading_hours": "- 00:00-21:00 00:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DXY",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "US Dollar Index",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-dxy",
+    "metadata": {
+      "broker_description": "US Dollar Index",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 1000.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.001",
+        "swap_long": -55.17,
+        "swap_short": -55.17,
+        "trading_hours": "- 00:00-21:00 00:00-21:00"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "US Dollar Index",
+    "notes": [
+      "FRED macro proxy can also be used for dollar index context.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^dxy"
+      },
+      "twelve_data": {
+        "symbol": "DXY"
+      },
+      "yahoo_finance": {
+        "symbol": "DX-Y.NYB"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "DXY-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "E-mini Dow Jones Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 5.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "5 USD per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^DJI",
+      "swap_long": -25.67,
+      "swap_short": -25.67,
+      "symbol": "DOW-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DJI",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "Dow Jones Industrial Average",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-dji",
+    "metadata": {
+      "broker_description": "E-mini Dow Jones Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 5.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "5 USD per 1",
+        "swap_long": -25.67,
+        "swap_short": -25.67,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "E-mini Dow Jones Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^dji"
+      },
+      "twelve_data": {
+        "symbol": "DJI"
+      },
+      "yahoo_finance": {
+        "symbol": "^DJI"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "DOW-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 5.0,
+      "description": "Nikkei 225 Index",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 USD per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^N225",
+      "swap_long": -24.81,
+      "swap_short": -24.81,
+      "symbol": "NK-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "N225",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "Nikkei 225",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-n225",
+    "metadata": {
+      "broker_description": "Nikkei 225 Index",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 USD per 1",
+        "swap_long": -24.81,
+        "swap_short": -24.81,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "Nikkei 225 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^nkx"
+      },
+      "twelve_data": {
+        "symbol": "NI225"
+      },
+      "yahoo_finance": {
+        "symbol": "^N225"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "NK-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.05,
+      "description": "E-mini Nasdaq100 Index",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 20.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.20 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^NDX",
+      "swap_long": -396.29,
+      "swap_short": -396.29,
+      "symbol": "NSDQ-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "NDX",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "Nasdaq 100",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-ndx",
+    "metadata": {
+      "broker_description": "E-mini Nasdaq100 Index",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 20.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.20 USD per 0.01",
+        "swap_long": -396.29,
+        "swap_short": -396.29,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "E-mini Nasdaq100 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^ndx"
+      },
+      "twelve_data": {
+        "symbol": "NDX"
+      },
+      "yahoo_finance": {
+        "symbol": "^NDX"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "NSDQ-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "E-mini Russell 2000 Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 50.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "5 USD per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^RUT",
+      "swap_long": -74.15,
+      "swap_short": -74.15,
+      "symbol": "RTY-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "RUT",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "Russell 2000",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-rut",
+    "metadata": {
+      "broker_description": "E-mini Russell 2000 Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 50.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "5 USD per 0.1",
+        "swap_long": -74.15,
+        "swap_short": -74.15,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "E-mini Russell 2000 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^rut"
+      },
+      "twelve_data": {
+        "symbol": "RUT"
+      },
+      "yahoo_finance": {
+        "symbol": "^RUT"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "RTY-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "INDICES",
+    "backend_seed": {
+      "category": "INDICES",
+      "default_spread": 0.5,
+      "description": "E-mini S&P500 Index",
+      "digits": 1,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 50.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 5.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.1,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "5 USD per 0.1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "^GSPC",
+      "swap_long": -27.04,
+      "swap_short": -27.04,
+      "symbol": "SP-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SPX",
+    "confidence": "high_confidence_alias",
+    "country": null,
+    "display_symbol": "S&P 500",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "indices-spx",
+    "metadata": {
+      "broker_description": "E-mini S&P500 Index",
+      "contract_spec": {
+        "digits": 1,
+        "lot_size": 50.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 5.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.1,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "5 USD per 0.1",
+        "swap_long": -27.04,
+        "swap_short": -27.04,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "INDICES"
+    },
+    "name": "E-mini S&P500 Index",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "^spx"
+      },
+      "twelve_data": {
+        "symbol": "SPX"
+      },
+      "yahoo_finance": {
+        "symbol": "^GSPC"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "SP-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "index_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Brent Crude Oil (Barrels)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 1000.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BZ=F",
+      "swap_long": -6.41,
+      "swap_short": -6.41,
+      "symbol": "BRNT-CASH",
+      "trading_hours": "- 01:00-22:00 01:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BRENT",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Brent Crude Oil",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-brent",
+    "metadata": {
+      "broker_description": "Brent Crude Oil (Barrels)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 1000.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 USD per 0.01",
+        "swap_long": -6.41,
+        "swap_short": -6.41,
+        "trading_hours": "- 01:00-22:00 01:00-21:55"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Brent Crude Oil (Barrels)",
+    "notes": [
+      "Mapped to Brent front-month futures proxy.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "cb.f"
+      },
+      "twelve_data": {
+        "symbol": "BZ1!"
+      },
+      "yahoo_finance": {
+        "symbol": "BZ=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "BRNT-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Light Sweet Crude Oil (Barrels)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 1000.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "CL=F",
+      "swap_long": -6.04,
+      "swap_short": -6.04,
+      "symbol": "CL-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "WTI",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "WTI Crude Oil",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-wti",
+    "metadata": {
+      "broker_description": "Light Sweet Crude Oil (Barrels)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 1000.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 USD per 0.01",
+        "swap_long": -6.04,
+        "swap_short": -6.04,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Light Sweet Crude Oil (Barrels)",
+    "notes": [
+      "Mapped to WTI front-month futures proxy.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "cl.f"
+      },
+      "twelve_data": {
+        "symbol": "CL1!"
+      },
+      "yahoo_finance": {
+        "symbol": "CL=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "CL-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.004,
+      "description": "Natural Gas (mmBtu)",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10000.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "100 USD per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "NG=F",
+      "swap_long": -8.66,
+      "swap_short": -8.66,
+      "symbol": "NGAS-CASH",
+      "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "NATGAS",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Natural Gas",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-natgas",
+    "metadata": {
+      "broker_description": "Natural Gas (mmBtu)",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 10000.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "100 USD per 0.001",
+        "swap_long": -8.66,
+        "swap_short": -8.66,
+        "trading_hours": "23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Natural Gas (mmBtu)",
+    "notes": [
+      "Mapped to Henry Hub natural gas futures proxy.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "ng.f"
+      },
+      "twelve_data": {
+        "symbol": "NG1!"
+      },
+      "yahoo_finance": {
+        "symbol": "NG=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "NGAS-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 4.0,
+      "description": "Cocoa (metric tons)",
+      "digits": 0,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 10.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 1.0,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "10 USD per 1",
+      "quote_source": "YAHOO",
+      "quote_symbol": "CC=F",
+      "swap_long": -7.64,
+      "swap_short": -7.64,
+      "symbol": "COCOA-CASH",
+      "trading_hours": "- 09:45-18:30 09:45-18:25"
+    },
+    "base_currency": null,
+    "canonical_symbol": "COCOA",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Cocoa",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-cocoa",
+    "metadata": {
+      "broker_description": "Cocoa (metric tons)",
+      "contract_spec": {
+        "digits": 0,
+        "lot_size": 10.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 1.0,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "10 USD per 1",
+        "swap_long": -7.64,
+        "swap_short": -7.64,
+        "trading_hours": "- 09:45-18:30 09:45-18:25"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Cocoa (metric tons)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "cc.f"
+      },
+      "yahoo_finance": {
+        "symbol": "CC=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "COCOA-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Coffee (pounds)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "KC=F",
+      "swap_long": -37.38,
+      "swap_short": -37.38,
+      "symbol": "COFFEE-CASH",
+      "trading_hours": "- 09:15-18:30 09:15-18:25"
+    },
+    "base_currency": null,
+    "canonical_symbol": "COFFEE",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Coffee",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-coffee",
+    "metadata": {
+      "broker_description": "Coffee (pounds)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.01",
+        "swap_long": -37.38,
+        "swap_short": -37.38,
+        "trading_hours": "- 09:15-18:30 09:15-18:25"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Coffee (pounds)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "kc.f"
+      },
+      "yahoo_finance": {
+        "symbol": "KC=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "COFFEE-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Corn (bushels)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 50.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.5 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ZC=F",
+      "swap_long": -38.68,
+      "swap_short": -38.68,
+      "symbol": "CORN-CASH",
+      "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+    },
+    "base_currency": null,
+    "canonical_symbol": "CORN",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Corn",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-corn",
+    "metadata": {
+      "broker_description": "Corn (bushels)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 50.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.5 USD per 0.01",
+        "swap_long": -38.68,
+        "swap_short": -38.68,
+        "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Corn (bushels)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "zc.f"
+      },
+      "yahoo_finance": {
+        "symbol": "ZC=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "CORN-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Cotton (pounds)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 500.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "5 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "CT=F",
+      "swap_long": -6.25,
+      "swap_short": -6.25,
+      "symbol": "COTTON-CASH",
+      "trading_hours": "- 02:05-19:20 02:05-19:15"
+    },
+    "base_currency": null,
+    "canonical_symbol": "COTTON",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Cotton",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-cotton",
+    "metadata": {
+      "broker_description": "Cotton (pounds)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 500.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "5 USD per 0.01",
+        "swap_long": -6.25,
+        "swap_short": -6.25,
+        "trading_hours": "- 02:05-19:20 02:05-19:15"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Cotton (pounds)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "ct.f"
+      },
+      "yahoo_finance": {
+        "symbol": "CT=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "COTTON-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Soybean (bushels)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 50.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.5 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ZS=F",
+      "swap_long": -97.65,
+      "swap_short": -97.65,
+      "symbol": "SBEAN-CASH",
+      "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SOYBEAN",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Soybeans",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-soybean",
+    "metadata": {
+      "broker_description": "Soybean (bushels)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 50.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.5 USD per 0.01",
+        "swap_long": -97.65,
+        "swap_short": -97.65,
+        "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Soybean (bushels)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "zs.f"
+      },
+      "yahoo_finance": {
+        "symbol": "ZS=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "SBEAN-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Sugar (pounds)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "SB=F",
+      "swap_long": -1.5,
+      "swap_short": -1.5,
+      "symbol": "SUGAR-CASH",
+      "trading_hours": "- 08:30-18:00 08:30-17:55"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SUGAR",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Sugar",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-sugar",
+    "metadata": {
+      "broker_description": "Sugar (pounds)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.01",
+        "swap_long": -1.5,
+        "swap_short": -1.5,
+        "trading_hours": "- 08:30-18:00 08:30-17:55"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Sugar (pounds)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "sb.f"
+      },
+      "yahoo_finance": {
+        "symbol": "SB=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "SUGAR-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Wheat (tonnes)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 50.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.5 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ZW=F",
+      "swap_long": -48.31,
+      "swap_short": -48.31,
+      "symbol": "WHEAT-CASH",
+      "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+    },
+    "base_currency": null,
+    "canonical_symbol": "WHEAT",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Wheat",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-wheat",
+    "metadata": {
+      "broker_description": "Wheat (tonnes)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 50.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.5 USD per 0.01",
+        "swap_long": -48.31,
+        "swap_short": -48.31,
+        "trading_hours": "- 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Wheat (tonnes)",
+    "notes": [
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "stooq": {
+        "symbol": "zw.f"
+      },
+      "yahoo_finance": {
+        "symbol": "ZW=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "WHEAT-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "stooq",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "COMMODITIES",
+    "backend_seed": {
+      "category": "COMMODITIES",
+      "default_spread": 0.04,
+      "description": "Lumber (board feet)",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 2.0,
+      "margin_retail_pct": 10.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "LBS=F",
+      "swap_long": -53.55,
+      "swap_short": -53.55,
+      "symbol": "LUMBER-CASH",
+      "trading_hours": "- 15:00-21:00 15:00-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "LUMBER",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "Lumber",
+    "exchange": "Benchmark/Proxy",
+    "internal_id": "commodities-lumber",
+    "metadata": {
+      "broker_description": "Lumber (board feet)",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 2.0,
+        "margin_retail_pct": 10.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.01",
+        "swap_long": -53.55,
+        "swap_short": -53.55,
+        "trading_hours": "- 15:00-21:00 15:00-21:00"
+      },
+      "pdf_section": "COMMODITIES"
+    },
+    "name": "Lumber (board feet)",
+    "notes": [
+      "Yahoo coverage for lumber futures can be intermittent.",
+      "Uses documented free-market benchmark or futures proxy for the broker CFD."
+    ],
+    "provider_symbol_map": {
+      "yahoo_finance": {
+        "symbol": "LBS=F"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "LUMBER-cash",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "commodity_cfd",
+    "supported_providers": [
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "CRYPTO",
+    "backend_seed": {
+      "category": "CRYPTO",
+      "default_spread": 0.02,
+      "description": "Trump vs US Dollar",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 1000.0,
+      "margin_pro_pct": 20.0,
+      "margin_retail_pct": 50.0,
+      "market_group": null,
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "TRUMP-USD",
+      "swap_long": -62.75,
+      "swap_short": -62.75,
+      "symbol": "TRUMPUSD",
+      "trading_hours": "22:00-22:00"
+    },
+    "base_currency": "TRUMP",
+    "canonical_symbol": "TRUMP/USD",
+    "confidence": "heuristic_match",
+    "country": null,
+    "display_symbol": "TRUMP/USD",
+    "exchange": "CRYPTO",
+    "internal_id": "crypto-trump-usd",
+    "metadata": {
+      "broker_description": "Trump vs US Dollar",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 1000.0,
+        "margin_pro_pct": 20.0,
+        "margin_retail_pct": 50.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.001",
+        "swap_long": -62.75,
+        "swap_short": -62.75,
+        "trading_hours": "22:00-22:00"
+      },
+      "pdf_section": "CRYPTO"
+    },
+    "name": "Trump vs US Dollar",
+    "notes": [
+      "Memecoin coverage varies across free providers; review live routing before production use."
+    ],
+    "provider_symbol_map": {
+      "coingecko": {
+        "id": "official-trump",
+        "vs_currency": "usd"
+      },
+      "twelve_data": {
+        "symbol": "TRUMP/USD"
+      },
+      "yahoo_finance": {
+        "symbol": "TRUMP-USD"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "TRUMPUSD",
+    "region": "GLOBAL",
+    "status": "partial",
+    "subtype": "crypto_spot",
+    "supported_providers": [
+      "coingecko",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Diginex Ltd.",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "US",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 USD per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "DGNX",
+      "swap_long": -1.11,
+      "swap_short": -1.11,
+      "symbol": "DIGINEX",
+      "trading_hours": "14:30-21:00"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DGNX",
+    "confidence": "heuristic_match",
+    "country": "United States",
+    "display_symbol": "DGNX",
+    "exchange": "NYSE/Nasdaq",
+    "internal_id": "stocks-dgnx",
+    "metadata": {
+      "broker_description": "Diginex Ltd.",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 USD per 0.01",
+        "swap_long": -1.11,
+        "swap_short": -1.11,
+        "trading_hours": "14:30-21:00"
+      },
+      "pdf_section": "STOCKS US"
+    },
+    "name": "Diginex Ltd.",
+    "notes": [
+      "Current public ticker requires manual confirmation."
+    ],
+    "provider_symbol_map": {
+      "alpha_vantage": {
+        "symbol": "DGNX"
+      },
+      "financial_modeling_prep": {
+        "symbol": "DGNX"
+      },
+      "stooq": {
+        "symbol": "dgnx.us"
+      },
+      "twelve_data": {
+        "symbol": "DGNX"
+      },
+      "yahoo_finance": {
+        "symbol": "DGNX"
+      }
+    },
+    "quote_currency": "USD",
+    "raw_pdf_symbol": "DIGINEX",
+    "region": "US",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "alpha_vantage",
+      "financial_modeling_prep",
+      "stooq",
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Abu Dhabi Aviation",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ADAVIATION.AD",
+      "swap_long": -0.63,
+      "swap_short": -0.62,
+      "symbol": "ADAVIATION",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ADAVIATION.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ADAVIATION.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-adaviation-ad",
+    "metadata": {
+      "broker_description": "Abu Dhabi Aviation",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.63,
+        "swap_short": -0.62,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Abu Dhabi Aviation",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ADAVIATION.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "ADAVIATION.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ADAVIATION",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Abu Dhabi Commercial Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ADCB.AD",
+      "swap_long": -1.54,
+      "swap_short": -1.13,
+      "symbol": "ADCB",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ADCB.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ADCB.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-adcb-ad",
+    "metadata": {
+      "broker_description": "Abu Dhabi Commercial Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -1.54,
+        "swap_short": -1.13,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Abu Dhabi Commercial Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ADCB.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "ADCB.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ADCB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Abu Dhabi Islamic Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ADIB.AD",
+      "swap_long": -2.42,
+      "swap_short": -1.51,
+      "symbol": "ADIB",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ADIB.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ADIB.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-adib-ad",
+    "metadata": {
+      "broker_description": "Abu Dhabi Islamic Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -2.42,
+        "swap_short": -1.51,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Abu Dhabi Islamic Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ADIB.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "ADIB.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ADIB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Abu Dhabi National Oil Co. for Distribution PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ADNOCDIST.AD",
+      "swap_long": -0.41,
+      "swap_short": -0.4,
+      "symbol": "ADNOCDIST",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ADNOCDIST.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ADNOCDIST.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-adnocdist-ad",
+    "metadata": {
+      "broker_description": "Abu Dhabi National Oil Co. for Distribution PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.41,
+        "swap_short": -0.4,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Abu Dhabi National Oil Co. for Distribution PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ADNOCDIST.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "ADNOCDIST.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ADNOCDIST",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Abu Dhabi Ports Company PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ADPORTS.AD",
+      "swap_long": -0.45,
+      "swap_short": -0.56,
+      "symbol": "ADPORTS",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ADPORTS.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ADPORTS.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-adports-ad",
+    "metadata": {
+      "broker_description": "Abu Dhabi Ports Company PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.45,
+        "swap_short": -0.56,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Abu Dhabi Ports Company PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ADPORTS.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "ADPORTS.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ADPORTS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Al Ansari Financial Services PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ALANSARI.DU",
+      "swap_long": -0.11,
+      "swap_short": -0.12,
+      "symbol": "ALANSARI",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ALANSARI.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ALANSARI.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-alansari-du",
+    "metadata": {
+      "broker_description": "Al Ansari Financial Services PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.11,
+        "swap_short": -0.12,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Al Ansari Financial Services PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ALANSARI.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "ALANSARI.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ALANSARI",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Aramex PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ARMX.DU",
+      "swap_long": -0.31,
+      "swap_short": -0.25,
+      "symbol": "ARMX",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ARMX.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "ARMX.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-armx-du",
+    "metadata": {
+      "broker_description": "Aramex PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.31,
+        "swap_short": -0.25,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Aramex PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ARMX.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "ARMX.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ARMX",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Bank Of Sharjah",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BOS.DU",
+      "swap_long": -0.16,
+      "swap_short": -0.11,
+      "symbol": "BOS",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BOS.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "BOS.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-bos-du",
+    "metadata": {
+      "broker_description": "Bank Of Sharjah",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.16,
+        "swap_short": -0.11,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Bank Of Sharjah",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "BOS.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "BOS.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "BOS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Dubai Islamic Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "DIB.DU",
+      "swap_long": -1.06,
+      "swap_short": -0.79,
+      "symbol": "DIB",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DIB.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "DIB.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-dib-du",
+    "metadata": {
+      "broker_description": "Dubai Islamic Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -1.06,
+        "swap_short": -0.79,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Dubai Islamic Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "DIB.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "DIB.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "DIB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Dubai Taxi Company PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "DTC.DU",
+      "swap_long": -0.3,
+      "swap_short": -0.31,
+      "symbol": "DTC",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DTC.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "DTC.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-dtc-du",
+    "metadata": {
+      "broker_description": "Dubai Taxi Company PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.3,
+        "swap_short": -0.31,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Dubai Taxi Company PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "DTC.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "DTC.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "DTC",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Emaar Properties PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "EMAAR.DU",
+      "swap_long": -1.59,
+      "swap_short": -1.44,
+      "symbol": "EMAAR",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "EMAAR.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "EMAAR.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-emaar-du",
+    "metadata": {
+      "broker_description": "Emaar Properties PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -1.59,
+        "swap_short": -1.44,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Emaar Properties PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "EMAAR.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "EMAAR.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "EMAAR",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Emirates NBD Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "EMIRATESNBD.DU",
+      "swap_long": -2.75,
+      "swap_short": -2.37,
+      "symbol": "EMIRATESNBD",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "EMIRATESNBD.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "EMIRATESNBD.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-emiratesnbd-du",
+    "metadata": {
+      "broker_description": "Emirates NBD Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -2.75,
+        "swap_short": -2.37,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Emirates NBD Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "EMIRATESNBD.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "EMIRATESNBD.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "EMIRATESNBD",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Emirates Telecommunications Group Company PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "EAND.AD",
+      "swap_long": -1.99,
+      "swap_short": -1.81,
+      "symbol": "ETISALAT",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "EAND.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "EAND.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-eand-ad",
+    "metadata": {
+      "broker_description": "Emirates Telecommunications Group Company PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -1.99,
+        "swap_short": -1.81,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Emirates Telecommunications Group Company PJSC",
+    "notes": [
+      "Mapped to e& / Emirates Telecommunications Group listing."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "EAND.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "EAND.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "ETISALAT",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "First Abu Dhabi Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "FAB.AD.AD",
+      "swap_long": -1.82,
+      "swap_short": -1.54,
+      "symbol": "FAB.AD",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "FAB.AD.AD",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "FAB.AD.AD",
+    "exchange": "ADX",
+    "internal_id": "stocks-fab-ad-ad",
+    "metadata": {
+      "broker_description": "First Abu Dhabi Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -1.82,
+        "swap_short": -1.54,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "First Abu Dhabi Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "FAB.AD.AD"
+      },
+      "yahoo_finance": {
+        "symbol": "FAB.AD.AD"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "FAB.AD",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Lulu Retail Holdings PLC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "LULU.DU",
+      "swap_long": -0.14,
+      "swap_short": -0.22,
+      "symbol": "LULU",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "LULU.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "LULU.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-lulu-du",
+    "metadata": {
+      "broker_description": "Lulu Retail Holdings PLC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.14,
+        "swap_short": -0.22,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Lulu Retail Holdings PLC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "LULU.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "LULU.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "LULU",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Parkin Company PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "PARKIN.DU",
+      "swap_long": -0.66,
+      "swap_short": -0.55,
+      "symbol": "PARKIN",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "PARKIN.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "PARKIN.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-parkin-du",
+    "metadata": {
+      "broker_description": "Parkin Company PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.66,
+        "swap_short": -0.55,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Parkin Company PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "PARKIN.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "PARKIN.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "PARKIN",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Phoenix Group PLC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "PHX.DU",
+      "swap_long": -0.17,
+      "swap_short": -0.14,
+      "symbol": "PHX",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "PHX.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "PHX.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-phx-du",
+    "metadata": {
+      "broker_description": "Phoenix Group PLC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.17,
+        "swap_short": -0.14,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Phoenix Group PLC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "PHX.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "PHX.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "PHX",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Salik Company PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "SALIK.DU",
+      "swap_long": -0.71,
+      "swap_short": -0.61,
+      "symbol": "SALIK",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SALIK.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "SALIK.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-salik-du",
+    "metadata": {
+      "broker_description": "Salik Company PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.71,
+        "swap_short": -0.61,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Salik Company PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "SALIK.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "SALIK.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "SALIK",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Sharjah Islamic Bank PJSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "SIB.DU",
+      "swap_long": -0.33,
+      "swap_short": -0.28,
+      "symbol": "SIB",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "SIB.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "SIB.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-sib-du",
+    "metadata": {
+      "broker_description": "Sharjah Islamic Bank PJSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.33,
+        "swap_short": -0.28,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Sharjah Islamic Bank PJSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "SIB.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "SIB.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "SIB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Talabat Holding PLC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 AED per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "TALABAT.DU",
+      "swap_long": -0.14,
+      "swap_short": -0.16,
+      "symbol": "TALABAT",
+      "trading_hours": "- 06:00-10:45 06:00-10:45"
+    },
+    "base_currency": null,
+    "canonical_symbol": "TALABAT.DU",
+    "confidence": "heuristic_match",
+    "country": "United Arab Emirates",
+    "display_symbol": "TALABAT.DU",
+    "exchange": "DFM",
+    "internal_id": "stocks-talabat-du",
+    "metadata": {
+      "broker_description": "Talabat Holding PLC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 AED per 0.01",
+        "swap_long": -0.14,
+        "swap_short": -0.16,
+        "trading_hours": "- 06:00-10:45 06:00-10:45"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Talabat Holding PLC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "TALABAT.DU"
+      },
+      "yahoo_finance": {
+        "symbol": "TALABAT.DU"
+      }
+    },
+    "quote_currency": "AED",
+    "raw_pdf_symbol": "TALABAT",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Boubyan Bank",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 KWF per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BOUBYAN.KW",
+      "swap_long": -18.3,
+      "swap_short": -14.54,
+      "symbol": "BOUBYAN",
+      "trading_hours": "06:00-09:30 06:00-09:30 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BOUBYAN.KW",
+    "confidence": "heuristic_match",
+    "country": "Kuwait",
+    "display_symbol": "BOUBYAN.KW",
+    "exchange": "Boursa Kuwait",
+    "internal_id": "stocks-boubyan-kw",
+    "metadata": {
+      "broker_description": "Boubyan Bank",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 KWF per 0.01",
+        "swap_long": -18.3,
+        "swap_short": -14.54,
+        "trading_hours": "06:00-09:30 06:00-09:30 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Boubyan Bank",
+    "notes": [],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "BOUBYAN.KW"
+      },
+      "yahoo_finance": {
+        "symbol": "BOUBYAN.KW"
+      }
+    },
+    "quote_currency": "KWF",
+    "raw_pdf_symbol": "BOUBYAN",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Ahli Bank QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "ABQK.QA",
+      "swap_long": -14.97,
+      "swap_short": -14.23,
+      "symbol": "ABQK",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "ABQK.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "ABQK.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-abqk-qa",
+    "metadata": {
+      "broker_description": "Ahli Bank QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -14.97,
+        "swap_short": -14.23,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Ahli Bank QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "ABQK.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "ABQK.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "ABQK",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Barwa Real Estate Company QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BARWA.QA",
+      "swap_long": -11.36,
+      "swap_short": -11.66,
+      "symbol": "BARWA",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BARWA.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "BARWA.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-barwa-qa",
+    "metadata": {
+      "broker_description": "Barwa Real Estate Company QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -11.36,
+        "swap_short": -11.66,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Barwa Real Estate Company QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "BARWA.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "BARWA.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "BARWA",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Doha Bank QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "DHBK.QA",
+      "swap_long": -10.25,
+      "swap_short": -8.0,
+      "symbol": "DHBK",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "DHBK.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "DHBK.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-dhbk-qa",
+    "metadata": {
+      "broker_description": "Doha Bank QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -10.25,
+        "swap_short": -8.0,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Doha Bank QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "DHBK.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "DHBK.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "DHBK",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Masraf Al Rayan QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "MASRAF.QA",
+      "swap_long": -9.94,
+      "swap_short": -10.1,
+      "symbol": "MASRAF",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "MASRAF.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "MASRAF.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-masraf-qa",
+    "metadata": {
+      "broker_description": "Masraf Al Rayan QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -9.94,
+        "swap_short": -10.1,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Masraf Al Rayan QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "MASRAF.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "MASRAF.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "MASRAF",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Mazaya Real Estate Development QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "MAZAYA.QA",
+      "swap_long": -2.59,
+      "swap_short": -2.42,
+      "symbol": "MAZAYA",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "MAZAYA.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "MAZAYA.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-mazaya-qa",
+    "metadata": {
+      "broker_description": "Mazaya Real Estate Development QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -2.59,
+        "swap_short": -2.42,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Mazaya Real Estate Development QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "MAZAYA.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "MAZAYA.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "MAZAYA",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar Aluminium Manufacturing Company QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QAMC.QA",
+      "swap_long": -5.88,
+      "swap_short": -5.01,
+      "symbol": "QAMC",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QAMC.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QAMC.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qamc-qa",
+    "metadata": {
+      "broker_description": "Qatar Aluminium Manufacturing Company QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -5.88,
+        "swap_short": -5.01,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar Aluminium Manufacturing Company QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QAMC.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QAMC.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QAMC",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar Fuel Company QPSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 QAR per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QFLS.QA",
+      "swap_long": -6.21,
+      "swap_short": -5.98,
+      "symbol": "QFLS",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QFLS.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QFLS.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qfls-qa",
+    "metadata": {
+      "broker_description": "Qatar Fuel Company QPSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 QAR per 0.01",
+        "swap_long": -6.21,
+        "swap_short": -5.98,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar Fuel Company QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QFLS.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QFLS.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QFLS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar National Cement Company QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QNCD.QA",
+      "swap_long": -13.79,
+      "swap_short": -16.52,
+      "symbol": "QNCD",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QNCD.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QNCD.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qncd-qa",
+    "metadata": {
+      "broker_description": "Qatar National Cement Company QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -13.79,
+        "swap_short": -16.52,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar National Cement Company QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QNCD.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QNCD.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QNCD",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar Navigation QPSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QNNS.QA",
+      "swap_long": -46.67,
+      "swap_short": -44.75,
+      "symbol": "QNNS",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QNNS.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QNNS.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qnns-qa",
+    "metadata": {
+      "broker_description": "Qatar Navigation QPSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -46.67,
+        "swap_short": -44.75,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar Navigation QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QNNS.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QNNS.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QNNS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Vodafone Qatar PQSC",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 QAR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "VFQS.QA",
+      "swap_long": -9.91,
+      "swap_short": -7.56,
+      "symbol": "VFQS",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "VFQS.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "VFQS.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-vfqs-qa",
+    "metadata": {
+      "broker_description": "Vodafone Qatar PQSC",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 QAR per 0.001",
+        "swap_long": -9.91,
+        "swap_short": -7.56,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Vodafone Qatar PQSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "VFQS.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "VFQS.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "VFQS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Industries Qatar QPSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 QAR per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "IQCD.QA",
+      "swap_long": -5.21,
+      "swap_short": -5.44,
+      "symbol": "IQCD",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "IQCD.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "IQCD.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-iqcd-qa",
+    "metadata": {
+      "broker_description": "Industries Qatar QPSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 QAR per 0.01",
+        "swap_long": -5.21,
+        "swap_short": -5.44,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Industries Qatar QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "IQCD.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "IQCD.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "IQCD",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar Electricity and Water Company QPSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 QAR per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QEWS.QA",
+      "swap_long": -6.61,
+      "swap_short": -6.44,
+      "symbol": "QEWS",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QEWS.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QEWS.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qews-qa",
+    "metadata": {
+      "broker_description": "Qatar Electricity and Water Company QPSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 QAR per 0.01",
+        "swap_long": -6.61,
+        "swap_short": -6.44,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar Electricity and Water Company QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QEWS.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QEWS.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QEWS",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar Islamic Bank QPSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 QAR per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QIBK.QA",
+      "swap_long": -9.98,
+      "swap_short": -8.69,
+      "symbol": "QIBK",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QIBK.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QIBK.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qibk-qa",
+    "metadata": {
+      "broker_description": "Qatar Islamic Bank QPSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 QAR per 0.01",
+        "swap_long": -9.98,
+        "swap_short": -8.69,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar Islamic Bank QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QIBK.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QIBK.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QIBK",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Qatar National Bank QPSC",
+      "digits": 2,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.01,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "1 QAR per 0.01",
+      "quote_source": "YAHOO",
+      "quote_symbol": "QNBK.QA",
+      "swap_long": -7.78,
+      "swap_short": -7.09,
+      "symbol": "QNBK",
+      "trading_hours": "06:30-10:15 06:30-10:15 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "QNBK.QA",
+    "confidence": "heuristic_match",
+    "country": "Qatar",
+    "display_symbol": "QNBK.QA",
+    "exchange": "QSE",
+    "internal_id": "stocks-qnbk-qa",
+    "metadata": {
+      "broker_description": "Qatar National Bank QPSC",
+      "contract_spec": {
+        "digits": 2,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.01,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "1 QAR per 0.01",
+        "swap_long": -7.78,
+        "swap_short": -7.09,
+        "trading_hours": "06:30-10:15 06:30-10:15 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Qatar National Bank QPSC",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "QNBK.QA"
+      },
+      "yahoo_finance": {
+        "symbol": "QNBK.QA"
+      }
+    },
+    "quote_currency": "QAR",
+    "raw_pdf_symbol": "QNBK",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Bank Muscat SAOG",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 OMR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BKMB.OM",
+      "swap_long": -0.35,
+      "swap_short": -0.35,
+      "symbol": "BKMB",
+      "trading_hours": "06:00-10:00 06:00-10:00 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BKMB.OM",
+    "confidence": "heuristic_match",
+    "country": "Oman",
+    "display_symbol": "BKMB.OM",
+    "exchange": "MSX",
+    "internal_id": "stocks-bkmb-om",
+    "metadata": {
+      "broker_description": "Bank Muscat SAOG",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 OMR per 0.001",
+        "swap_long": -0.35,
+        "swap_short": -0.35,
+        "trading_hours": "06:00-10:00 06:00-10:00 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Bank Muscat SAOG",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "BKMB.OM"
+      },
+      "yahoo_finance": {
+        "symbol": "BKMB.OM"
+      }
+    },
+    "quote_currency": "OMR",
+    "raw_pdf_symbol": "BKMB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "Bank Sohar",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 OMR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "BKSB.OM",
+      "swap_long": -0.16,
+      "swap_short": -0.18,
+      "symbol": "BKSB",
+      "trading_hours": "06:00-10:00 06:00-10:00 -"
+    },
+    "base_currency": null,
+    "canonical_symbol": "BKSB.OM",
+    "confidence": "heuristic_match",
+    "country": "Oman",
+    "display_symbol": "BKSB.OM",
+    "exchange": "MSX",
+    "internal_id": "stocks-bksb-om",
+    "metadata": {
+      "broker_description": "Bank Sohar",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 OMR per 0.001",
+        "swap_long": -0.16,
+        "swap_short": -0.18,
+        "trading_hours": "06:00-10:00 06:00-10:00 -"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "Bank Sohar",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "BKSB.OM"
+      },
+      "yahoo_finance": {
+        "symbol": "BKSB.OM"
+      }
+    },
+    "quote_currency": "OMR",
+    "raw_pdf_symbol": "BKSB",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  },
+  {
+    "asset_class": "STOCKS",
+    "backend_seed": {
+      "category": "STOCKS",
+      "default_spread": 0.02,
+      "description": "National Gas Co SAOG",
+      "digits": 3,
+      "enabled": true,
+      "is_active": true,
+      "lot_size": 100.0,
+      "margin_pro_pct": 10.0,
+      "margin_retail_pct": 20.0,
+      "market_group": "MIDEAST",
+      "max_trade_size_lots": 100.0,
+      "min_tick_increment": 0.001,
+      "min_trade_size_lots": 0.01,
+      "pip_value": "0.10 OMR per 0.001",
+      "quote_source": "YAHOO",
+      "quote_symbol": "NGCI.OM",
+      "swap_long": -0.09,
+      "swap_short": -0.1,
+      "symbol": "NGCI",
+      "trading_hours": "06:00-10:00 06:00-10:00 - -- 6 of 7 --"
+    },
+    "base_currency": null,
+    "canonical_symbol": "NGCI.OM",
+    "confidence": "heuristic_match",
+    "country": "Oman",
+    "display_symbol": "NGCI.OM",
+    "exchange": "MSX",
+    "internal_id": "stocks-ngci-om",
+    "metadata": {
+      "broker_description": "National Gas Co SAOG",
+      "contract_spec": {
+        "digits": 3,
+        "lot_size": 100.0,
+        "margin_pro_pct": 10.0,
+        "margin_retail_pct": 20.0,
+        "max_trade_size_lots": 100.0,
+        "min_tick_increment": 0.001,
+        "min_trade_size_lots": 0.01,
+        "pip_value": "0.10 OMR per 0.001",
+        "swap_long": -0.09,
+        "swap_short": -0.1,
+        "trading_hours": "06:00-10:00 06:00-10:00 - -- 6 of 7 --"
+      },
+      "pdf_section": "STOCKS MIDEAST"
+    },
+    "name": "National Gas Co SAOG",
+    "notes": [
+      "Exchange suffix inferred from PDF region/venue conventions; confirm live provider support before routing trades."
+    ],
+    "provider_symbol_map": {
+      "twelve_data": {
+        "symbol": "NGCI.OM"
+      },
+      "yahoo_finance": {
+        "symbol": "NGCI.OM"
+      }
+    },
+    "quote_currency": "OMR",
+    "raw_pdf_symbol": "NGCI",
+    "region": "MIDEAST",
+    "status": "partial",
+    "subtype": "equity",
+    "supported_providers": [
+      "twelve_data",
+      "yahoo_finance"
+    ]
+  }
+]

@@ -1,0 +1,498 @@
+FOREX Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Sunday Monday - Thursday Friday
+CADCHF Canadian Dollar vs Swiss Franc 3.33% 0.50% 100,000 10 CHF per 0.0001 -22.98 -22.98 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+CADJPY Canadian Dollar vs Japanese Yen 3.33% 0.50% 100,000 1000 JPY per 0.01 -44.23 -44.23 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+CHFJPY Swiss Franc vs Japanese Yen 3.33% 0.50% 100,000 1000 JPY per 0.01 -76.98 -76.98 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURCAD Euro vs Canadian Dollar 3.33% 0.50% 100,000 10 CAD per 0.0001 -76.07 -76.07 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURCHF Euro vs Swiss Franc 3.33% 0.50% 100,000 10 CHF per 0.0001 -37.31 -37.31 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURGBP Euro vs British Pound 3.33% 0.50% 100,000 10 GBP per 0.0001 -44.22 -44.22 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURJPY Euro vs Japanese Yen 3.33% 0.50% 100,000 1000 JPY per 0.01 -71.81 -71.81 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURUSD Euro vs US Dollar 3.33% 0.50% 100,000 10 USD per 0.0001 -54.83 -54.83 5 0.00001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+GBPCAD British Pound vs Canadian Dollar 3.33% 0.50% 100,000 10 CAD per 0.0001 -87.66 -87.66 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+GBPCHF British Pound vs Swiss Franc 3.33% 0.50% 100,000 10 CHF per 0.0001 -43 -43 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+GBPJPY British Pound vs Japanese Yen 3.33% 0.50% 100,000 1000 JPY per 0.01 -82.75 -82.75 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+GBPUSD British Pound vs US Dollar 3.33% 0.50% 100,000 10 USD per 0.0001 -69.95 -69.95 5 0.00001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+USDCAD US Dollar vs Canadian Dollar 3.33% 0.50% 100,000 10 CAD per 0.0001 -64.72 -64.72 5 0.00001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+USDCHF US Dollar vs Swiss Franc 3.33% 0.50% 100,000 10 CHF per 0.0001 -31.75 -31.75 5 0.00001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+USDJPY US Dollar vs Japanese Yen 3.33% 0.50% 100,000 1000 JPY per 0.01 -61.1 -61.1 3 0.001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+AUDCAD Australian Dollar vs Canadian Dollar 5.00% 0.50% 100,000 10 CAD per 0.0001 -38.09 -38.09 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+AUDCHF Australian Dollar vs Swiss Franc 5.00% 0.50% 100,000 10 CHF per 0.0001 -18.3 -18.3 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+AUDJPY Australian Dollar vs Japanese Yen 5.00% 0.50% 100,000 1000 JPY per 0.01 -35.39 -35.39 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+AUDNZD Australian Dollar vs New Zealand Dollar 5.00% 0.50% 100,000 10 NZD per 0.0001 -47.95 -47.95 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+AUDUSD Australian Dollar vs US Dollar 5.00% 0.50% 100,000 10 USD per 0.0001 -30.73 -30.73 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURAUD Euro vs Australian Dollar 5.00% 0.50% 100,000 10 AUD per 0.0001 -80.03 -80.03 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURNZD Euro vs New Zealand Dollar 5.00% 0.50% 100,000 10 NZD per 0.0001 -85.53 -85.53 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+GBPAUD British Pound vs Australian Dollar 5.00% 0.50% 100,000 10 AUD per 0.0001 -92.24 -92.24 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+GBPNZD British Pound vs New Zealand Dollar 5.00% 0.50% 100,000 10 NZD per 0.0001 -98.57 -98.57 5 0.00001 0.01 100 22:03-24:00 00:00-22:00; 22:03-24:00 00:00-21:55
+NZDCAD New Zealand vs Canadian Dollar 5.00% 0.50% 100,000 10 CAD per 0.0001 -34.34 -34.34 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+NZDCHF New Zealand Dollar vs Swiss Franc 5.00% 0.50% 100,000 10 CHF per 0.0001 -16.5 -16.5 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+NZDJPY New Zealand Dollar vs Japanese Yen 5.00% 0.50% 100,000 1000 JPY per 0.01 -31.9 -31.9 3 0.001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+NZDUSD New Zealand Dollar vs US Dollar 5.00% 0.50% 100,000 10 USD per 0.0001 -27.71 -27.71 5 0.00001 0.01 100 22:06-24:00 00:00-22:00; 22:06-24:00 00:00-21:55
+EURNOK Euro vs Norwegian Krone 5.00% 0.50% 100,000 10 NOK per 0.001 -195.62 -195.62 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+EURSEK Euro vs Swedish Krona 5.00% 0.50% 100,000 10 SEK per 0.001 -176.61 -176.61 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+USDHKD US Dollar vs Hong Kong Dollar 5.00% 0.50% 100,000 10 HKD per 0.0001 -1272.11 -1272.11 5 0.00001 0.01 100 - 03:05-20:55 03:05-20:55
+USDMXN US Dollar vs Mexican Peso 5.00% 0.50% 100,000 10 MXN per 0.001 -329.1 -329.1 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+USDNOK US Dollar vs Norwegian Krone 5.00% 0.50% 100,000 10 NOK per 0.001 -166.44 -166.44 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+USDSEK US Dollar vs Swedish Krona 5.00% 0.50% 100,000 10 SEK per 0.001 -150.26 -150.26 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+USDSGD US Dollar vs Singapore Dollar 5.00% 0.50% 100,000 10 SGD per 0.001 -20.49 -20.49 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+USDZAR US Dollar vs South African Rand 5.00% 0.50% 100,000 10 ZAR per 0.001 -305.33 -305.33 4 0.0001 0.01 100 - 03:05-20:55 03:05-20:55
+EURPLN Euro vs Polish Zloty 5.00% 0.50% 100,000 10 PLN per 0.001 -71.36 -71.36 4 0.0001 0.01 100 - 06:15-15:00 06:15-15:00
+EURTRY Euro vs Turkish Lira 5.00% 0.50% 100,000 10 TRY per 0.0001 -12907.54 -12907.54 5 0.00001 0.01 100 - 06:15-15:00 06:15-15:00
+USDPLN US Dollar vs Polish Zloty 5.00% 0.50% 100,000 10 PLN per 0.001 -60.71 -60.71 4 0.0001 0.01 100 - 06:15-15:00 06:15-15:00
+USDTRY US Dollar vs Turkish Lira 5.00% 0.50% 100,000 10 TRY per 0.0001 -10973.46 -10973.46 5 0.00001 0.01 100 - 06:15-15:00 06:15-15:00
+
+--- 1 / 7 ---
+
+
+METALS Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Sunday Monday - Thursday Friday
+COPPER-cash Copper (Metric ton) 10.00% 2.00% 1 1 USD per 1 -25.94 -25.94 0 1 0.01 100 - 01:00-19:00 01:00-19:00
+XPDUSD Palladium (per Troy Ounce) 10.00% 2.00% 100 1 USD per 0.01 -212.65 -212.65 2 0.01 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+XPTUSD Platinum (per Troy Ounce) 10.00% 2.00% 100 1 USD per 0.01 -259.51 -259.51 2 0.01 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+XAGUSD Silver vs US Dollar 10.00% 2.00% 1,000 1 USD per 0.001 -25.54 -25.54 3 0.001 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+XAUUSD Gold vs US Dollar 5.00% 2.00% 100 1 USD per 0.01 -122.25 -122.25 2 0.01 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+INDICES Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Sunday Monday - Thursday Friday
+ASX-cash ASX SPI 200 Index 5.00% 2.00% 10 10 AUD per 1 -4.85 -4.85 0 1 0.01 100 22:50-24:00 00:00-05:30; 06:10-20:00;
+22:50-24:00 00:00-05:30; 06:10-20:00
+CAC-cash CAC 40 Index 5.00% 2.00% 10 1 EUR per 0.1 -39.25 -39.25 1 0.1 0.01 100 - 07:00-21:00 07:00-21:00
+DAX-cash DAX 30 Index 5.00% 2.00% 25 2.50 EUR per 0.1 -97.04 -97.04 1 0.1 0.01 100 23:05-24:00 00:15-22:00; 23:00-24:00 00:15-20:55
+EUSX-cash DJ Euro Stoxx Index 5.00% 2.00% 10 1 EUR per 0.1 -152.84 -152.84 1 0.1 0.01 100 - 07:00-21:00 07:00-21:00
+IBEX-cash IBEX 35 Index 10.00% 2.00% 10 10 EUR per 1 -7.62 -7.62 0 1 0.01 100 - 07:00-19:00 07:00-19:00
+MIB-cash FTSE/MIB Index 10.00% 2.00% 5 5 EUR per 1 -21.19 -21.19 0 1 0.01 100 - 07:00-21:00 07:00-21:00
+SMI-cash SMI 20 Index 10.00% 2.00% 10 10 CHF per 1 -5.53 -5.53 0 1 0.01 100 - 07:00-21:00 07:00-21:00
+FTSE-cash FTSE 100 Index 5.00% 2.00% 10 1 GBP per 0.1 -51.46 -51.46 1 0.1 0.01 100 23:05-24:00 00:00-22:00; 23:00-24:00 00:00-20:55
+DXY-cash US Dollar Index 10.00% 2.00% 1,000 1 USD per 0.001 -55.17 -55.17 3 0.001 0.01 100 - 00:00-21:00 00:00-21:00
+DOW-cash E-mini Dow Jones Index 5.00% 2.00% 5 5 USD per 1 -25.67 -25.67 0 1 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+NK-cash Nikkei 225 Index 5.00% 2.00% 10 10 USD per 1 -24.81 -24.81 0 1 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+NSDQ-cash E-mini Nasdaq100 Index 5.00% 2.00% 20 0.20 USD per 0.01 -396.29 -396.29 2 0.01 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+RTY-cash E-mini Russell 2000 Index 5.00% 2.00% 50 5 USD per 0.1 -74.15 -74.15 1 0.1 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+SP-cash E-mini S&P500 Index 5.00% 2.00% 50 5 USD per 0.1 -27.04 -27.04 1 0.1 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+COMMODITIES Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Sunday Monday - Thursday Friday
+BRNT-cash Brent Crude Oil (Barrels) 10.00% 2.00% 1,000 10 USD per 0.01 -6.41 -6.41 2 0.01 0.01 100 - 01:00-22:00 01:00-21:55
+CL-cash Light Sweet Crude Oil (Barrels) 10.00% 2.00% 1,000 10 USD per 0.01 -6.04 -6.04 2 0.01 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+NGAS-cash Natural Gas (mmBtu) 10.00% 2.00% 10,000 100 USD per 0.001 -8.66 -8.66 3 0.001 0.01 100 23:01-24:00 00:00-22:00; 23:01-24:00 00:00-21:55
+COCOA-cash Cocoa (metric tons) 10.00% 2.00% 10 10 USD per 1 -7.64 -7.64 0 1 0.01 100 - 09:45-18:30 09:45-18:25
+COFFEE-cash Coffee (pounds) 10.00% 2.00% 100 1 USD per 0.01 -37.38 -37.38 2 0.01 0.01 100 - 09:15-18:30 09:15-18:25
+CORN-cash Corn (bushels) 10.00% 2.00% 50 0.5 USD per 0.01 -38.68 -38.68 2 0.01 0.01 100 - 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15
+COTTON-cash Cotton (pounds) 10.00% 2.00% 500 5 USD per 0.01 -6.25 -6.25 2 0.01 0.01 100 - 02:05-19:20 02:05-19:15
+SBEAN-cash Soybean (bushels) 10.00% 2.00% 50 0.5 USD per 0.01 -97.65 -97.65 2 0.01 0.01 100 - 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15
+SUGAR-cash Sugar (pounds) 10.00% 2.00% 100 1 USD per 0.01 -1.5 -1.5 2 0.01 0.01 100 - 08:30-18:00 08:30-17:55
+WHEAT-cash Wheat (tonnes) 10.00% 2.00% 50 0.5 USD per 0.01 -48.31 -48.31 2 0.01 0.01 100 - 01:00-13:45; 14:30-19:20 01:00-13:45; 14:30-19:15
+LUMBER-cash Lumber (board feet) 10.00% 2.00% 100 1 USD per 0.01 -53.55 -53.55 2 0.01 0.01 100 - 15:00-21:00 15:00-21:00
+CRYPTO Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Sunday
+ADAUSD Cardano vs US Dollar 50.00% 20.00% 100 0.01 USD per 0.0001 -69.52 -69.52 4 0.0001 0.01 100 22:00-22:00
+BCHUSD Bitcoin Cash vs US Dollar 50.00% 20.00% 100 1 USD per 0.01 -458.71 -458.71 2 0.01 0.01 100 22:00-22:00
+BNBUSD Binance Coin vs US Dollar 50.00% 20.00% 10 0.10 USD per 0.01 -713.67 -713.67 2 0.01 0.01 100 22:00-22:00
+BTCUSD Bitcoin vs US Dollar 50.00% 20.00% 1 0.01 USD per 0.01 -62877.61 -62877.61 2 0.01 0.01 100 22:00-22:00
+DASHUSD Dash vs US Dollar 50.00% 20.00% 10 0.10 USD per 0.01 -20.44 -20.44 2 0.01 0.01 100 22:00-22:00
+DOGEUSD Dogecoin vs US Dollar 50.00% 20.00% 100 0.01 USD per 0.0001 -19.21 -19.21 4 0.0001 0.01 100 22:00-22:00
+DOTUSD Polkadot vs US Dollar 50.00% 20.00% 100 0.10 USD per 0.001 -32.61 -32.61 3 0.001 0.01 100 22:00-22:00
+ETHUSD Ethereum vs US Dollar 50.00% 20.00% 1 0.01 USD per 0.01 -3502.47 -3502.47 2 0.01 0.01 100 22:00-22:00
+LINKUSD Chainlink vs US Dollar 50.00% 20.00% 100 0.10 USD per 0.001 -186.1 -186.1 3 0.001 0.01 100 22:00-22:00
+LTCUSD Litecoin vs US Dollar 50.00% 20.00% 10 0.01 USD per 0.001 -917.16 -917.16 3 0.001 0.01 100 22:00-22:00
+MANAUSD Mana vs US Dollar 50.00% 20.00% 100 0.01 USD per 0.0001 -26.55 -26.55 4 0.0001 0.01 100 22:00-22:00
+SANDUSD Sandbox vs US Dollar 50.00% 20.00% 100 0.01 USD per 0.0001 -23.83 -23.83 4 0.0001 0.01 100 22:00-22:00
+SOLUSD Solana vs US Dollar 50.00% 20.00% 10 0.10 USD per 0.01 -173.06 -173.06 2 0.01 0.01 100 22:00-22:00
+SUIUSD Sui vs US Dollar 50.00% 20.00% 1,000 0.10 USD per 0.0001 -274.55 -274.55 4 0.0001 0.01 100 22:00-22:00
+TRUMPUSD Trump vs US Dollar 50.00% 20.00% 1,000 1 USD per 0.001 -62.75 -62.75 3 0.001 0.01 100 22:00-22:00
+TRXUSD Tron vs US Dollar 50.00% 20.00% 100,000 1 USD per 0.00001 -276.59 -276.59 5 0.00001 0.01 100 22:00-22:00
+XMRUSD Monero vs US Dollar 50.00% 20.00% 10 0.10 USD per 0.01 -218.95 -218.95 2 0.01 0.01 100 22:00-22:00
+XRPUSD Ripple vs US Dollar 50.00% 20.00% 100 0.01 USD per 0.0001 -241.62 -241.62 4 0.0001 0.01 100 22:00-22:00
+
+--- 2 / 7 ---
+
+
+STOCKS US Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+AAL American Airlines Group Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.81 -0.81 2 0.01 0.01 100 14:30-21:00
+ABBOT Abbott Laboratories 20.00% 10.00% 100 1 USD per 0.01 -8.18 -8.18 2 0.01 0.01 100 14:30-21:00
+ABBV AbbVie Inc. 20.00% 10.00% 100 1 USD per 0.01 -12.84 -12.84 2 0.01 0.01 100 14:30-21:00
+ABNB Airbnb Inc. 20.00% 10.00% 100 1 USD per 0.01 -7.68 -7.68 2 0.01 0.01 100 14:30-21:00
+ACBFF Aurora Cannabis Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.3 -0.3 2 0.01 0.01 100 14:30-21:00
+ALCOA Alcoa Corp. 20.00% 10.00% 100 1 USD per 0.01 -1.92 -1.92 2 0.01 0.01 100 14:30-21:00
+ALIBABA Alibaba Group Holding Ltd - ADR 20.00% 10.00% 100 1 USD per 0.01 -8.61 -8.61 2 0.01 0.01 100 14:30-21:00
+AMAZON Amazon.com Inc. 20.00% 10.00% 100 1 USD per 0.01 -14.43 -14.43 2 0.01 0.01 100 14:30-21:00
+AMD Advanced Micro Devices Inc. 20.00% 10.00% 100 1 USD per 0.01 -9.23 -9.23 2 0.01 0.01 100 14:30-21:00
+AMEX American Express Company 20.00% 10.00% 100 1 USD per 0.01 -19.99 -19.99 2 0.01 0.01 100 14:30-21:00
+AMX America Movil SAB de CV ADR Series L 20.00% 10.00% 100 1 USD per 0.01 -1.2 -1.2 2 0.01 0.01 100 14:30-21:00
+APPLE Apple Inc. 20.00% 10.00% 100 1 USD per 0.01 -14.76 -14.76 2 0.01 0.01 100 14:30-21:00
+ARM ARM Holdings plc 20.00% 10.00% 100 1 USD per 0.01 -8.55 -8.55 2 0.01 0.01 100 14:30-21:00
+ASMLUS ASML Holding NV ADR 20.00% 10.00% 100 1 USD per 0.01 -48.55 -48.55 2 0.01 0.01 100 14:30-21:00
+ATnT AT&T Inc. 20.00% 10.00% 100 1 USD per 0.01 -1.77 -1.77 2 0.01 0.01 100 14:30-21:00
+BAIDU Baidu Inc. 20.00% 10.00% 100 1 USD per 0.01 -6.69 -6.69 2 0.01 0.01 100 14:30-21:00
+BAP Credicorp Ltd. 20.00% 10.00% 100 1 USD per 0.01 -16.2 -16.2 2 0.01 0.01 100 14:30-21:00
+BBRY BlackBerry Ltd. 20.00% 10.00% 100 1 USD per 0.01 -0.24 -0.24 2 0.01 0.01 100 14:30-21:00
+BCH Banco de Chile 20.00% 10.00% 100 1 USD per 0.01 -1.87 -1.87 2 0.01 0.01 100 14:30-21:00
+BIIB Biogen Inc. 20.00% 10.00% 100 1 USD per 0.01 -8.51 -8.51 2 0.01 0.01 100 14:30-21:00
+BKNG Booking Holdings Inc. 20.00% 10.00% 100 1 USD per 0.01 -342.92 -342.92 2 0.01 0.01 100 14:30-21:00
+BLX Banco Latinoamericano de Comercio Exterior SA 20.00% 10.00% 100 1 USD per 0.01 -2.85 -2.85 2 0.01 0.01 100 14:30-21:00
+BOA Bank of America Corp. 20.00% 10.00% 100 1 USD per 0.01 -3.03 -3.03 2 0.01 0.01 100 14:30-21:00
+BOEING Boeing Co. 20.00% 10.00% 100 1 USD per 0.01 -14.14 -14.14 2 0.01 0.01 100 14:30-21:00
+BROADCOM Broadcom Inc. 20.00% 10.00% 100 1 USD per 0.01 -21.07 -21.07 2 0.01 0.01 100 14:30-21:00
+BSAC Banco Santander-Chile 20.00% 10.00% 100 1 USD per 0.01 -1.58 -1.58 2 0.01 0.01 100 14:30-21:00
+BYND Beyond Meat Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.15 -0.15 2 0.01 0.01 100 14:30-21:00
+CATERPILLAR Caterpillar Inc. 20.00% 10.00% 100 1 USD per 0.01 -25.79 -25.79 2 0.01 0.01 100 14:30-21:00
+CCU Compania Cervecerias Unidas SA 20.00% 10.00% 100 1 USD per 0.01 -0.75 -0.75 2 0.01 0.01 100 14:30-21:00
+CEMEX CEMEX SAB de CV 20.00% 10.00% 100 1 USD per 0.01 -0.59 -0.59 2 0.01 0.01 100 14:30-21:00
+CGC Canopy Growth Corp. 20.00% 10.00% 100 1 USD per 0.01 -0.09 -0.09 2 0.01 0.01 100 14:30-21:00
+CHEVRON Chevron Corporation 20.00% 10.00% 100 1 USD per 0.01 -9.44 -9.44 2 0.01 0.01 100 14:30-21:00
+CISCO Cisco Systems Inc. 20.00% 10.00% 100 1 USD per 0.01 -4.13 -4.13 2 0.01 0.01 100 14:30-21:00
+CitiGroup Citigroup Inc. 20.00% 10.00% 100 1 USD per 0.01 -5.85 -5.85 2 0.01 0.01 100 14:30-21:00
+COCACOLA Coca-Cola Co. 20.00% 10.00% 100 1 USD per 0.01 -4.18 -4.18 2 0.01 0.01 100 14:30-21:00
+COIN Coinbase Global Inc. 20.00% 10.00% 100 1 USD per 0.01 -18.69 -18.69 2 0.01 0.01 100 14:30-21:00
+CPA Copa Holdings SA 20.00% 10.00% 100 1 USD per 0.01 -7.16 -7.16 2 0.01 0.01 100 14:30-21:00
+CPAC Cementos Pacasmayo SAA 20.00% 10.00% 100 1 USD per 0.01 -0.41 -0.41 2 0.01 0.01 100 14:30-21:00
+DELTA Delta Air Lines Inc. 20.00% 10.00% 100 1 USD per 0.01 -3.75 -3.75 2 0.01 0.01 100 14:30-21:00
+DIGINEX Diginex Ltd. 20.00% 10.00% 100 1 USD per 0.01 -1.11 -1.11 2 0.01 0.01 100 14:30-21:00
+DISNEY Walt Disney Co. 20.00% 10.00% 100 1 USD per 0.01 -7.25 -7.25 2 0.01 0.01 100 14:30-21:00
+DJT Trump Media & Technology Group Corp. 20.00% 10.00% 100 1 USD per 0.01 -1.03 -1.03 2 0.01 0.01 100 14:30-21:00
+EBAY eBay Inc. 20.00% 10.00% 100 1 USD per 0.01 -5.71 -5.71 2 0.01 0.01 100 14:30-21:00
+ESTA Establishment Labs Holdings Inc. 20.00% 10.00% 100 1 USD per 0.01 -2.35 -2.35 2 0.01 0.01 100 14:30-21:00
+ExxonMobil Exxon Mobil Corp. 20.00% 10.00% 100 1 USD per 0.01 -6.7 -6.7 2 0.01 0.01 100 14:30-21:00
+Facebook Meta Platforms Inc. (fmr Facebook) 20.00% 10.00% 100 1 USD per 0.01 -47.02 -47.02 2 0.01 0.01 100 14:30-21:00
+FCEL FuelCell Energy Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.25 -0.25 2 0.01 0.01 100 14:30-21:00
+FDX FedEx Corp. 20.00% 10.00% 100 1 USD per 0.01 -13.75 -13.75 2 0.01 0.01 100 14:30-21:00
+FNB F.N.B. Corporation 20.00% 10.00% 100 1 USD per 0.01 -1.01 -1.01 2 0.01 0.01 100 14:30-21:00
+FORD Ford Motor Co. 20.00% 10.00% 100 1 USD per 0.01 -0.72 -0.72 2 0.01 0.01 100 14:30-21:00
+FSOLAR First Solar Inc. 20.00% 10.00% 100 1 USD per 0.01 -12.4 -12.4 2 0.01 0.01 100 14:30-21:00
+GE General Electric Company 20.00% 10.00% 100 1 USD per 0.01 -17.26 -17.26 2 0.01 0.01 100 14:30-21:00
+GM General Motors Company 20.00% 10.00% 100 1 USD per 0.01 -3.55 -3.55 2 0.01 0.01 100 14:30-21:00
+GME GameStop Corp. 20.00% 10.00% 100 1 USD per 0.01 -1.41 -1.41 2 0.01 0.01 100 14:30-21:00
+GoldmnSachs Goldman Sachs 20.00% 10.00% 100 1 USD per 0.01 -45.37 -45.37 2 0.01 0.01 100 14:30-21:00
+GOOGLE Alphabet Inc. Class A 20.00% 10.00% 100 1 USD per 0.01 -14.63 -14.63 2 0.01 0.01 100 14:30-21:00
+HILTON Hilton Hotels Corporation 20.00% 10.00% 100 1 USD per 0.01 -16.83 -16.83 2 0.01 0.01 100 14:30-21:00
+HOOD Robinhood Markets Inc. 20.00% 10.00% 100 1 USD per 0.01 -7.12 -7.12 2 0.01 0.01 100 14:30-21:00
+HPQ Hewlett Packard Inc 20.00% 10.00% 100 1 USD per 0.01 -1.79 -1.79 2 0.01 0.01 100 14:30-21:00
+IBM IBM 20.00% 10.00% 100 1 USD per 0.01 -15.48 -15.48 2 0.01 0.01 100 14:30-21:00
+INO Inovio Pharmaceuticals Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.18 -0.18 2 0.01 0.01 100 14:30-21:00
+INTEL Intel Corporation 20.00% 10.00% 100 1 USD per 0.01 -1.51 -1.51 2 0.01 0.01 100 14:30-21:00
+JMIA Jumia Technologies AG ADR 20.00% 10.00% 100 1 USD per 0.01 -0.55 -0.55 2 0.01 0.01 100 14:30-21:00
+JNJ Johnson & Johnson 20.00% 10.00% 100 1 USD per 0.01 -10.97 -10.97 2 0.01 0.01 100 14:30-21:00
+JPMorgan JPMorgan Chase & Co. 20.00% 10.00% 100 1 USD per 0.01 -18.05 -18.05 2 0.01 0.01 100 14:30-21:00
+KMB Kimberly Clark Corp. 20.00% 10.00% 100 1 USD per 0.01 -7.91 -7.91 2 0.01 0.01 100 14:30-21:00
+LCID Lucid Group Inc. 20.00% 10.00% 100 1 USD per 0.01 -1.14 -1.14 2 0.01 0.01 100 14:30-21:00
+LMT Lockheed Martin Corp. 20.00% 10.00% 100 1 USD per 0.01 -28.07 -28.07 2 0.01 0.01 100 14:30-21:00
+Mastercard Mastercard Inc. 20.00% 10.00% 100 1 USD per 0.01 -36.02 -36.02 2 0.01 0.01 100 14:30-21:00
+McDonalds McDonald's Corp. 20.00% 10.00% 100 1 USD per 0.01 -19.17 -19.17 2 0.01 0.01 100 14:30-21:00
+MICROSOFT Microsoft Corporation 20.00% 10.00% 100 1 USD per 0.01 -30.78 -30.78 2 0.01 0.01 100 14:30-21:00
+MMM 3M Company 20.00% 10.00% 100 1 USD per 0.01 -9.41 -9.41 2 0.01 0.01 100 14:30-21:00
+MorganStan Morgan Stanley 20.00% 10.00% 100 1 USD per 0.01 -9.12 -9.12 2 0.01 0.01 100 14:30-21:00
+MOTOROLA Motorola Solutions Inc. 20.00% 10.00% 100 1 USD per 0.01 -29.38 -29.38 2 0.01 0.01 100 14:30-21:00
+MRNA Moderna Inc. 20.00% 10.00% 100 1 USD per 0.01 -1.48 -1.48 2 0.01 0.01 100 14:30-21:00
+NETFLIX Netflix Inc. 20.00% 10.00% 100 1 USD per 0.01 -76.91 -76.91 2 0.01 0.01 100 14:30-21:00
+NIKE NIKE Inc. 20.00% 10.00% 100 1 USD per 0.01 -4.57 -4.57 2 0.01 0.01 100 14:30-21:00
+
+--- 3 / 7 ---
+
+
+NIO NIO Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.38 -0.38 2 0.01 0.01 100 14:30-21:00
+NVAX Novavax Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.48 -0.48 2 0.01 0.01 100 14:30-21:00
+NVIDIA NVIDIA Corporation 20.00% 10.00% 100 1 USD per 0.01 -10.5 -10.5 2 0.01 0.01 100 14:30-21:00
+NVO Novo Nordisk A/S 20.00% 10.00% 100 1 USD per 0.01 -3.34 -3.34 2 0.01 0.01 100 14:30-21:00
+ORACLE Oracle Corporation 20.00% 10.00% 100 1 USD per 0.01 -14.71 -14.71 2 0.01 0.01 100 14:30-21:00
+PAYPAL PayPal Holdings Inc. 20.00% 10.00% 100 1 USD per 0.01 -4.21 -4.21 2 0.01 0.01 100 14:30-21:00
+PepsiCo PepsiCo Inc. 20.00% 10.00% 100 1 USD per 0.01 -8.81 -8.81 2 0.01 0.01 100 14:30-21:00
+Petro Petroleo Brasileiro SA Petrobras 20.00% 10.00% 100 1 USD per 0.01 -0.75 -0.75 2 0.01 0.01 100 14:30-21:00
+PFIZER Pfizer Inc. 20.00% 10.00% 100 1 USD per 0.01 -1.51 -1.51 2 0.01 0.01 100 14:30-21:00
+PLTR Palantir Technologies Inc. 20.00% 10.00% 101 2 USD per 0.01 -9.73 -9.73 2 0.01 0.01 100 14:30-21:00
+PLUG Plug Power Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.09 -0.09 2 0.01 0.01 100 14:30-21:00
+QUALCOMM Qualcomm Inc. 20.00% 10.00% 100 1 USD per 0.01 -10.52 -10.52 2 0.01 0.01 100 14:30-21:00
+QUBT Quantum Computing Inc. 20.00% 10.00% 100 1 USD per 0.01 -1.25 -1.25 2 0.01 0.01 100 14:30-21:00
+REDDIT Reddit Inc. 20.00% 10.00% 100 1 USD per 0.01 -14.92 -14.92 2 0.01 0.01 100 14:30-21:00
+SCCO Southern Copper Corporation 20.00% 10.00% 100 1 USD per 0.01 -6.3 -6.3 2 0.01 0.01 100 14:30-21:00
+SHOPIFY Shopify Inc. 20.00% 10.00% 100 1 USD per 0.01 -8.94 -8.94 2 0.01 0.01 100 14:30-21:00
+SNAPCHAT Snap Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.45 -0.45 2 0.01 0.01 100 14:30-21:00
+SONY Sony Group Corporation 20.00% 10.00% 100 1 USD per 0.01 -1.72 -1.72 2 0.01 0.01 100 14:30-21:00
+SPOT Spotify Technology SA 20.00% 10.00% 100 1 USD per 0.01 -43.77 -43.77 2 0.01 0.01 100 14:30-21:00
+SQM Sociedad Quimica y Minera de Chile SA 20.00% 10.00% 100 1 USD per 0.01 -2.82 -2.82 2 0.01 0.01 100 14:30-21:00
+STARBUCKS Starbucks Corporation 20.00% 10.00% 100 1 USD per 0.01 -5.18 -5.18 2 0.01 0.01 100 14:30-21:00
+TEVA Teva Pharmaceutical Industries Limited 20.00% 10.00% 100 1 USD per 0.01 -1.17 -1.17 2 0.01 0.01 100 14:30-21:00
+TIGO Millicom International Cellular SA 20.00% 10.00% 100 1 USD per 0.01 -2.91 -2.91 2 0.01 0.01 100 14:30-21:00
+TLRY Tilray Inc. 20.00% 10.00% 100 1 USD per 0.01 -0.07 -0.07 2 0.01 0.01 100 14:30-21:00
+TOYOTA Toyota Motor Corporation ADR 20.00% 10.00% 100 1 USD per 0.01 -12.37 -12.37 2 0.01 0.01 100 14:30-21:00
+TSLA Tesla Inc. 20.00% 10.00% 100 1 USD per 0.01 -21.75 -21.75 2 0.01 0.01 100 14:30-21:00
+TSM Taiwan Semiconductor Manufacuring Company Ltd. 20.00% 10.00% 100 1 USD per 0.01 -17.2 -17.2 2 0.01 0.01 100 14:30-21:00
+UBER Uber Technologies Inc. 20.00% 10.00% 100 1 USD per 0.01 -5.71 -5.71 2 0.01 0.01 100 14:30-21:00
+VERIZON Verizon Communications Inc. 20.00% 10.00% 100 1 USD per 0.01 -2.67 -2.67 2 0.01 0.01 100 14:30-21:00
+VISA Visa Inc. 20.00% 10.00% 100 1 USD per 0.01 -21.14 -21.14 2 0.01 0.01 100 14:30-21:00
+WALMART Walmart Inc. 20.00% 10.00% 100 1 USD per 0.01 -6.25 -6.25 2 0.01 0.01 100 14:30-21:00
+WDC Western Digital Corp. 20.00% 10.00% 100 1 USD per 0.01 -5.67 -5.67 2 0.01 0.01 100 14:30-21:00
+WellsFargo Wells Fargo & Co. 20.00% 10.00% 100 1 USD per 0.01 -4.88 -4.88 2 0.01 0.01 100 14:30-21:00
+ZOOM Zoom Video Communications Inc. 20.00% 10.00% 100 1 USD per 0.01 -5.2 -5.2 2 0.01 0.01 100 14:30-21:00
+ETFs Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+DIA SPDR Dow Jones Industrial Average ETF Trust 20.00% 10.00% 100 1 USD per 0.01 -73.38 -73.38 2 0.01 0.01 100 14:30-21:00
+DRIV Global X Autonomous & Electric Vehicles ETF 20.00% 10.00% 100 1 USD per 0.01 -4.23 -4.23 2 0.01 0.01 100 14:30-21:00
+FEZ SPDR EURO STOXX 50 ETF 20.00% 10.00% 100 1 USD per 0.01 -9.69 -9.69 2 0.01 0.01 100 14:30-21:00
+GDX VanEck Vectors Gold Miners ETF 20.00% 10.00% 100 1 USD per 0.01 -10.81 -10.81 2 0.01 0.01 100 14:30-21:00
+GLD SPDR Gold Shares 20.00% 10.00% 100 1 USD per 0.01 -54.06 -54.06 2 0.01 0.01 100 14:30-21:00
+IBIT iShares Bitcoin Trust ETF 20.00% 10.00% 100 1 USD per 0.01 -10.4 -10.4 2 0.01 0.01 100 14:30-21:00
+ILF iShares Latin America 40 ETF 20.00% 10.00% 100 1 USD per 0.01 -4.41 -4.41 2 0.01 0.01 100 14:30-21:00
+QQQ Invesco QQQ TRUST 20.00% 10.00% 100 1 USD per 0.01 -93.72 -93.72 2 0.01 0.01 100 14:30-21:00
+SPY SPDR S&P 500 ETF Trust 20.00% 10.00% 100 1 USD per 0.01 -104.78 -104.78 2 0.01 0.01 100 14:30-21:00
+SQQQ ProShares UltraPro Short QQQ ETF 20.00% 10.00% 100 1 USD per 0.01 -2.77 -2.77 2 0.01 0.01 100 14:30-21:00
+SVXY ProShares Short VIX Short-Term Futures ETF 20.00% 10.00% 100 1 USD per 0.01 -8.01 -8.01 2 0.01 0.01 100 14:30-21:00
+TQQQ ProShares UltraPro QQQ ETF CFD 20.00% 10.00% 100 1 USD per 0.01 -15.13 -15.13 2 0.01 0.01 100 14:30-21:00
+USO U.S. Oil Fund 20.00% 10.00% 100 1 USD per 0.01 -11.76 -11.76 2 0.01 0.01 100 14:30-21:00
+VIXY ProShares VIX Short-Term Futures ETF 20.00% 10.00% 100 1 USD per 0.01 -5.53 -5.53 2 0.01 0.01 100 14:30-21:00
+XLE Energy Select Sector SPDR Fund 20.00% 10.00% 100 1 USD per 0.01 -13.99 -13.99 2 0.01 0.01 100 14:30-21:00
+XLF Financial Select Sector SPDR Fund 20.00% 10.00% 100 1 USD per 0.01 -8.55 -8.55 2 0.01 0.01 100 14:30-21:00
+XLK Technology Select Sector SPDR Fund 20.00% 10.00% 100 1 USD per 0.01 -42.87 -42.87 2 0.01 0.01 100 14:30-21:00
+XLP Consumer Staples Select Sector SPDR Fund 20.00% 10.00% 100 1 USD per 0.01 -12.98 -12.98 2 0.01 0.01 100 14:30-21:00
+XLV Health Care Select Sector SPDR Fund 20.00% 10.00% 100 1 USD per 0.01 -22.11 -22.11 2 0.01 0.01 100 14:30-21:00
+
+--- 4 / 7 ---
+
+
+STOCKS EU Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+ABBN ABB Ltd 20.00% 10.00% 100 0.1 CHF per 0.001 -33.39 -30.05 3 0.001 0.01 100 08:00-16:20
+HOLN Holcim Ltd 20.00% 10.00% 100 0.1 CHF per 0.001 -40.41 -53.63 3 0.001 0.01 100 08:00-16:20
+LONN Lonza Group AG 20.00% 10.00% 100 1 CHF per 0.01 -34.12 -32.69 2 0.01 0.01 100 08:00-16:20
+NESTLE Nestle SA 20.00% 10.00% 100 0.1 CHF per 0.001 -44.8 -45.77 3 0.001 0.01 100 08:00-16:20
+ROCHE Roche Holding AG 20.00% 10.00% 100 0.1 CHF per 0.001 -160.99 -156.35 3 0.001 0.01 100 08:00-16:20
+SCMN Swisscom AG 20.00% 10.00% 100 0.1 CHF per 0.001 -349.2 -309.59 3 0.001 0.01 100 08:00-16:20
+SWATCH The Swatch Group AG 20.00% 10.00% 100 0.1 CHF per 0.001 -88.2 -101.49 3 0.001 0.01 100 08:00-16:20
+SWISSQUOTE Swissquote Group Holding Ltd 20.00% 10.00% 100 1 CHF per 0.01 -31.41 -21.3 2 0.01 0.01 100 08:00-16:20
+ZURN Zurich Insurance Group AG 20.00% 10.00% 100 1 CHF per 0.01 -34.29 -33.03 2 0.01 0.01 100 08:00-16:20
+ADIDAS Adidas AG 20.00% 10.00% 100 1 EUR per 0.01 -11.99 -16.19 2 0.01 0.01 100 08:00-16:30
+ALLI Allianz SE 20.00% 10.00% 100 1 EUR per 0.01 -23.18 -20.28 2 0.01 0.01 100 08:00-16:30
+BMW Bayerische Motoren Werke AG 20.00% 10.00% 100 0.1 EUR per 0.001 -57.7 -54.03 3 0.001 0.01 100 08:00-16:30
+Commerzbank Commerzbank AG 20.00% 10.00% 100 0.1 EUR per 0.001 -22.15 -10.76 3 0.001 0.01 100 08:00-16:30
+DBFRA Deutsche Bank AG 20.00% 10.00% 100 1 EUR per 0.01 -1.98 -1.08 2 0.01 0.01 100 08:00-16:30
+PORSCHE Porsche Automobil Holding SE 20.00% 10.00% 100 1 EUR per 0.01 -2.38 -2.51 2 0.01 0.01 100 08:00-16:30
+PORSCHE911 Porsche AG Preference Shares 20.00% 10.00% 100 1 EUR per 0.01 -2.86 -4.01 2 0.01 0.01 100 08:00-16:30
+RHM Rheinmetall AG 20.00% 10.00% 100 0.1 EUR per 0.001 -1170.55 -423.04 3 0.001 0.01 100 08:00-16:30
+SIEMENS Siemens AG 20.00% 10.00% 100 0.1 EUR per 0.001 -151.55 -129.64 3 0.001 0.01 100 08:00-16:30
+VOWGEN Volkswagen AG 20.00% 10.00% 100 1 EUR per 0.01 -6.78 -6.3 2 0.01 0.01 100 08:00-16:30
+BBVA Banco Bilbao Vizcaya Argentaria SA 20.00% 10.00% 100 0.1 EUR per 0.001 -10.37 -6.47 3 0.001 0.01 100 08:00-16:30
+BSANMD Banco Santander SA 20.00% 10.00% 100 0.1 EUR per 0.001 -5.43 -3.14 3 0.001 0.01 100 08:00-16:30
+INTEX Industria de Diseno Textil SA 20.00% 10.00% 100 0.1 EUR per 0.001 -28.07 -34.29 3 0.001 0.01 100 08:00-16:30
+REPSOL Repsol SA 20.00% 10.00% 100 0.1 EUR per 0.001 -9.44 -8.03 3 0.001 0.01 100 08:00-16:30
+TELEFONICA Telefonica SA 20.00% 10.00% 100 0.1 EUR per 0.001 -2.99 -2.71 3 0.001 0.01 100 08:00-16:30
+ENEL Enel SpA 20.00% 10.00% 100 0.01 EUR per 0.0001 -51.54 -47.28 4 0.0001 0.01 100 08:00-16:30
+ENI Eni SpA 20.00% 10.00% 100 0.01 EUR per 0.0001 -96.55 -89.7 4 0.0001 0.01 100 08:00-16:30
+JUVE Juventus Football Club SpA 20.00% 10.00% 100 0.01 EUR per 0.0001 -19.38 -20.73 4 0.0001 0.01 100 08:00-16:30
+POSTE-MIL Poste Italiane SpA 20.00% 10.00% 100 0.1 EUR per 0.001 -12.98 -9.35 3 0.001 0.01 100 08:00-16:30
+UNISPA UniCredit SpA 20.00% 10.00% 100 0.01 EUR per 0.0001 -431.65 -264.26 4 0.0001 0.01 100 08:00-16:30
+PHAR Pharming Group NV 20.00% 10.00% 100 0.1 EUR per 0.001 -0.83 -0.64 3 0.001 0.01 100 08:00-16:30
+STOCKS UK Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+ANTO Antofagasta PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -8575.44 -8575.44 4 0.0001 0.01 100 08:00-16:30
+AVIVA Aviva PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -2623.97 -2623.97 4 0.0001 0.01 100 08:00-16:30
+BARC Barclays PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -1459.59 -1459.59 4 0.0001 0.01 100 08:00-16:30
+BAY International Consolidated Airlines Group SA 20.00% 10.00% 100 0.01 GBP per 0.0001 -1562.67 -1562.67 4 0.0001 0.01 100 08:00-16:30
+BP BP PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -1663.39 -1663.39 4 0.0001 0.01 100 08:00-16:30
+BTGROUP BT Group PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -814.63 -814.63 4 0.0001 0.01 100 08:00-16:30
+CNA Centrica PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -617.89 -617.89 4 0.0001 0.01 100 08:00-16:30
+HSBC HSBC Holdings PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -3866.17 -3866.17 4 0.0001 0.01 100 08:00-16:30
+LGEN Legal & General Group PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -933.36 -933.36 4 0.0001 0.01 100 08:00-16:30
+LLOY Lloyds Banking Group PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -320.72 -320.72 4 0.0001 0.01 100 08:00-16:30
+RR Rolls-Royce Holdings PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -4371.95 -4371.95 4 0.0001 0.01 100 08:00-16:30
+TESCO Tesco PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -1758.37 -1758.37 4 0.0001 0.01 100 08:00-16:30
+VOD Vodafone Group PLC 20.00% 10.00% 100 0.01 GBP per 0.0001 -349.52 -349.52 4 0.0001 0.01 100 08:00-16:30
+
+--- 5 / 7 ---
+
+
+STOCKS MIDEAST Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Sunday Monday - Thursday Friday
+ADAVIATION Abu Dhabi Aviation 20.00% 10.00% 100 1 AED per 0.01 -0.63 -0.62 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ADCB Abu Dhabi Commercial Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -1.54 -1.13 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ADIB Abu Dhabi Islamic Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -2.42 -1.51 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ADNOCDIST Abu Dhabi National Oil Co. for Distribution PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.41 -0.40 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ADPORTS Abu Dhabi Ports Company PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.45 -0.56 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ALANSARI Al Ansari Financial Services PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.11 -0.12 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ARMX Aramex PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.31 -0.25 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+BOS Bank Of Sharjah 20.00% 10.00% 100 1 AED per 0.01 -0.16 -0.11 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+DIB Dubai Islamic Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -1.06 -0.79 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+DTC Dubai Taxi Company PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.30 -0.31 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+EMAAR Emaar Properties PJSC 20.00% 10.00% 100 1 AED per 0.01 -1.59 -1.44 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+EMIRATESNBD Emirates NBD Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -2.75 -2.37 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+ETISALAT Emirates Telecommunications Group Company PJSC 20.00% 10.00% 100 1 AED per 0.01 -1.99 -1.81 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+FAB.AD First Abu Dhabi Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -1.82 -1.54 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+LULU Lulu Retail Holdings PLC 20.00% 10.00% 100 1 AED per 0.01 -0.14 -0.22 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+PARKIN Parkin Company PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.66 -0.55 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+PHX Phoenix Group PLC 20.00% 10.00% 100 1 AED per 0.01 -0.17 -0.14 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+SALIK Salik Company PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.71 -0.61 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+SIB Sharjah Islamic Bank PJSC 20.00% 10.00% 100 1 AED per 0.01 -0.33 -0.28 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+TALABAT Talabat Holding PLC 20.00% 10.00% 100 1 AED per 0.01 -0.14 -0.16 2 0.01 0.01 100 - 06:00-10:45 06:00-10:45
+BOUBYAN Boubyan Bank 20.00% 10.00% 100 1 KWF per 0.01 -18.30 -14.54 2 0.01 0.01 100 06:00-09:30 06:00-09:30 -
+ABQK Ahli Bank QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -14.97 -14.23 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+BARWA Barwa Real Estate Company QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -11.36 -11.66 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+DHBK Doha Bank QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -10.25 -8.00 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+MASRAF Masraf Al Rayan QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -9.94 -10.10 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+MAZAYA Mazaya Real Estate Development QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -2.59 -2.42 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+QAMC Qatar Aluminium Manufacturing Company QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -5.88 -5.01 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+QFLS Qatar Fuel Company QPSC 20.00% 10.00% 100 1 QAR per 0.01 -6.21 -5.98 2 0.01 0.01 100 06:30-10:15 06:30-10:15 -
+QNCD Qatar National Cement Company QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -13.79 -16.52 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+QNNS Qatar Navigation QPSC 20.00% 10.00% 100 0.10 QAR per 0.001 -46.67 -44.75 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+VFQS Vodafone Qatar PQSC 20.00% 10.00% 100 0.10 QAR per 0.001 -9.91 -7.56 3 0.001 0.01 100 06:30-10:15 06:30-10:15 -
+IQCD Industries Qatar QPSC 20.00% 10.00% 100 1 QAR per 0.01 -5.21 -5.44 2 0.01 0.01 100 06:30-10:15 06:30-10:15 -
+QEWS Qatar Electricity and Water Company QPSC 20.00% 10.00% 100 1 QAR per 0.01 -6.61 -6.44 2 0.01 0.01 100 06:30-10:15 06:30-10:15 -
+QIBK Qatar Islamic Bank QPSC 20.00% 10.00% 100 1 QAR per 0.01 -9.98 -8.69 2 0.01 0.01 100 06:30-10:15 06:30-10:15 -
+QNBK Qatar National Bank QPSC 20.00% 10.00% 100 1 QAR per 0.01 -7.78 -7.09 2 0.01 0.01 100 06:30-10:15 06:30-10:15 -
+ALNIMA Alinma Bank (1150.SR) 20.00% 10.00% 100 0.10 SAR per 0.001 -52.62 -27.16 3 0.001 0.01 100 07:05-12:00 07:05-12:00 -
+ACWA-POWER ACWA POWER Company (2082.SR) 20.00% 10.00% 100 1 SAR per 0.01 -43.49 -38.04 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+APIPES-SAU Arabian Pipes Company (2200.SR) 20.00% 10.00% 100 1 SAR per 0.01 -1.15 -11.49 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+ARAMCO Saudi Arabian Oil Company (2222.SR) 20.00% 10.00% 100 1 SAR per 0.01 -4.96 -2.63 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+BJAZ Bank AlJazira (1020.SR) 20.00% 10.00% 100 1 SAR per 0.01 -2.52 -1.74 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+CHEMANOL Methanol Chemicals Company (2001.SR) 20.00% 10.00% 100 1 SAR per 0.01 -2.17 -1.73 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+DAR-ALR Dar Al Arkan Real Estate Development Company (4300.SR) 20.00% 10.00% 100 1 SAR per 0.01 -3.86 -1.42 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+ETIHAD Etihad Etisalat Company (7020.SR) 20.00% 10.00% 100 1 SAR per 0.01 -13.17 -4.99 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+KAYANPETRO Saudi Kayan Petrochemical Company (2350.SR) 20.00% 10.00% 100 1 SAR per 0.01 -1.03 -0.66 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+MAADEN Saudi Arabian Mining Company (1211.SR) 20.00% 10.00% 100 1 SAR per 0.01 -11.26 -4.75 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+NCB The Saudi National Bank (1180.SR) 20.00% 10.00% 100 1 SAR per 0.01 -7.41 -3.15 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+RAJHI Al Rajhi Banking and Investment Corporation (1120.SR) 20.00% 10.00% 100 1 SAR per 0.01 -19.87 -8.81 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+SAUDI-BASIC Saudi Basic Industries Corporation (2010.SR) 20.00% 10.00% 100 1 SAR per 0.01 -12.59 -6.31 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+SAUDI-PUBLI Saudi Public Transport Company (4040.SR) 20.00% 10.00% 100 1 SAR per 0.01 -2.84 -1.91 2 0.01 0.01 100 07:05-12:00 07:05-12:00 -
+BKMB Bank Muscat SAOG 20.00% 10.00% 100 0.10 OMR per 0.001 -0.35 -0.35 3 0.001 0.01 100 06:00-10:00 06:00-10:00 -
+BKSB Bank Sohar 20.00% 10.00% 100 0.10 OMR per 0.001 -0.16 -0.18 3 0.001 0.01 100 06:00-10:00 06:00-10:00 -
+NGCI National Gas Co SAOG 20.00% 10.00% 100 0.10 OMR per 0.001 -0.09 -0.1 3 0.001 0.01 100 06:00-10:00 06:00-10:00 -
+
+--- 6 / 7 ---
+
+
+STOCKS LATAM Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+ABEV3 Ambev SA 20.00% 10.00% 100 1 BRL per 0.01 -4.14 -4.14 2 0.01 0.01 100 13:00-19:55
+EMBR3 Embraer SA 20.00% 10.00% 100 1 BRL per 0.01 -28.11 -28.11 2 0.01 0.01 100 13:00-19:55
+ITUB4 Itau Unibanco Holding SA 20.00% 10.00% 100 1 BRL per 0.01 -12.95 -12.95 2 0.01 0.01 100 13:00-19:55
+MGLU3 Magazine Luiza SA 20.00% 10.00% 100 1 BRL per 0.01 -3.05 -3.05 2 0.01 0.01 100 13:00-19:55
+VALE3 Vale SA 20.00% 10.00% 100 1 BRL per 0.01 -19.22 -19.22 2 0.01 0.01 100 13:00-19:55
+CENCOSUD Cencosud SA 20.00% 10.00% 100 1 CLP per 0.01 -909.31 -909.31 2 0.01 0.01 100 12:30-19:00
+COLBUN Colbun SA 20.00% 10.00% 100 1 CLP per 0.01 -46.64 -46.64 2 0.01 0.01 100 12:30-19:00
+COPEC Empresas Copec SA 20.00% 10.00% 100 1 CLP per 0.01 -2334.56 -2334.56 2 0.01 0.01 100 12:30-19:00
+LTM Latam Airlines Group SA 20.00% 10.00% 100 1 CLP per 0.01 -7.41 -7.41 2 0.01 0.01 100 12:30-19:00
+SMU SMU SA 20.00% 10.00% 100 1 CLP per 0.01 -52.44 -52.44 2 0.01 0.01 100 12:30-19:00
+VAPORES Compania Sud Americana de Vapores SA 20.00% 10.00% 100 1 CLP per 0.01 -16.64 -16.64 2 0.01 0.01 100 12:30-19:00
+BIMBOA Grupo Bimbo SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -20.12 -20.12 2 0.01 0.01 100 14:30-21:00
+CMRB CMR SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -0.54 -0.54 2 0.01 0.01 100 14:30-21:00
+FEMSA Fomento Economico Mexicano SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -51.21 -51.21 2 0.01 0.01 100 14:30-21:00
+GMEXI Grupo Mexico SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -40.77 -40.77 2 0.01 0.01 100 14:30-21:00
+NEMAK Nemak SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -1.35 -1.35 2 0.01 0.01 100 14:30-21:00
+POCHTEC Grupo Pochteca SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -1.93 -1.93 2 0.01 0.01 100 14:30-21:00
+TRAXIONA Grupo Traxion SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -4.81 -4.81 2 0.01 0.01 100 14:30-21:00
+WALME Wal-Mart de Mexico SAB de CV 20.00% 10.00% 100 1 MXN per 0.01 -18.3 -18.3 2 0.01 0.01 100 14:30-21:00
+STOCKS ROW Trading Hours - All times are in UTC+0
+Symbol Market Description Margin Retail % Margin Pro % Lot Size
+(Units) Lot Value per Pip Silver Tier
+Swap Long (pts)*
+Silver Tier
+Swap Short (pts)* Digits Min Tick
+Increment
+Min Trade Size
+(Lots)
+Max Trade Size
+(Lots) Monday - Friday
+BAJAJFINSV Bajaj Finserv Ltd. 20.00% 10.00% 100 1 INR per 0.01 -73.17 -73.17 2 0.01 0.01 100 03:45-10:00
+MARUTI Maruti Suzuki India Limited 20.00% 10.00% 100 1 INR per 0.01 -555.69 -555.69 2 0.01 0.01 100 03:45-10:00
+MRF MRF Limited 20.00% 10.00% 100 1 INR per 0.01 -5350.98 -5350.98 2 0.01 0.01 100 03:45-10:00
+RELIANCE Reliance Industries Limited 20.00% 10.00% 100 1 INR per 0.01 -50.23 -50.23 2 0.01 0.01 100 03:45-10:00
+TATAMOTORS Tata Motors Limited 20.00% 10.00% 100 1 INR per 0.01 -26.28 -26.28 2 0.01 0.01 100 03:45-10:00
+
+--- 7 / 7 ---
+
+
