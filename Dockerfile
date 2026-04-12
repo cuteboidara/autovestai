@@ -17,6 +17,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/Contract-Specifications.txt ./Contract-Specifications.txt
+COPY --from=builder /app/activation_output ./activation_output
 COPY start.sh ./start.sh
 RUN chmod +x ./start.sh
 EXPOSE 3000
