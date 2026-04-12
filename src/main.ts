@@ -181,11 +181,13 @@ async function bootstrap(): Promise<void> {
     prefix: '/uploads/',
   });
 
-  await app.listen(process.env.PORT ? Number(process.env.PORT) : 3000);
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Application is running on port ${port}`);
 }
 
 void bootstrap().catch((error) => {
   const message = error instanceof Error ? error.stack ?? error.message : String(error);
-  console.error(`Application startup failed: ${message}`);
+  console.error(`FATAL: Application failed to start: ${message}`);
   process.exit(1);
 });
