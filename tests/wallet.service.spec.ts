@@ -80,6 +80,20 @@ describe('WalletService', () => {
     ).rejects.toThrow(KYC_APPROVAL_REQUIRED_MESSAGE);
   });
 
+  it('requires an on-chain transaction hash for deposit requests', async () => {
+    const service = createService({ approved: true });
+
+    await expect(
+      service.requestDeposit('user-1', {
+        amount: 100,
+        asset: 'USDT',
+        network: 'USDT-TRC20',
+      }),
+    ).rejects.toThrow(
+      'Deposit requests require an on-chain transaction hash and remain pending until manual approval',
+    );
+  });
+
   it('rejects wallet withdrawal requests for users without approved KYC', async () => {
     const service = createService();
 
@@ -334,6 +348,104 @@ describe('WalletService', () => {
       'withdrawal-1',
       'admin-1',
       'Rejected by admin',
+    );
+  });
+
+  it('rejects deposit approval when no matching on-chain deposit has been detected', async () => {
+    const transactionFindUnique = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.DEPOSIT,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.PENDING,
+        reference: '0xdeposit',
+        metadata: {
+          network: 'ERC20',
+          transactionHash: '0xdeposit',
+        },
+        approvedById: null,
+        approvedAt: null,
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:00:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'tx-1',
+        userId: 'user-1',
+        walletId: 'wallet-1',
+        accountId: 'account-1',
+        type: TransactionType.DEPOSIT,
+        amount: new Prisma.Decimal(100),
+        asset: 'USDT',
+        status: TransactionStatus.PENDING,
+        reference: '0xdeposit',
+        metadata: {
+          network: 'ERC20',
+          transactionHash: '0xdeposit',
+        },
+        approvedById: null,
+        approvedAt: null,
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-12T10:00:00.000Z'),
+      });
+    const service = new WalletService(
+      {
+        transaction: {
+          findUnique: transactionFindUnique,
+        },
+        $transaction: jest.fn(async (callback: (tx: any) => unknown) =>
+          callback({
+            transaction: {
+              findUnique: jest.fn().mockResolvedValue({
+                id: 'tx-1',
+                userId: 'user-1',
+                walletId: 'wallet-1',
+                accountId: 'account-1',
+                type: TransactionType.DEPOSIT,
+                amount: new Prisma.Decimal(100),
+                asset: 'USDT',
+                status: TransactionStatus.PENDING,
+                reference: '0xdeposit',
+                metadata: {
+                  network: 'ERC20',
+                  transactionHash: '0xdeposit',
+                },
+                approvedById: null,
+                approvedAt: null,
+                createdAt: new Date('2026-04-12T10:00:00.000Z'),
+                updatedAt: new Date('2026-04-12T10:00:00.000Z'),
+              }),
+            },
+            deposit: {
+              findFirst: jest.fn().mockResolvedValue(null),
+            },
+          }),
+        ),
+      } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {
+        requestWithdrawal: jest.fn(),
+        approveWithdrawal: jest.fn(),
+        rejectWithdrawal: jest.fn(),
+      } as never,
+      {} as never,
+    );
+
+    await expect(service.decideTransaction('tx-1', 'admin-1', true, 'approved')).rejects.toThrow(
+      'Deposit must be detected on-chain before it can be approved',
     );
   });
 });

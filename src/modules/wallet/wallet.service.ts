@@ -193,6 +193,14 @@ export class WalletService {
     await this.kycService.assertPlatformAccessApproved(userId);
 
     const operation = this.normalizeAlphaWalletOperation(dto.asset, dto.network);
+    const normalizedTransactionHash = dto.transactionHash?.trim();
+
+    if (!normalizedTransactionHash) {
+      throw new BadRequestException(
+        'Deposit requests require an on-chain transaction hash and remain pending until manual approval',
+      );
+    }
+
     const account = await this.accountsService.resolveLiveAccountForUser(userId);
     const wallet = await this.getWalletEntity(userId);
     const transaction = await this.prismaService.transaction.create({
@@ -204,10 +212,10 @@ export class WalletService {
         amount: toDecimal(dto.amount),
         asset: operation.asset,
         status: TransactionStatus.PENDING,
-        reference: dto.transactionHash || dto.reference,
+        reference: normalizedTransactionHash,
         metadata: this.mergeMetadata(null, {
           network: operation.network ?? null,
-          transactionHash: dto.transactionHash ?? null,
+          transactionHash: normalizedTransactionHash,
         }),
       },
     });
@@ -582,6 +590,10 @@ export class WalletService {
 
       this.assertAlphaWalletTransaction(pendingTransaction);
 
+      if (pendingTransaction.type === TransactionType.DEPOSIT) {
+        await this.assertDepositReadyForApproval(tx, pendingTransaction);
+      }
+
       const account = await tx.account.findUnique({
         where: { id: pendingTransaction.accountId },
       });
@@ -884,6 +896,56 @@ export class WalletService {
         creditedAt: transaction.approvedAt ?? new Date(),
       },
     });
+  }
+
+  private async assertDepositReadyForApproval(
+    tx: Prisma.TransactionClient,
+    transaction: {
+      userId: string;
+      accountId: string;
+      reference: string | null;
+      metadata: Prisma.JsonValue | null;
+    },
+  ) {
+    const txHash = this.extractTransactionHash(transaction);
+
+    if (!txHash) {
+      throw new BadRequestException(
+        'Deposit must have a detected blockchain transaction before it can be approved',
+      );
+    }
+
+    const linkedDeposit = await tx.deposit.findFirst({
+      where: {
+        userId: transaction.userId,
+        accountId: transaction.accountId,
+        txHash: {
+          equals: txHash,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        creditedAt: true,
+      },
+    });
+
+    if (!linkedDeposit) {
+      throw new BadRequestException(
+        'Deposit must be detected on-chain before it can be approved',
+      );
+    }
+
+    if (linkedDeposit.status !== DepositStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Deposit confirmations must complete before manual approval',
+      );
+    }
+
+    if (linkedDeposit.creditedAt) {
+      throw new BadRequestException('Deposit has already been credited');
+    }
   }
 
   private normalizeAlphaWalletOperation(

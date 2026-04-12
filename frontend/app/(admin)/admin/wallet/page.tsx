@@ -113,6 +113,18 @@ export default function AdminWalletPage() {
     return false;
   }
 
+  function hasVerifiedDepositReference(item: WalletTransaction) {
+    if (item.type !== 'DEPOSIT') {
+      return true;
+    }
+
+    return Boolean(
+      item.metadata?.autoDetected === true ||
+        (typeof item.metadata?.depositId === 'string' &&
+          item.metadata.depositId.trim().length > 0),
+    );
+  }
+
   if (!canViewTransactions) {
     return (
       <div className="space-y-6">
@@ -213,7 +225,11 @@ export default function AdminWalletPage() {
               render: (item) =>
                 canDecideTransaction(item) ? (
                   <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => setPendingAction({ type: 'approve', item })}>
+                    <Button
+                      variant="secondary"
+                      disabled={!hasVerifiedDepositReference(item)}
+                      onClick={() => setPendingAction({ type: 'approve', item })}
+                    >
                       Approve
                     </Button>
                     <Button variant="danger" onClick={() => setPendingAction({ type: 'reject', item })}>
@@ -287,7 +303,11 @@ export default function AdminWalletPage() {
               render: (item) =>
                 item.status === 'PENDING' && canDecideTransaction(item) ? (
                   <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => setPendingAction({ type: 'approve', item })}>
+                    <Button
+                      variant="secondary"
+                      disabled={!hasVerifiedDepositReference(item)}
+                      onClick={() => setPendingAction({ type: 'approve', item })}
+                    >
                       Approve
                     </Button>
                     <Button variant="danger" onClick={() => setPendingAction({ type: 'reject', item })}>
@@ -418,7 +438,11 @@ export default function AdminWalletPage() {
               render: (item) =>
                 item.status === 'PENDING' && canDecideTransaction(item) ? (
                   <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => setPendingAction({ type: 'approve', item })}>
+                    <Button
+                      variant="secondary"
+                      disabled={!hasVerifiedDepositReference(item)}
+                      onClick={() => setPendingAction({ type: 'approve', item })}
+                    >
                       Approve
                     </Button>
                     <Button variant="danger" onClick={() => setPendingAction({ type: 'reject', item })}>
@@ -444,7 +468,7 @@ export default function AdminWalletPage() {
           pendingAction
             ? pendingAction.type === 'approve'
               ? pendingAction.item.type === 'DEPOSIT'
-                ? `Approving this deposit will credit ${formatCurrency(pendingAction.item.amount)} to the client account.`
+                ? `Approving this verified deposit will credit ${formatCurrency(pendingAction.item.amount)} to the client account.`
                 : `Approving this withdrawal will debit ${formatCurrency(pendingAction.item.amount)} from the client account and move it into the payout flow.`
               : pendingAction.item.type === 'DEPOSIT'
                 ? `Rejecting this deposit will leave the transfer recorded without crediting the client account.`
