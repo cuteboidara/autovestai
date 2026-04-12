@@ -62,7 +62,9 @@ export class HealthService {
   async getHealth() {
     const [ready, metrics] = await Promise.all([
       this.getReady(),
-      this.getOperationalMetrics(),
+      this.getOperationalMetrics().catch((error) => ({
+        error: error instanceof Error ? error.message : 'metrics unavailable',
+      })),
     ]);
 
     return {
