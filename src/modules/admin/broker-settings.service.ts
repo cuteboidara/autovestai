@@ -32,8 +32,12 @@ export class BrokerSettingsService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.symbolsService.reload();
-    await this.ensureDefaultsPersisted();
-    await this.loadCacheFromDatabase();
+    // Run in background - don't block app startup
+    this.ensureDefaultsPersisted()
+      .then(() => this.loadCacheFromDatabase())
+      .catch((err: Error) =>
+        console.error('[BrokerSettings] Background init failed:', err.message),
+      );
   }
 
   getFeatureSettings(): BrokerFeatureSettings {
