@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import sgMail from '@sendgrid/mail';
+import * as sgMailModule from '@sendgrid/mail';
+
+// Handle both ESM default and CJS module export
+const sgMail: typeof sgMailModule =
+  (sgMailModule as unknown as { default?: typeof sgMailModule }).default ?? sgMailModule;
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
@@ -49,13 +53,24 @@ export class EmailService {
     this.fromEmail =
       this.configService.get<string>('email.sendgridFromEmail') ??
       'noreply@autovestai.com';
-    this.enabled = apiKey.length > 0;
 
-    if (this.enabled) {
-      sgMail.setApiKey(apiKey);
-    } else {
+    let ready = false;
+    if (apiKey.length > 0) {
+      try {
+        sgMail.setApiKey(apiKey);
+        ready = true;
+      } catch (error) {
+        this.logger.error(
+          `Failed to initialise SendGrid: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    this.enabled = ready;
+
+    if (!this.enabled) {
       this.logger.warn(
-        'SENDGRID_API_KEY is not configured — transactional emails are disabled',
+        'SENDGRID_API_KEY is not configured or failed to initialise — transactional emails are disabled',
       );
     }
   }
