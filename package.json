@@ -11,7 +11,7 @@
     "start:prod": "node dist/main",
     "prestart:dev": "node scripts/clean-backend-build.js",
     "start:dev": "nest start --watch",
-    "postinstall": "node scripts/prisma-generate.js",
+    "postinstall": "npx prisma generate",
     "lint": "tsc --noEmit",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
