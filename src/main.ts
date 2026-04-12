@@ -27,7 +27,7 @@ async function bootstrap() {
       ].filter((v): v is string => Boolean(v)),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Device-Fingerprint', 'X-Admin-Path'],
     });
     const port = process.env.PORT || 3000;
     await app.listen(port, '0.0.0.0');
