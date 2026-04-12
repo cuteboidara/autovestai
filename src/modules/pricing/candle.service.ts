@@ -29,7 +29,13 @@ export class CandleService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.symbolsService.reload();
+    // Run in background — don't block app startup
+    this.loadAllCandles().catch((err: Error) =>
+      console.error(`[CandleService] Background candle load failed: ${err.message}`),
+    );
+  }
 
+  private async loadAllCandles(): Promise<void> {
     for (const symbol of this.symbolsService.listSymbols().map((item) => item.symbol)) {
       for (const resolution of SUPPORTED_CANDLE_RESOLUTIONS) {
         const candles = await this.loadInitialCandles(symbol, resolution);

@@ -136,8 +136,12 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     await this.symbolsService.reload();
-    await this.bootstrapQuotes();
-    await this.startFreePricingProviders();
+    // Run in background — don't block app startup
+    this.bootstrapQuotes()
+      .then(() => this.startFreePricingProviders())
+      .catch((err: Error) =>
+        this.logger.error(`Background pricing init failed: ${err.message}`),
+      );
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -297,14 +301,21 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     this.binanceProvider.start(binanceInstruments, (source, update) =>
       this.upsertPrice(update.symbol, update.rawPrice, source, update),
     );
-    await Promise.all([
-      this.forexProvider.start(forexInstruments, (source, update) =>
+    // Fire-and-forget — don't block bootstrap on external API calls
+    this.forexProvider
+      .start(forexInstruments, (source, update) =>
         this.upsertPrice(update.symbol, update.rawPrice, source, update),
-      ),
-      this.yahooProvider.start(yahooInstruments, (source, update) =>
+      )
+      .catch((err: Error) =>
+        this.logger.warn(`Forex provider start failed: ${err.message}`),
+      );
+    this.yahooProvider
+      .start(yahooInstruments, (source, update) =>
         this.upsertPrice(update.symbol, update.rawPrice, source, update),
-      ),
-    ]);
+      )
+      .catch((err: Error) =>
+        this.logger.warn(`Yahoo provider start failed: ${err.message}`),
+      );
 
     this.logger.log(
       `Free pricing providers initialized: Binance ${binanceInstruments.length}, Forex ${forexInstruments.length}, Yahoo ${yahooInstruments.length}`,
