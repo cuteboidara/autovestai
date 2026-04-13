@@ -27,7 +27,7 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-4xl space-y-10 px-6 py-16">
+    <main className="static-page mx-auto max-w-4xl space-y-10 px-6 py-16">
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
           Company
