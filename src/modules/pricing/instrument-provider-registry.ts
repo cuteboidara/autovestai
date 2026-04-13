@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { normalizeSymbolIdentifier } from '../symbols/symbol-master';
 
-export type LivePricingProvider = 'binance' | 'forex-api' | 'yahoo-finance';
+export type LivePricingProvider = 'coingecko' | 'binance' | 'forex-api' | 'yahoo-finance';
 
 interface ActivationRegistryEntry {
   raw_pdf_symbol?: string;
@@ -35,8 +35,9 @@ function inferProvider(entry: ActivationRegistryEntry): LivePricingProvider {
   const quoteSource = String(entry.backend_seed?.quote_source ?? '').toUpperCase();
   const providerMap = entry.provider_symbol_map ?? {};
 
+  // Crypto assets → CoinGecko (primary), Binance available as secondary via fallback
   if (providerMap.binance?.symbol || quoteSource === 'BINANCE') {
-    return 'binance';
+    return 'coingecko';
   }
 
   if (

@@ -18,8 +18,10 @@ export class BinanceProvider implements OnModuleDestroy {
   private socket?: WebSocket;
   private reconnectTimer?: NodeJS.Timeout;
   private pingTimer?: NodeJS.Timeout;
+  private readonly maxReconnectAttempts = 3;
   private reconnectAttempt = 0;
   private firstPriceReceived = false;
+  private disabled = false;
   private updateHandler?: PricingUpdateHandler;
   private status: PricingProviderStatus = {
     provider: 'binance',
@@ -46,8 +48,13 @@ export class BinanceProvider implements OnModuleDestroy {
     this.stop();
   }
 
+  isDisabled(): boolean {
+    return this.disabled;
+  }
+
   start(instruments: TradingSymbol[], onUpdate: PricingUpdateHandler): void {
     this.stop();
+    this.disabled = false;
     this.updateHandler = onUpdate;
     this.internalSymbolByProviderSymbol.clear();
 
@@ -231,12 +238,28 @@ export class BinanceProvider implements OnModuleDestroy {
     }
 
     this.reconnectAttempt += 1;
+
+    if (this.reconnectAttempt > this.maxReconnectAttempts) {
+      this.disabled = true;
+      this.status = {
+        ...this.status,
+        status: 'disconnected',
+        lastError: `Disabled after ${this.maxReconnectAttempts} failed connection attempts (geo-blocked or unreachable)`,
+      };
+      this.logger.warn(
+        `Binance stream disabled after ${this.maxReconnectAttempts} failed attempts. Relying on fallback providers.`,
+      );
+      return;
+    }
+
     const delayMs = Math.min(
       this.reconnectInitialDelayMs * 2 ** (this.reconnectAttempt - 1),
       this.reconnectMaxDelayMs,
     );
 
-    this.logger.warn(`Binance stream disconnected. Reconnecting in ${delayMs}ms.`);
+    this.logger.warn(
+      `Binance stream disconnected (attempt ${this.reconnectAttempt}/${this.maxReconnectAttempts}). Reconnecting in ${delayMs}ms.`,
+    );
     this.reconnectTimer = setTimeout(() => {
       this.openSocket();
     }, delayMs);

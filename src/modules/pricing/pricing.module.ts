@@ -9,6 +9,7 @@ import { TradingModule } from '../trading/trading.module';
 import { CandleService } from './candle.service';
 import { PricingService } from './pricing.service';
 import { BinanceProvider } from './providers/binance.provider';
+import { CoinGeckoProvider } from './providers/coingecko.provider';
 import { ForexProvider } from './providers/forex.provider';
 import { RateLimitedFetcher } from './providers/rate-limited-fetcher';
 import { YahooProvider } from './providers/yahoo.provider';
@@ -31,6 +32,7 @@ import { TwelveDataAdapter } from './twelve-data.adapter';
     TwelveDataAdapter,
     RateLimitedFetcher,
     BinanceProvider,
+    CoinGeckoProvider,
     ForexProvider,
     YahooProvider,
   ],

@@ -25,6 +25,7 @@ import { CandleService } from './candle.service';
 import { getPrimaryProviderForSymbol } from './instrument-provider-registry';
 import { PRICE_CACHE_PREFIX } from './pricing.constants';
 import { BinanceProvider } from './providers/binance.provider';
+import { CoinGeckoProvider } from './providers/coingecko.provider';
 import { ForexProvider } from './providers/forex.provider';
 import { PricingProviderStatus } from './providers/pricing-provider.types';
 import { YahooProvider } from './providers/yahoo.provider';
@@ -119,6 +120,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     private readonly brokerSettingsService: BrokerSettingsService,
     private readonly symbolsService: SymbolsService,
     private readonly binanceProvider: BinanceProvider,
+    private readonly coinGeckoProvider: CoinGeckoProvider,
     private readonly forexProvider: ForexProvider,
     private readonly yahooProvider: YahooProvider,
     private readonly stooqPricingAdapter: StooqPricingAdapter,
@@ -156,6 +158,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.binanceProvider.stop();
+    this.coinGeckoProvider.stop();
     this.forexProvider.stop();
     this.yahooProvider.stop();
   }
@@ -242,6 +245,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
 
   getProviderHealth() {
     return {
+      coingecko: this.coinGeckoProvider.getStatus(),
       binance: this.binanceProvider.getStatus(),
       forexApi: this.forexProvider.getStatus(),
       yahooFinance: this.yahooProvider.getStatus(),
@@ -288,8 +292,8 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
 
   private async startFreePricingProviders() {
     const activeInstruments = this.symbolsService.listSymbols({ activeOnly: true });
-    const binanceInstruments = activeInstruments.filter(
-      (instrument) => this.getPrimaryProvider(instrument) === 'binance',
+    const coinGeckoInstruments = activeInstruments.filter(
+      (instrument) => this.getPrimaryProvider(instrument) === 'coingecko',
     );
     const forexInstruments = activeInstruments.filter(
       (instrument) => this.getPrimaryProvider(instrument) === 'forex-api',
@@ -298,9 +302,33 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       (instrument) => this.getPrimaryProvider(instrument) === 'yahoo-finance',
     );
 
-    this.binanceProvider.start(binanceInstruments, (source, update) =>
+    // Also feed metals (XAUUSD, XAGUSD) to Yahoo as a fallback —
+    // Yahoo supports GC=F / SI=F via quoteSymbol, so if Forex API
+    // fails to derive a price the Yahoo poll will cover them.
+    const metalsForYahooFallback = forexInstruments.filter(
+      (i) => i.symbol === 'XAUUSD' || i.symbol === 'XAGUSD',
+    );
+    const yahooWithMetals = [
+      ...yahooInstruments,
+      ...metalsForYahooFallback.filter(
+        (m) => !yahooInstruments.some((y) => y.symbol === m.symbol),
+      ),
+    ];
+
+    // CoinGecko — primary crypto provider (no geo-block, no API key)
+    this.coinGeckoProvider
+      .start(coinGeckoInstruments, (source, update) =>
+        this.upsertPrice(update.symbol, update.rawPrice, source, update),
+      )
+      .catch((err: Error) =>
+        this.logger.warn(`CoinGecko provider start failed: ${err.message}`),
+      );
+
+    // Binance — secondary crypto provider; will auto-disable after 3 failed attempts
+    this.binanceProvider.start(coinGeckoInstruments, (source, update) =>
       this.upsertPrice(update.symbol, update.rawPrice, source, update),
     );
+
     // Fire-and-forget — don't block bootstrap on external API calls
     this.forexProvider
       .start(forexInstruments, (source, update) =>
@@ -310,7 +338,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn(`Forex provider start failed: ${err.message}`),
       );
     this.yahooProvider
-      .start(yahooInstruments, (source, update) =>
+      .start(yahooWithMetals, (source, update) =>
         this.upsertPrice(update.symbol, update.rawPrice, source, update),
       )
       .catch((err: Error) =>
@@ -318,7 +346,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       );
 
     this.logger.log(
-      `Free pricing providers initialized: Binance ${binanceInstruments.length}, Forex ${forexInstruments.length}, Yahoo ${yahooInstruments.length}`,
+      `Free pricing providers initialized: CoinGecko ${coinGeckoInstruments.length}, Binance ${coinGeckoInstruments.length} (secondary), Forex ${forexInstruments.length}, Yahoo ${yahooWithMetals.length}`,
     );
   }
 
