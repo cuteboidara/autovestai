@@ -262,6 +262,39 @@ describe('TradePage', () => {
     expect(screen.getByTestId('order-ticket')).toHaveTextContent('enabled');
   });
 
+  it('keeps the trade route in a flex viewport layout and reserves space for the mobile drawer', async () => {
+    getWalletMock.mockResolvedValue({
+      wallet: {
+        id: 'wallet-12345678',
+        userId: 'user-12345678',
+        balance: 1250,
+        balanceAsset: 'USDT',
+        lockedMargin: 0,
+        usedMargin: 320,
+        unrealizedPnl: 40,
+        equity: 1290,
+        freeMargin: 970,
+        marginLevel: 403.13,
+      },
+      transactions: [],
+    });
+
+    render(<TradePage />);
+
+    expect(await screen.findByTestId('trade-page-layout')).toBeInTheDocument();
+
+    const layout = screen.getByTestId('trade-page-layout');
+    const scrollRegion = screen.getByTestId('trade-terminal-scroll-region');
+
+    expect(layout.className).toContain('flex');
+    expect(layout.className).toContain('h-full');
+    expect(layout.className).toContain('min-h-0');
+    expect(layout.className).toContain('flex-col');
+    expect(scrollRegion.className).toContain(
+      'pb-[calc(88px+env(safe-area-inset-bottom))]',
+    );
+  });
+
   it('renders the trading disabled banner and empty state for unfunded or unapproved accounts', async () => {
     authState.user.kyc.status = 'PENDING';
     getWalletMock.mockResolvedValue({

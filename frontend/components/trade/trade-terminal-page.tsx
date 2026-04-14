@@ -192,7 +192,7 @@ export function TradeTerminalPage() {
   const [loading, setLoading] = useState(true);
   const [watchlistCollapsed, setWatchlistCollapsed] = useState(false);
   const [positionsHeight, setPositionsHeight] = useState(280);
-const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
+  const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
   const [preferredSide, setPreferredSide] = useState<'BUY' | 'SELL' | null>(null);
   const [mobileSymbolModalOpen, setMobileSymbolModalOpen] = useState(false);
   const [symbolSearch, setSymbolSearch] = useState('');
@@ -671,7 +671,10 @@ const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
             )}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:overflow-hidden">
+          <div
+            data-testid="trade-terminal-scroll-region"
+            className="flex min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0"
+          >
             {/* Mobile: symbol selector bar */}
             <button
               type="button"
