@@ -234,8 +234,9 @@ export function TradeTopBar({
         </div>
       </div>
 
-      <div className="border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-3">
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+      {/* Desktop metric cards */}
+      <div className="hidden border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-3 md:block">
+        <div className="grid gap-2 xl:grid-cols-6">
           {summaryMetrics.map((metric) => (
             <div
               key={metric.label}
@@ -250,6 +251,17 @@ export function TradeTopBar({
             </div>
           ))}
         </div>
+      </div>
+      {/* Mobile compact metric strip */}
+      <div className="flex items-center gap-3 overflow-x-auto border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-2 md:hidden terminal-scrollbar">
+        {summaryMetrics.map((metric) => (
+          <div key={metric.label} className="flex shrink-0 items-center gap-1.5">
+            <span className="text-[10px] font-medium text-[var(--terminal-text-secondary)]">{metric.label}</span>
+            <span className={cn('price-display text-[10px] font-semibold', metric.tone ?? 'text-[var(--terminal-text-primary)]')}>
+              {metric.value}
+            </span>
+          </div>
+        ))}
       </div>
 
       {tradingBlockedMessage ? (

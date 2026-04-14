@@ -1,7 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, X, Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -193,9 +192,10 @@ export function TradeTerminalPage() {
   const [loading, setLoading] = useState(true);
   const [watchlistCollapsed, setWatchlistCollapsed] = useState(false);
   const [positionsHeight, setPositionsHeight] = useState(280);
-  const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
-  const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
+const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
   const [preferredSide, setPreferredSide] = useState<'BUY' | 'SELL' | null>(null);
+  const [mobileSymbolModalOpen, setMobileSymbolModalOpen] = useState(false);
+  const [symbolSearch, setSymbolSearch] = useState('');
   const [closingPositionId, setClosingPositionId] = useState<string | null>(null);
   const [flashedPnlIds, setFlashedPnlIds] = useState<Record<string, true>>({});
   const resizeStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
@@ -538,6 +538,17 @@ export function TradeTerminalPage() {
     selectedQuote && selectedSymbolInfo
       ? formatNumber(selectedQuote.ask - selectedQuote.bid, selectedSymbolInfo.digits)
       : '--';
+  const filteredSymbols = useMemo(
+    () =>
+      symbolSearch.trim()
+        ? symbols.filter(
+            (s) =>
+              s.symbol.toLowerCase().includes(symbolSearch.toLowerCase()) ||
+              (s.description ?? '').toLowerCase().includes(symbolSearch.toLowerCase()),
+          )
+        : symbols,
+    [symbols, symbolSearch],
+  );
   const marketStatus =
     selectedSymbolHealth?.status === 'disabled'
       ? 'DISABLED'
@@ -658,49 +669,47 @@ export function TradeTerminalPage() {
             )}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className="terminal-scrollbar border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-3 py-2 md:hidden">
-              <div className="flex items-center gap-2 overflow-x-auto">
-                {watchlist.map((symbol) => {
-                  const info = symbols.find((item) => item.symbol === symbol);
-                  const quote = terminalQuotes[symbol];
-
-                  return (
-                    <button
-                      key={symbol}
-                      type="button"
-                      onClick={() => setSelectedSymbol(symbol)}
-                      className={cn(
-                        'inline-flex min-w-[110px] shrink-0 flex-col items-start border px-3 py-2 text-xs font-semibold transition duration-150',
-                        selectedSymbol === symbol
-                          ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
-                          : 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]',
-                      )}
-                    >
-                      <span className="whitespace-nowrap text-[11px] font-semibold">
-                        {symbol}
-                      </span>
-                      <span className="price-display mt-1 text-[11px]">
-                        {quote ? formatNumber(quote.bid, info?.digits ?? 5) : '--'}
-                      </span>
-                    </button>
-                  );
-                })}
+          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:overflow-hidden">
+            {/* Mobile: symbol selector bar */}
+            <button
+              type="button"
+              className="flex shrink-0 items-center justify-between border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-2.5 text-left md:hidden"
+              onClick={() => { setSymbolSearch(''); setMobileSymbolModalOpen(true); }}
+            >
+              <div className="min-w-0">
+                <span className="block text-sm font-semibold text-[var(--terminal-text-primary)]">
+                  {activeSymbol || 'Select Symbol'}
+                </span>
+                {selectedQuote && selectedSymbolInfo ? (
+                  <span className="price-display block text-[10px] text-[var(--terminal-text-secondary)]">
+                    <span className="text-[var(--terminal-green)]">{formatNumber(selectedQuote.bid, selectedSymbolInfo.digits)}</span>
+                    {' / '}
+                    <span className="text-[var(--terminal-red)]">{formatNumber(selectedQuote.ask, selectedSymbolInfo.digits)}</span>
+                    {' · '}spread {spreadDisplay}
+                  </span>
+                ) : (
+                  <span className="block text-[10px] text-[var(--terminal-text-secondary)]">Tap to search symbols</span>
+                )}
               </div>
+              <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
+            </button>
+
+            {/* Desktop: instrument header with timeframes */}
+            <div className="hidden md:block">
+              <TradeInstrumentHeader
+                symbol={activeSymbol}
+                symbolInfo={selectedSymbolInfo}
+                quote={selectedQuote}
+                spreadDisplay={spreadDisplay}
+                marketStatus={marketStatus}
+                timeframes={resolvedTimeframes}
+                selectedTimeframe={selectedResolution}
+                onSelectTimeframe={setSelectedResolution}
+              />
             </div>
 
-            <TradeInstrumentHeader
-              symbol={activeSymbol}
-              symbolInfo={selectedSymbolInfo}
-              quote={selectedQuote}
-              spreadDisplay={spreadDisplay}
-              marketStatus={marketStatus}
-              timeframes={resolvedTimeframes}
-              selectedTimeframe={selectedResolution}
-              onSelectTimeframe={setSelectedResolution}
-            />
-
-            <div className="min-h-0 flex-1">
+            {/* Chart – fixed height on mobile, flex-1 on desktop */}
+            <div className="h-[42vh] shrink-0 md:h-auto md:min-h-0 md:flex-1">
               <TradingViewPanel
                 symbol={activeSymbol}
                 resolution={selectedResolution}
@@ -708,12 +717,27 @@ export function TradeTerminalPage() {
               />
             </div>
 
-                <TradeActivityPanel
-                  activeTab={activeBottomTab}
-                  bottomTabMeta={bottomTabMeta}
-                  rows={rows}
-                  quotes={terminalQuotes}
-                  symbolDigitsMap={symbolDigitsMap}
+            {/* Mobile: inline compact order ticket */}
+            <div className="shrink-0 border-t border-[var(--terminal-border)] md:hidden">
+              <OrderTicket
+                accountId={activeAccountId}
+                selectedSymbol={activeSymbol}
+                symbols={symbols}
+                quote={selectedQuote}
+                onSymbolChange={setSelectedSymbol}
+                onSubmitted={refreshTerminalData}
+                preferredSide={preferredSide}
+                accountDisabledReason={tradingAvailability.message}
+                isMobileLayout
+              />
+            </div>
+
+            <TradeActivityPanel
+              activeTab={activeBottomTab}
+              bottomTabMeta={bottomTabMeta}
+              rows={rows}
+              quotes={terminalQuotes}
+              symbolDigitsMap={symbolDigitsMap}
               positionsHeight={positionsHeight}
               closingPositionId={closingPositionId}
               flashedPnlIds={flashedPnlIds}
@@ -754,77 +778,72 @@ export function TradeTerminalPage() {
           </div>
         </div>
 
-        <div className="fixed bottom-28 inset-x-0 z-30 flex gap-2 px-4 md:hidden">
-          <button
-            type="button"
-            className={cn(
-              'flex-1 h-12 inline-flex items-center justify-center border text-sm font-semibold uppercase tracking-[0.14em]',
-              !activeSymbol
-                ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]'
-                : 'border-[var(--terminal-green)] bg-[var(--terminal-green)] text-[#0A0E1A]',
-            )}
-            onClick={() => {
-              setPreferredSide('BUY');
-              setMobileOrderOpen(true);
-            }}
-          >
-            {!activeSymbol ? 'Select' : 'Buy'}
-          </button>
-          <button
-            type="button"
-            className={cn(
-              'flex-1 h-12 inline-flex items-center justify-center border text-sm font-semibold uppercase tracking-[0.14em]',
-              !activeSymbol
-                ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]'
-                : 'border-[var(--terminal-red)] bg-[var(--terminal-red)] text-white',
-            )}
-            onClick={() => {
-              setPreferredSide('SELL');
-              setMobileOrderOpen(true);
-            }}
-          >
-            {!activeSymbol ? 'Symbol' : 'Sell'}
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {mobileOrderOpen ? (
-            <>
-              <motion.button
-                type="button"
-                aria-label="Close mobile order drawer"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-40 bg-black/50 md:hidden"
-                onClick={() => setMobileOrderOpen(false)}
+        {/* Mobile fullscreen symbol search modal */}
+        {mobileSymbolModalOpen ? (
+          <div className="fixed inset-0 z-50 flex flex-col bg-[var(--terminal-bg-primary)] md:hidden">
+            <div className="flex shrink-0 items-center gap-3 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-3">
+              <Search className="h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search symbols…"
+                value={symbolSearch}
+                onChange={(e) => setSymbolSearch(e.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-sm text-[var(--terminal-text-primary)] placeholder:text-[var(--terminal-text-secondary)] focus:outline-none"
               />
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="fixed inset-x-0 bottom-0 z-50 max-h-[78vh] md:hidden"
+              <button
+                type="button"
+                aria-label="Close symbol search"
+                className="shrink-0 text-[var(--terminal-text-secondary)] hover:text-[var(--terminal-text-primary)]"
+                onClick={() => setMobileSymbolModalOpen(false)}
               >
-                <OrderTicket
-                  accountId={activeAccountId}
-                  selectedSymbol={activeSymbol}
-                  symbols={symbols}
-                  quote={selectedQuote}
-                  onSymbolChange={setSelectedSymbol}
-                  onSubmitted={async () => {
-                    await refreshTerminalData();
-                    setMobileOrderOpen(false);
-                  }}
-                  preferredSide={preferredSide}
-                  accountDisabledReason={tradingAvailability.message}
-                  isMobileLayout
-                  className="max-h-[78vh] overflow-hidden border-t border-[var(--terminal-border)]"
-                />
-              </motion.div>
-            </>
-          ) : null}
-        </AnimatePresence>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="terminal-scrollbar flex-1 overflow-y-auto">
+              {filteredSymbols.length === 0 ? (
+                <p className="px-4 py-6 text-center text-sm text-[var(--terminal-text-secondary)]">No symbols found</p>
+              ) : (
+                filteredSymbols.map((sym) => {
+                  const quote = terminalQuotes[sym.symbol];
+                  const isSelected = sym.symbol === activeSymbol;
+                  return (
+                    <button
+                      key={sym.symbol}
+                      type="button"
+                      className={cn(
+                        'flex w-full items-center justify-between border-b border-[var(--terminal-border)]/40 px-4 py-3 text-left transition duration-150',
+                        isSelected
+                          ? 'bg-[var(--terminal-accent)]/10'
+                          : 'hover:bg-[var(--terminal-bg-hover)]',
+                      )}
+                      onClick={() => {
+                        setSelectedSymbol(sym.symbol);
+                        setMobileSymbolModalOpen(false);
+                      }}
+                    >
+                      <div>
+                        <span className={cn('block text-sm font-semibold', isSelected ? 'text-[var(--terminal-accent)]' : 'text-[var(--terminal-text-primary)]')}>
+                          {sym.symbol}
+                        </span>
+                        {sym.description ? (
+                          <span className="block text-[11px] text-[var(--terminal-text-secondary)]">{sym.description}</span>
+                        ) : null}
+                      </div>
+                      {quote ? (
+                        <div className="text-right">
+                          <span className="price-display block text-sm font-semibold text-[var(--terminal-green)]">
+                            {formatNumber(quote.bid, sym.digits)}
+                          </span>
+                        </div>
+                      ) : null}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {loading ? (
