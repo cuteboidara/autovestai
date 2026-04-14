@@ -72,4 +72,16 @@ export class AdminUsersController {
   ) {
     return this.adminUsersService.resetPassword(adminId, admin.id);
   }
+
+  @Post('me/change-password')
+  changeMyPassword(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: { currentPassword: string; newPassword: string },
+  ) {
+    return this.adminUsersService.changeMyPassword(
+      admin.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+  }
 }

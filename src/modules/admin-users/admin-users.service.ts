@@ -32,6 +32,7 @@ type AdminUserRecord = {
   role: AdminRole;
   permissions: string[];
   isActive: boolean;
+  mustChangePassword: boolean;
   lastLoginAt: Date | null;
   createdById: string | null;
   createdAt: Date;
@@ -66,6 +67,7 @@ export class AdminUsersService {
       adminRole: admin.role,
       permissions: this.resolveStoredPermissions(admin),
       isActive: admin.isActive,
+      mustChangePassword: admin.mustChangePassword,
       adminRoles: [
         {
           id: admin.id,
@@ -180,6 +182,7 @@ export class AdminUsersService {
           lastName: dto.lastName.trim(),
           role: dto.role,
           permissions,
+          mustChangePassword: true,
           createdById: creator.id,
         },
       });
@@ -319,6 +322,7 @@ export class AdminUsersService {
         where: { id: targetAdmin.id },
         data: {
           passwordHash: nextPasswordHash,
+          mustChangePassword: true,
         },
       });
 
@@ -374,6 +378,35 @@ export class AdminUsersService {
     return { success: true };
   }
 
+  async changeMyPassword(adminId: string, currentPassword: string, newPassword: string) {
+    const admin = await this.getAdminUserOrThrow(adminId);
+    const passwordMatch = await bcrypt.compare(currentPassword, admin.passwordHash);
+
+    if (!passwordMatch) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    if (newPassword.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters');
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.adminUser.update({
+        where: { id: adminId },
+        data: { passwordHash: newHash, mustChangePassword: false },
+      });
+
+      await tx.user.update({
+        where: { id: adminId },
+        data: { password: newHash },
+      });
+    });
+
+    return { success: true };
+  }
+
   private async getAdminUserOrThrow(adminId: string) {
     const admin = await this.findById(adminId);
 
@@ -400,6 +433,7 @@ export class AdminUsersService {
       firstName: admin.firstName,
       lastName: admin.lastName,
       isActive: admin.isActive,
+      mustChangePassword: admin.mustChangePassword,
       isSeededSuperAdmin: this.isSeededSuperAdmin(admin),
       createdAt: admin.createdAt,
       updatedAt: admin.updatedAt,

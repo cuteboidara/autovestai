@@ -22,6 +22,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   isActive?: boolean;
+  mustChangePassword?: boolean;
   isSeededSuperAdmin?: boolean;
   wallet?: {
     balance?: number;

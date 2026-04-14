@@ -10,6 +10,7 @@ import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { AdminCopyTradesQueryDto } from './dto/admin-copy-trades-query.dto';
+import { CreditUserDto } from './dto/credit-user.dto';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { TransactionDecisionDto } from './dto/transaction-decision.dto';
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
@@ -115,6 +116,16 @@ export class AdminController {
     @CurrentUser() admin: AuthenticatedUser,
   ) {
     return this.adminService.activateUser(userId, admin);
+  }
+
+  @Permissions('users.credit')
+  @Post('users/:id/credit')
+  creditUser(
+    @Param('id') userId: string,
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: CreditUserDto,
+  ) {
+    return this.adminService.creditUser(userId, dto, admin);
   }
 
   @Permissions('settings.manage')

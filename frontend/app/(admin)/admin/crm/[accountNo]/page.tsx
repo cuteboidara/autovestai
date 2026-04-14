@@ -170,6 +170,10 @@ export default function CrmClientProfilePage() {
   const [kycActionLoading, setKycActionLoading] = useState<'approve' | 'reject' | null>(null);
   const [accountMutation, setAccountMutation] = useState<'activate' | 'suspend' | null>(null);
   const [transactionMutationId, setTransactionMutationId] = useState<string | null>(null);
+  const [creditModalOpen, setCreditModalOpen] = useState(false);
+  const [creditAmount, setCreditAmount] = useState('');
+  const [creditReason, setCreditReason] = useState('');
+  const [creditSubmitting, setCreditSubmitting] = useState(false);
 
   const rawAccountNo = params?.accountNo;
   const accountNo = Array.isArray(rawAccountNo) ? rawAccountNo[0] : rawAccountNo;
@@ -177,6 +181,7 @@ export default function CrmClientProfilePage() {
   const canAddNotes = hasPermission('crm.notes');
   const canSendEmail = hasPermission('email.send');
   const canManageUsers = hasPermission('users.manage');
+  const canCreditUser = hasPermission('users.credit');
   const canApproveKyc = hasPermission('kyc.approve');
   const canApproveDeposits = hasPermission('deposits.approve');
   const canApproveWithdrawals = hasPermission('withdrawals.approve');
@@ -376,6 +381,45 @@ export default function CrmClientProfilePage() {
       });
     } finally {
       setKycActionLoading(null);
+    }
+  }
+
+  async function handleGiveCredit() {
+    if (!profile || !canCreditUser) {
+      return;
+    }
+
+    const parsed = Number.parseFloat(creditAmount)
+
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      pushNotification({ title: 'Invalid amount', description: 'Enter a valid positive amount.', type: 'error' })
+      return
+    }
+
+    setCreditSubmitting(true)
+
+    try {
+      await adminApi.creditUser(profile.id, {
+        amount: parsed,
+        reason: creditReason.trim() || undefined,
+      })
+      await loadProfile()
+      setCreditModalOpen(false)
+      setCreditAmount('')
+      setCreditReason('')
+      pushNotification({
+        title: 'Credit applied',
+        description: `$${parsed.toFixed(2)} USDT credited to ${profile.accountNumber}.`,
+        type: 'success',
+      })
+    } catch (error) {
+      pushNotification({
+        title: 'Credit failed',
+        description: error instanceof Error ? error.message : 'Request failed',
+        type: 'error',
+      })
+    } finally {
+      setCreditSubmitting(false)
     }
   }
 
@@ -612,6 +656,11 @@ export default function CrmClientProfilePage() {
             {canAddNotes ? (
               <Button variant="secondary" onClick={() => setActiveTab('notes')}>
                 Add Note
+              </Button>
+            ) : null}
+            {canCreditUser ? (
+              <Button variant="secondary" onClick={() => setCreditModalOpen(true)}>
+                Give Credit
               </Button>
             ) : null}
             {canManageUsers ? (
@@ -1311,6 +1360,57 @@ export default function CrmClientProfilePage() {
           ) : null}
         </div>
       </div>
+
+      {creditModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#1F2937] bg-[#111827] p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-[#F9FAFB]">Give Credit</h2>
+            <p className="mt-1 text-sm text-[#9CA3AF]">
+              Credit USDT directly to {profile?.accountNumber}. Funds are applied immediately.
+            </p>
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-[#9CA3AF]">Amount (USDT)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={creditAmount}
+                  onChange={(e) => setCreditAmount(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[#1F2937] bg-[#0A0E1A] px-4 text-sm text-[#F9FAFB] placeholder-[#4B5563] focus:border-[#3B82F6] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-[#9CA3AF]">Reason (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Welcome bonus, compensation..."
+                  value={creditReason}
+                  onChange={(e) => setCreditReason(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[#1F2937] bg-[#0A0E1A] px-4 text-sm text-[#F9FAFB] placeholder-[#4B5563] focus:border-[#3B82F6] focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                variant="secondary"
+                disabled={creditSubmitting}
+                onClick={() => {
+                  setCreditModalOpen(false)
+                  setCreditAmount('')
+                  setCreditReason('')
+                }}
+              >
+                Cancel
+              </Button>
+              <Button disabled={creditSubmitting} onClick={() => void handleGiveCredit()}>
+                {creditSubmitting ? 'Applying...' : 'Apply Credit'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -290,8 +290,9 @@ model AdminUser {
   lastName      String
   role          AdminRole   @default(SUPPORT)
   permissions   String[]
-  isActive      Boolean     @default(true)
-  lastLoginAt   DateTime?
+  isActive           Boolean     @default(true)
+  mustChangePassword Boolean     @default(false)
+  lastLoginAt        DateTime?
   createdById   String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

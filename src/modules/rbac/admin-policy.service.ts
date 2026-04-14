@@ -51,4 +51,8 @@ export class AdminPolicyService {
   assertRoleAssignment(user: AuthenticatedUser) {
     this.assertHasPermission(user, 'users.manage');
   }
+
+  assertCreditUser(user: AuthenticatedUser) {
+    this.assertHasPermission(user, 'users.credit');
+  }
 }

@@ -214,6 +214,13 @@ export const adminApi = {
       retry: false,
     });
   },
+  creditUser(id: string, payload: { amount: number; reason?: string; accountId?: string }) {
+    return apiRequest<WalletTransaction>(`/admin/users/${id}/credit`, {
+      method: 'POST',
+      body: payload,
+      retry: false,
+    });
+  },
   listCopyMasters() {
     return apiRequest<AdminCopyProvider[]>(
       '/admin/copy-trading/masters',
@@ -358,5 +365,12 @@ export const adminApi = {
         retry: false,
       },
     );
+  },
+  changeMyPassword(payload: { currentPassword: string; newPassword: string }) {
+    return apiRequest<{ success: boolean }>('/admin/admin-users/me/change-password', {
+      method: 'POST',
+      body: payload,
+      retry: false,
+    });
   },
 };

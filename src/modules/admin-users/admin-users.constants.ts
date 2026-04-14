@@ -34,6 +34,7 @@ export const SUPER_ADMIN_PERMISSION_KEYS = [
   'readiness.view',
   'users.view',
   'users.manage',
+  'users.credit',
   'dealingdesk.manage',
 ] as const;
 
@@ -52,6 +53,7 @@ export const DEFAULT_ADMIN_ROLE_PERMISSIONS: Record<AdminRole, AdminPermissionKe
     'transactions.view',
     'deposits.approve',
     'withdrawals.approve',
+    'users.credit',
   ],
 };
 

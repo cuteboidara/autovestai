@@ -14,13 +14,14 @@ import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.in
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { OrderQueueService } from '../../common/queue/order-queue.service';
 import { toNumber } from '../../common/utils/decimal';
-import { serializeAccount } from '../../common/utils/serializers';
+import { serializeAccount, serializeTransaction } from '../../common/utils/serializers';
 import { AccountsService } from '../accounts/accounts.service';
 import { AffiliatesService } from '../affiliates/affiliates.service';
 import { AuditService } from '../audit/audit.service';
 import { PricingService } from '../pricing/pricing.service';
 import { BrokerSettingsService } from './broker-settings.service';
 import { AdminCopyTradesQueryDto } from './dto/admin-copy-trades-query.dto';
+import { CreditUserDto } from './dto/credit-user.dto';
 import { AdminSessionViewDto } from './dto/admin-session-view.dto';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
@@ -824,6 +825,82 @@ export class AdminService {
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
+  }
+
+  async creditUser(userId: string, dto: CreditUserDto, admin: AuthenticatedUser) {
+    this.adminPolicyService.assertCreditUser(admin);
+
+    const user = await this.prismaService.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    let account;
+
+    if (dto.accountId) {
+      account = await this.prismaService.account.findFirst({
+        where: { id: dto.accountId, userId },
+      });
+    } else {
+      account = await this.prismaService.account.findFirst({
+        where: { userId, type: 'LIVE', status: 'ACTIVE' },
+        orderBy: { createdAt: 'asc' },
+      });
+    }
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    const amount = new Prisma.Decimal(dto.amount);
+
+    const transaction = await this.prismaService.$transaction(async (tx) => {
+      const createdTransaction = await tx.transaction.create({
+        data: {
+          userId,
+          walletId: null,
+          accountId: account.id,
+          type: TransactionType.DEPOSIT,
+          amount,
+          asset: 'USDT',
+          status: TransactionStatus.APPROVED,
+          approvedById: admin.id,
+          approvedAt: new Date(),
+          reference: null,
+          metadata: {
+            creditedByAdmin: true,
+            reason: dto.reason ?? null,
+          },
+        },
+      });
+
+      await tx.account.update({
+        where: { id: account.id },
+        data: {
+          balance: { increment: amount },
+          equity: { increment: amount },
+        },
+      });
+
+      return createdTransaction;
+    });
+
+    await this.auditService.log({
+      actorUserId: admin.id,
+      actorRole: admin.role.toLowerCase(),
+      action: 'ADMIN_USER_CREDITED',
+      entityType: 'transaction',
+      entityId: transaction.id,
+      targetUserId: userId,
+      metadataJson: {
+        amount: dto.amount,
+        accountId: account.id,
+        reason: dto.reason ?? null,
+      },
+    });
+
+    return serializeTransaction(transaction);
   }
 
   private async buildAdminSymbolRecord(symbol: string) {

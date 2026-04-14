@@ -754,27 +754,38 @@ export function TradeTerminalPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className={cn(
-            'fixed bottom-28 right-4 z-30 inline-flex h-12 items-center justify-center border px-5 text-sm font-semibold uppercase tracking-[0.14em] text-white md:hidden',
-            !activeSymbol
-              ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]'
-              : tradingAvailability.message
-                ? 'border-amber-500/40 bg-amber-500/90 text-[#0A0E1A]'
-                : 'border-[var(--terminal-green)] bg-[var(--terminal-green)]',
-          )}
-          onClick={() => {
-            setPreferredSide('BUY');
-            setMobileOrderOpen(true);
-          }}
-        >
-          {!activeSymbol
-            ? 'Select Symbol'
-            : tradingAvailability.message
-              ? 'Order Ticket'
-              : 'Trade'}
-        </button>
+        <div className="fixed bottom-28 inset-x-0 z-30 flex gap-2 px-4 md:hidden">
+          <button
+            type="button"
+            className={cn(
+              'flex-1 h-12 inline-flex items-center justify-center border text-sm font-semibold uppercase tracking-[0.14em]',
+              !activeSymbol
+                ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]'
+                : 'border-[var(--terminal-green)] bg-[var(--terminal-green)] text-[#0A0E1A]',
+            )}
+            onClick={() => {
+              setPreferredSide('BUY');
+              setMobileOrderOpen(true);
+            }}
+          >
+            {!activeSymbol ? 'Select' : 'Buy'}
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'flex-1 h-12 inline-flex items-center justify-center border text-sm font-semibold uppercase tracking-[0.14em]',
+              !activeSymbol
+                ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] text-[var(--terminal-text-secondary)]'
+                : 'border-[var(--terminal-red)] bg-[var(--terminal-red)] text-white',
+            )}
+            onClick={() => {
+              setPreferredSide('SELL');
+              setMobileOrderOpen(true);
+            }}
+          >
+            {!activeSymbol ? 'Symbol' : 'Sell'}
+          </button>
+        </div>
 
         <AnimatePresence>
           {mobileOrderOpen ? (

@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowUpFromLine,
   ClipboardCheck,
@@ -155,11 +156,22 @@ const navGroups = [
 >;
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
   const unreadCounts = useAdminChatStore((state) => state.unreadCounts);
   const chatBadge = unreadCounts.general + unreadCounts.compliance + unreadCounts.risk;
   const canViewTransactions = hasPermission('transactions.view');
   const [pendingWithdrawalCount, setPendingWithdrawalCount] = useState<number | null>(null);
+
+  const changePasswordRoute = adminRoute('/change-password');
+  const mustChangePassword = user?.mustChangePassword === true;
+
+  useEffect(() => {
+    if (mustChangePassword && pathname !== changePasswordRoute) {
+      router.replace(changePasswordRoute);
+    }
+  }, [mustChangePassword, pathname, changePasswordRoute, router]);
 
   useEffect(() => {
     if (!canViewTransactions) {
@@ -208,7 +220,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       ? pendingWithdrawalCount
                       : null,
                 }
-            : item,
+              : item,
         ),
     }))
     .filter((group) => group.items.length > 0);
