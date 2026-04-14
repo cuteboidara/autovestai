@@ -143,6 +143,8 @@ export default function DepositPage() {
   const [addressLoading, setAddressLoading] = useState(false)
   const [addressError, setAddressError] = useState<string | null>(null)
   const [addressBook, setAddressBook] = useState<Partial<Record<WalletNetwork, DepositAddressResponse>>>({})
+  const [declaringDeposit, setDeclaringDeposit] = useState(false)
+  const [depositDeclared, setDepositDeclared] = useState(false)
 
   const parsedAmount = Number.parseFloat(amountInput)
   const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount >= MIN_DEPOSIT
@@ -212,12 +214,45 @@ export default function DepositPage() {
     }
   }
 
+  async function handleDeclareDeposit() {
+    if (declaringDeposit || depositDeclared || !isAmountValid) {
+      return
+    }
+
+    setDeclaringDeposit(true)
+    try {
+      await walletApi.requestDeposit({
+        amount: parsedAmount,
+        network: selectedNetwork,
+        asset: 'USDT',
+      })
+      setDepositDeclared(true)
+      pushNotification({
+        title: 'Deposit declaration received',
+        description: 'Your deposit is now pending admin review. We will credit your account after verification.',
+        type: 'success',
+      })
+      // Refresh deposit history
+      const updated = await walletApi.listDeposits()
+      setDeposits(updated)
+    } catch (error) {
+      pushNotification({
+        title: 'Declaration failed',
+        description: error instanceof Error ? error.message : 'Unable to submit deposit declaration. Please try again.',
+        type: 'error',
+      })
+    } finally {
+      setDeclaringDeposit(false)
+    }
+  }
+
   async function handleContinue() {
     if (!isAmountValid) {
       return
     }
 
     setStep('address')
+    setDepositDeclared(false)
     await loadDepositAddress(selectedNetwork)
   }
 
@@ -435,6 +470,28 @@ export default function DepositPage() {
                   <div className="rounded-xl border border-[#1D4ED8] bg-[#0B1733] px-4 py-4 text-sm leading-6 text-[#BFDBFE]">
                     {selectedMeta.infoCopy}
                   </div>
+
+                  {depositDeclared ? (
+                    <div className="rounded-xl border border-[#065F46] bg-[#022C22] px-5 py-4">
+                      <div className="flex items-start gap-3">
+                        <Check className="mt-0.5 h-5 w-5 flex-none text-[#10B981]" />
+                        <div>
+                          <p className="font-semibold text-[#A7F3D0]">Deposit declared successfully</p>
+                          <p className="mt-1 text-sm text-[#6EE7B7]">
+                            Your deposit of ${formatAmount(parsedAmount)} USDT via {selectedNetwork} is now pending admin review. You will be notified once it is approved.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      className="h-14 w-full text-base font-semibold"
+                      disabled={declaringDeposit}
+                      onClick={() => void handleDeclareDeposit()}
+                    >
+                      {declaringDeposit ? 'Submitting…' : 'I Have Sent the Money'}
+                    </Button>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -480,14 +537,14 @@ export default function DepositPage() {
               <tbody>
                 {deposits.map((entry) => (
                   <tr key={entry.id} className="hover:bg-[#0D1320]/70">
-                    <td className="border-b border-[#1F2937] py-4 pr-4 font-mono text-xs text-[#D1D5DB]" title={entry.txHash}>
-                      {shortenHash(entry.txHash)}
+                    <td className="border-b border-[#1F2937] py-4 pr-4 font-mono text-xs text-[#D1D5DB]" title={entry.txHash ?? undefined}>
+                      {entry.txHash ? shortenHash(entry.txHash) : <span className="text-[#9CA3AF] italic">Manual declaration</span>}
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4 text-right font-semibold text-[#10B981]">
                       +{formatAmount(entry.usdtAmount)} USDT
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4 text-[#F9FAFB]">
-                      {entry.network}
+                      {entry.network ?? '—'}
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4">
                       <DepositStatusPill deposit={entry} />

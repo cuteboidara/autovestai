@@ -151,7 +151,36 @@ export class WalletService {
       }),
     ]);
 
-    return deposits.map((deposit) => {
+    const onChainTxHashes = new Set(deposits.map((d) => d.txHash));
+
+    const manualDeposits = transactions
+      .filter((tx) => {
+        const meta = tx.metadata as Record<string, unknown> | null;
+        const txHash = (meta?.['transactionHash'] as string | undefined)?.trim();
+        return !txHash || !onChainTxHashes.has(txHash);
+      })
+      .map((tx) => {
+        const meta = tx.metadata as Record<string, unknown> | null;
+        const network = (meta?.['network'] as string | undefined) ?? null;
+        return {
+          id: tx.id,
+          userId: tx.userId,
+          accountId: tx.accountId,
+          txHash: null as string | null,
+          network: (network as Network | null) ?? null,
+          amount: tx.amount.toNumber(),
+          usdtAmount: tx.amount.toNumber(),
+          fromAddress: null as string | null,
+          toAddress: null as string | null,
+          confirmations: 0,
+          status: 'PENDING' as const,
+          creditedAt: null as Date | null,
+          approvalStatus: tx.status,
+          createdAt: tx.createdAt,
+        };
+      });
+
+    const onChainResults = deposits.map((deposit) => {
       const linkedTransaction = this.findLinkedTransactionByHash(
         transactions,
         deposit.txHash,
@@ -161,12 +190,12 @@ export class WalletService {
         id: deposit.id,
         userId: deposit.userId,
         accountId: deposit.accountId,
-        txHash: deposit.txHash,
-        network: deposit.network,
+        txHash: deposit.txHash as string | null,
+        network: deposit.network as Network | null,
         amount: deposit.amount.toNumber(),
         usdtAmount: deposit.usdtAmount.toNumber(),
-        fromAddress: deposit.fromAddress,
-        toAddress: deposit.toAddress,
+        fromAddress: deposit.fromAddress as string | null,
+        toAddress: deposit.toAddress as string | null,
         confirmations: deposit.confirmations,
         status: deposit.status,
         creditedAt: deposit.creditedAt,
@@ -176,6 +205,10 @@ export class WalletService {
         createdAt: deposit.createdAt,
       };
     });
+
+    return [...manualDeposits, ...onChainResults].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   async listWithdrawals(userId: string, query: ListWithdrawalsQueryDto = {}) {
@@ -195,13 +228,7 @@ export class WalletService {
     await this.kycService.assertPlatformAccessApproved(userId);
 
     const operation = this.normalizeAlphaWalletOperation(dto.asset, dto.network);
-    const normalizedTransactionHash = dto.transactionHash?.trim();
-
-    if (!normalizedTransactionHash) {
-      throw new BadRequestException(
-        'Deposit requests require an on-chain transaction hash and remain pending until manual approval',
-      );
-    }
+    const normalizedTransactionHash = dto.transactionHash?.trim() || undefined;
 
     const account = await this.accountsService.resolveLiveAccountForUser(userId);
     const wallet = await this.getWalletEntity(userId);
@@ -214,10 +241,12 @@ export class WalletService {
         amount: toDecimal(dto.amount),
         asset: operation.asset,
         status: TransactionStatus.PENDING,
-        reference: normalizedTransactionHash,
+        reference: normalizedTransactionHash ?? null,
         metadata: this.mergeMetadata(null, {
           network: operation.network ?? null,
-          transactionHash: normalizedTransactionHash,
+          ...(normalizedTransactionHash
+            ? { transactionHash: normalizedTransactionHash }
+            : { declaredByClient: true }),
         }),
       },
     });

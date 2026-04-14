@@ -64,12 +64,12 @@ export interface WalletDeposit {
   id: string
   userId: string
   accountId: string
-  txHash: string
-  network: WalletNetwork
+  txHash?: string | null
+  network?: WalletNetwork | null
   amount: number
   usdtAmount: number
-  fromAddress: string
-  toAddress: string
+  fromAddress?: string | null
+  toAddress?: string | null
   confirmations: number
   status: 'PENDING' | 'CONFIRMING' | 'COMPLETED' | 'FAILED'
   creditedAt?: string | null
