@@ -52,6 +52,10 @@ describe('CopyTradingService', () => {
         onProviderTrade: jest.fn(),
         onProviderClose: jest.fn(),
       } as never,
+      {
+        sendCopyProviderApproved: jest.fn().mockResolvedValue(undefined),
+        sendCopyStarted: jest.fn().mockResolvedValue(undefined),
+      } as never,
     );
 
     await service.handleExecutedOrder('order-1');
@@ -86,6 +90,10 @@ describe('CopyTradingService', () => {
       {
         onProviderTrade: jest.fn(),
         onProviderClose: jest.fn(),
+      } as never,
+      {
+        sendCopyProviderApproved: jest.fn().mockResolvedValue(undefined),
+        sendCopyStarted: jest.fn().mockResolvedValue(undefined),
       } as never,
     );
 

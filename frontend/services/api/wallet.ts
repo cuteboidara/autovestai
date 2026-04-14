@@ -2,6 +2,7 @@ import {
   DepositAddressResponse,
   WalletDeposit,
   DepositRequest,
+  PlatformDepositWallet,
   SupportedDepositNetwork,
   WithdrawalRequestRecord,
   WalletSnapshotResponse,
@@ -17,7 +18,7 @@ export const walletApi = {
   },
   getDepositAddress(network: SupportedDepositNetwork) {
     return apiRequest<DepositAddressResponse>(
-      `/wallet/deposit-address?network=${encodeURIComponent(network)}`,
+      `/wallet/address?network=${encodeURIComponent(network)}`,
     );
   },
   getAddress(network: SupportedDepositNetwork) {
@@ -61,5 +62,22 @@ export const walletApi = {
       body: payload,
       retry: false,
     });
+  },
+  getPlatformDepositWallets(filters?: { network?: string; coin?: string }) {
+    const params = new URLSearchParams();
+
+    if (filters?.network) {
+      params.set('network', filters.network);
+    }
+
+    if (filters?.coin) {
+      params.set('coin', filters.coin);
+    }
+
+    const queryString = params.toString();
+
+    return apiRequest<PlatformDepositWallet[]>(
+      `/wallet/deposit-address${queryString ? `?${queryString}` : ''}`,
+    );
   },
 };

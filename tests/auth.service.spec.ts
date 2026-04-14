@@ -80,6 +80,12 @@ describe('AuthService', () => {
         sendDirectEmailToUser: jest.fn(),
       } as never,
       {
+        sendPasswordReset: jest.fn(),
+        sendPasswordChanged: jest.fn(),
+        sendWelcome: jest.fn(),
+        sendEmailVerified: jest.fn(),
+      } as never,
+      {
         get: jest.fn().mockReturnValue(''),
       } as never,
     );
@@ -134,6 +140,12 @@ describe('AuthService', () => {
       } as never,
       {
         sendDirectEmailToUser: jest.fn(),
+      } as never,
+      {
+        sendPasswordReset: jest.fn(),
+        sendPasswordChanged: jest.fn(),
+        sendWelcome: jest.fn(),
+        sendEmailVerified: jest.fn(),
       } as never,
       {
         get: jest.fn().mockReturnValue(''),

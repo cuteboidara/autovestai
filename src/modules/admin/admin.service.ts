@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   Account,
@@ -21,6 +21,7 @@ import { AuditService } from '../audit/audit.service';
 import { PricingService } from '../pricing/pricing.service';
 import { BrokerSettingsService } from './broker-settings.service';
 import { AdminCopyTradesQueryDto } from './dto/admin-copy-trades-query.dto';
+import { CreateDepositWalletDto, UpdateDepositWalletDto } from './dto/deposit-wallet.dto';
 import { CreditUserDto } from './dto/credit-user.dto';
 import { AdminSessionViewDto } from './dto/admin-session-view.dto';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
@@ -1084,5 +1085,143 @@ export class AdminService {
     }
 
     return this.maskValue(ipAddress, 4, 0);
+  }
+
+  // ── Deposit Wallets ──────────────────────────────────────────────────────────
+
+  listDepositWallets() {
+    return this.prismaService.depositWallet.findMany({
+      orderBy: [{ isActive: 'desc' }, { network: 'asc' }, { coin: 'asc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async createDepositWallet(admin: AuthenticatedUser, dto: CreateDepositWalletDto) {
+    try {
+      const created = await this.prismaService.depositWallet.create({
+        data: {
+          network: dto.network.trim().toUpperCase(),
+          coin: this.normalizeDepositWalletValue(dto.coin) ?? 'USDT',
+          address: dto.address.trim(),
+          label: dto.label?.trim() || null,
+          isActive: dto.isActive ?? true,
+          minDeposit: dto.minDeposit ?? 10,
+        },
+      });
+
+      await this.auditService.log({
+        actorUserId: admin.id,
+        actorRole: admin.role.toLowerCase(),
+        action: 'ADMIN_DEPOSIT_WALLET_CREATED',
+        entityType: 'deposit_wallet',
+        entityId: created.id,
+        metadataJson: this.serializeDepositWalletAuditRecord(
+          created,
+        ) as unknown as Prisma.InputJsonValue,
+      });
+
+      return created;
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        throw new BadRequestException('A wallet already exists for this network and coin');
+      }
+
+      throw error;
+    }
+  }
+
+  async updateDepositWallet(
+    id: string,
+    dto: UpdateDepositWalletDto,
+    admin: AuthenticatedUser,
+  ) {
+    const existing = await this.prismaService.depositWallet.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Deposit wallet not found');
+    }
+
+    const updated = await this.prismaService.depositWallet.update({
+      where: { id },
+      data: {
+        ...(dto.address !== undefined && { address: dto.address.trim() }),
+        ...(dto.label !== undefined && { label: dto.label.trim() || null }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.minDeposit !== undefined && { minDeposit: dto.minDeposit }),
+      },
+    });
+
+    await this.auditService.log({
+      actorUserId: admin.id,
+      actorRole: admin.role.toLowerCase(),
+      action: 'ADMIN_DEPOSIT_WALLET_UPDATED',
+      entityType: 'deposit_wallet',
+      entityId: updated.id,
+      metadataJson: {
+        before: this.serializeDepositWalletAuditRecord(existing),
+        after: this.serializeDepositWalletAuditRecord(updated),
+      } as unknown as Prisma.InputJsonValue,
+    });
+
+    return updated;
+  }
+
+  async deleteDepositWallet(id: string, admin: AuthenticatedUser) {
+    const existing = await this.prismaService.depositWallet.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Deposit wallet not found');
+    }
+
+    const deleted = await this.prismaService.depositWallet.delete({ where: { id } });
+
+    await this.auditService.log({
+      actorUserId: admin.id,
+      actorRole: admin.role.toLowerCase(),
+      action: 'ADMIN_DEPOSIT_WALLET_DELETED',
+      entityType: 'deposit_wallet',
+      entityId: deleted.id,
+      metadataJson: this.serializeDepositWalletAuditRecord(
+        deleted,
+      ) as unknown as Prisma.InputJsonValue,
+    });
+
+    return deleted;
+  }
+
+  private normalizeDepositWalletValue(value?: string | null): string | undefined {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const normalized = value.trim().toUpperCase();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  private serializeDepositWalletAuditRecord(wallet: {
+    id: string;
+    network: string;
+    coin: string;
+    address: string;
+    label: string | null;
+    isActive: boolean;
+    minDeposit: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    return {
+      id: wallet.id,
+      network: wallet.network,
+      coin: wallet.coin,
+      address: wallet.address,
+      label: wallet.label,
+      isActive: wallet.isActive,
+      minDeposit: wallet.minDeposit,
+      createdAt: wallet.createdAt.toISOString(),
+      updatedAt: wallet.updatedAt.toISOString(),
+    };
   }
 }

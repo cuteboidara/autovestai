@@ -13,6 +13,7 @@ import {
   Shield,
   Users,
   Mail,
+  Wallet2,
 } from 'lucide-react';
 
 import { AdminChatBootstrap } from '@/components/layout/admin-chat-bootstrap';
@@ -141,6 +142,12 @@ const navGroups = [
         href: adminRoute('/settings'),
         label: 'Admin Settings',
         icon: <Settings className="h-4 w-4" />,
+        permissions: ['settings.manage'],
+      },
+      {
+        href: adminRoute('/settings/wallets'),
+        label: 'Deposit Wallets',
+        icon: <Wallet2 className="h-4 w-4" />,
         permissions: ['settings.manage'],
       },
     ],

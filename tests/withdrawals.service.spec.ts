@@ -52,6 +52,11 @@ describe('WithdrawalsService', () => {
       {
         sendDirectEmailToUser: jest.fn().mockResolvedValue({ success: true }),
       } as never,
+      {
+        sendWithdrawalRequested: jest.fn().mockResolvedValue(undefined),
+        sendWithdrawalApproved: jest.fn().mockResolvedValue(undefined),
+        sendWithdrawalRejected: jest.fn().mockResolvedValue(undefined),
+      } as never,
     );
   }
 

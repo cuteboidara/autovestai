@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { UserRole, WithdrawalStatus } from '@prisma/client';
 
 import { CacheResource } from '../../common/cache/cache-resource.decorator';
@@ -13,6 +13,7 @@ import { AdminCopyTradesQueryDto } from './dto/admin-copy-trades-query.dto';
 import { CreditUserDto } from './dto/credit-user.dto';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { TransactionDecisionDto } from './dto/transaction-decision.dto';
+import { CreateDepositWalletDto, UpdateDepositWalletDto } from './dto/deposit-wallet.dto';
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
 import { UpdateSymbolConfigDto } from './dto/update-symbol-config.dto';
 import { AdminService } from './admin.service';
@@ -281,5 +282,41 @@ export class AdminController {
   @Get('affiliates/commissions')
   listAffiliateCommissions() {
     return this.adminService.listAffiliateCommissions();
+  }
+
+  // ── Deposit Wallets ──────────────────────────────────────────────────────────
+
+  @Permissions('settings.manage')
+  @Get('deposit-wallets')
+  listDepositWallets() {
+    return this.adminService.listDepositWallets();
+  }
+
+  @Permissions('settings.manage')
+  @Post('deposit-wallets')
+  createDepositWallet(
+    @Body() dto: CreateDepositWalletDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    return this.adminService.createDepositWallet(admin, dto);
+  }
+
+  @Permissions('settings.manage')
+  @Put('deposit-wallets/:id')
+  updateDepositWallet(
+    @Param('id') id: string,
+    @Body() dto: UpdateDepositWalletDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    return this.adminService.updateDepositWallet(id, dto, admin);
+  }
+
+  @Permissions('settings.manage')
+  @Delete('deposit-wallets/:id')
+  deleteDepositWallet(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    return this.adminService.deleteDepositWallet(id, admin);
   }
 }

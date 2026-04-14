@@ -55,6 +55,20 @@ const QRCode = require('qrcode') as {
   ): Promise<string>;
 };
 
+type PlatformDepositWalletRecord = {
+  id: string;
+  network: string;
+  coin: string;
+  address: string;
+  label: string | null;
+  isActive: boolean;
+  minDeposit: number;
+  createdAt: Date;
+  updatedAt: Date;
+  source?: 'database' | 'environment';
+  envKey?: string | null;
+};
+
 @Injectable()
 export class WalletService {
   private readonly logger = new Logger(WalletService.name);
@@ -244,6 +258,8 @@ export class WalletService {
         reference: normalizedTransactionHash ?? null,
         metadata: this.mergeMetadata(null, {
           network: operation.network ?? null,
+          platformWalletId: dto.platformWalletId?.trim() || null,
+          depositAddress: dto.depositAddress?.trim() || null,
           ...(normalizedTransactionHash
             ? { transactionHash: normalizedTransactionHash }
             : { declaredByClient: true }),
@@ -288,7 +304,7 @@ export class WalletService {
     return response.transaction;
   }
 
-  async getDepositAddress(userId: string, network: string) {
+  async getDedicatedDepositAddress(userId: string, network: string) {
     await this.kycService.assertPlatformAccessApproved(userId);
     const account = await this.accountsService.resolveLiveAccountForUser(userId);
     const normalizedNetwork = this.normalizeCanonicalNetwork(network);
@@ -312,6 +328,57 @@ export class WalletService {
     });
 
     return this.buildDepositAddressResponse(address.address, normalizedNetwork);
+  }
+
+  async getPlatformDepositWallets(
+    userId: string,
+    filters: {
+      network?: string;
+      coin?: string;
+    } = {},
+  ) {
+    await this.kycService.assertPlatformAccessApproved(userId);
+
+    const normalizedNetwork = this.normalizePlatformWalletValue(filters.network);
+    const normalizedCoin = this.normalizePlatformWalletValue(filters.coin);
+    const databaseWallets = await this.prismaService.depositWallet.findMany({
+      where: {
+        isActive: true,
+        ...(normalizedNetwork ? { network: normalizedNetwork } : {}),
+        ...(normalizedCoin ? { coin: normalizedCoin } : {}),
+      },
+      orderBy: [{ network: 'asc' }, { coin: 'asc' }, { createdAt: 'asc' }],
+    });
+    const databaseKeys = new Set(
+      databaseWallets.map((wallet) => this.getPlatformWalletKey(wallet.network, wallet.coin)),
+    );
+    const fallbackWallets = this.getEnvironmentDepositWallets().filter((wallet) => {
+      if (normalizedNetwork && wallet.network !== normalizedNetwork) {
+        return false;
+      }
+
+      if (normalizedCoin && wallet.coin !== normalizedCoin) {
+        return false;
+      }
+
+      return !databaseKeys.has(this.getPlatformWalletKey(wallet.network, wallet.coin));
+    });
+
+    return [...databaseWallets, ...fallbackWallets].sort((left, right) => {
+      const networkComparison = left.network.localeCompare(right.network);
+
+      if (networkComparison !== 0) {
+        return networkComparison;
+      }
+
+      const coinComparison = left.coin.localeCompare(right.coin);
+
+      if (coinComparison !== 0) {
+        return coinComparison;
+      }
+
+      return left.createdAt.getTime() - right.createdAt.getTime();
+    });
   }
 
   async getDepositAddresses(userId: string, accountId?: string | null) {
@@ -961,6 +1028,12 @@ export class WalletService {
       metadata: Prisma.JsonValue | null;
     },
   ) {
+    const metadata = this.readMetadata(transaction.metadata);
+
+    if (metadata.declaredByClient === true) {
+      return;
+    }
+
     const txHash = this.extractTransactionHash(transaction);
 
     if (!txHash) {
@@ -1060,5 +1133,81 @@ export class WalletService {
         'Only USDT wallet transactions can be approved in private alpha',
       );
     }
+  }
+
+  private normalizePlatformWalletValue(value?: string | null): string | undefined {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const normalized = value.trim().toUpperCase();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  private getPlatformWalletKey(network: string, coin: string): string {
+    return `${network.trim().toUpperCase()}::${coin.trim().toUpperCase()}`;
+  }
+
+  private getEnvironmentDepositWallets(): PlatformDepositWalletRecord[] {
+    const fallbacks = new Map<string, PlatformDepositWalletRecord>();
+    const discoveredAt = new Date(0);
+    const prefixes = ['DEPOSIT_WALLET', 'HOT_WALLET', 'WALLET_ADDRESS'] as const;
+
+    for (const prefix of prefixes) {
+      const matcher = new RegExp(`^${prefix}_([A-Z0-9]+)_([A-Z0-9]+)$`);
+
+      for (const [rawKey, rawValue] of Object.entries(process.env)) {
+        const envKey = rawKey.trim().toUpperCase();
+        const match = matcher.exec(envKey);
+        const address = rawValue?.trim();
+
+        if (!match || !address) {
+          continue;
+        }
+
+        const coin = match[1];
+        const network = match[2];
+        const walletKey = this.getPlatformWalletKey(network, coin);
+
+        if (fallbacks.has(walletKey)) {
+          continue;
+        }
+
+        fallbacks.set(walletKey, {
+          id: `env:${envKey}`,
+          network,
+          coin,
+          address,
+          label: this.readPlatformWalletLabelFromEnv(coin, network),
+          isActive: true,
+          minDeposit: this.readPlatformWalletMinDepositFromEnv(coin, network),
+          createdAt: discoveredAt,
+          updatedAt: discoveredAt,
+          source: 'environment',
+          envKey,
+        });
+      }
+    }
+
+    return [...fallbacks.values()];
+  }
+
+  private readPlatformWalletLabelFromEnv(
+    coin: string,
+    network: string,
+  ): string | null {
+    const value = process.env[`DEPOSIT_WALLET_LABEL_${coin}_${network}`]?.trim();
+    return value ? value : null;
+  }
+
+  private readPlatformWalletMinDepositFromEnv(coin: string, network: string): number {
+    const rawValue = process.env[`DEPOSIT_WALLET_MIN_${coin}_${network}`];
+    const parsed = Number.parseFloat(rawValue ?? '');
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return 10;
+    }
+
+    return parsed;
   }
 }

@@ -29,7 +29,12 @@ describe('KycService', () => {
         log: jest.fn(),
       } as never,
       {
-        sendKycDecisionEmail: jest.fn().mockResolvedValue({ success: true }),
+        sendKycDecisionEmail: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      {
+        sendKycSubmitted: jest.fn().mockResolvedValue(undefined),
+        sendKycApproved: jest.fn().mockResolvedValue(undefined),
+        sendKycRejected: jest.fn().mockResolvedValue(undefined),
       } as never,
       {
         postSystemAlert: jest.fn(),
@@ -56,7 +61,12 @@ describe('KycService', () => {
         log: jest.fn(),
       } as never,
       {
-        sendKycDecisionEmail: jest.fn(),
+        sendKycDecisionEmail: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      {
+        sendKycSubmitted: jest.fn().mockResolvedValue(undefined),
+        sendKycApproved: jest.fn().mockResolvedValue(undefined),
+        sendKycRejected: jest.fn().mockResolvedValue(undefined),
       } as never,
       {
         postSystemAlert: jest.fn(),
@@ -101,7 +111,12 @@ describe('KycService', () => {
         log: jest.fn(),
       } as never,
       {
-        sendKycDecisionEmail: jest.fn(),
+        sendKycDecisionEmail: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      {
+        sendKycSubmitted: jest.fn().mockResolvedValue(undefined),
+        sendKycApproved: jest.fn().mockResolvedValue(undefined),
+        sendKycRejected: jest.fn().mockResolvedValue(undefined),
       } as never,
       {
         postSystemAlert: jest.fn(),
@@ -139,7 +154,12 @@ describe('KycService', () => {
         log: jest.fn(),
       } as never,
       {
-        sendKycDecisionEmail: jest.fn(),
+        sendKycDecisionEmail: jest.fn().mockResolvedValue(undefined),
+      } as never,
+      {
+        sendKycSubmitted: jest.fn().mockResolvedValue(undefined),
+        sendKycApproved: jest.fn().mockResolvedValue(undefined),
+        sendKycRejected: jest.fn().mockResolvedValue(undefined),
       } as never,
       {
         postSystemAlert: jest.fn(),

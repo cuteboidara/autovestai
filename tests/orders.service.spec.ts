@@ -112,6 +112,7 @@ describe('OrdersService', () => {
       } as never,
       {} as never,
       {} as never,
+      {} as never,
     );
 
     const result = await service.processOrderExecution('order-1');
@@ -152,6 +153,7 @@ describe('OrdersService', () => {
           .fn()
           .mockRejectedValue(new BadRequestException(KYC_APPROVAL_REQUIRED_MESSAGE)),
       } as never,
+      {} as never,
       {} as never,
       {} as never,
     );
@@ -213,6 +215,7 @@ describe('OrdersService', () => {
       {
         assertPlatformAccessApproved: jest.fn().mockResolvedValue(undefined),
       } as never,
+      {} as never,
       {} as never,
       {} as never,
     );

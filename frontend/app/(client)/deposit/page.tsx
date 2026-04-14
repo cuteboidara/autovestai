@@ -9,54 +9,88 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { walletApi } from '@/services/api/wallet'
 import { useNotificationStore } from '@/store/notification-store'
-import { DepositAddressResponse, WalletDeposit, WalletNetwork } from '@/types/wallet'
+import { PlatformDepositWallet, SupportedDepositNetwork, WalletDeposit } from '@/types/wallet'
 
 const cardClass =
   'rounded-md border border-[#1F2937] bg-[#111827] p-5 shadow-[0_18px_40px_rgba(2,6,23,0.28)]'
 
-const MIN_DEPOSIT = 10
+const DEFAULT_MIN_DEPOSIT = 10
 
-const networks: Array<{
-  network: WalletNetwork
-  title: string
-  displayLabel: string
-  confirmationNote: string
-  feeNote: string
-  recommended?: boolean
-  confirmationsNeeded: string
-  eta: string
-  infoCopy: string
-}> = [
+const networkMetaMap: Record<
+  string,
   {
-    network: 'TRC20',
-    title: 'TRC20 — TRON',
+    title: string
+    displayLabel: string
+    confirmationNote: string
+    feeNote: string
+    confirmationsNeeded: string
+    eta: string
+    infoCopy: string
+    recommended?: boolean
+  }
+> = {
+  TRC20: {
+    title: 'TRC20',
     displayLabel: 'TRON (TRC20)',
     confirmationNote: '~1 min confirmation',
     feeNote: 'Near-zero fees',
-    recommended: true,
     confirmationsNeeded: '1',
     eta: '~1 minute',
     infoCopy:
-      'After sending, the transfer will appear after on-chain confirmation and stay pending until an admin reviews and approves it. TRC20 confirmations usually arrive in under 1 minute.',
+      'TRC20 deposits typically confirm quickly, but the trading balance updates only after finance review.',
+    recommended: true,
   },
-  {
-    network: 'ERC20',
-    title: 'ERC20 — Ethereum',
+  ERC20: {
+    title: 'ERC20',
     displayLabel: 'Ethereum (ERC20)',
     confirmationNote: '~5 min confirmation',
     feeNote: 'Higher gas fees',
     confirmationsNeeded: '3',
     eta: '~5 minutes',
     infoCopy:
-      'After sending, the transfer will appear after on-chain confirmation and stay pending until an admin reviews and approves it. ERC20 confirmations usually take around 5 minutes.',
+      'ERC20 deposits are supported, but network fees are higher and confirmation time depends on Ethereum congestion.',
   },
-]
+  BEP20: {
+    title: 'BEP20',
+    displayLabel: 'BNB Smart Chain (BEP20)',
+    confirmationNote: '~1-2 min confirmation',
+    feeNote: 'Low fees',
+    confirmationsNeeded: '3',
+    eta: '~2 minutes',
+    infoCopy:
+      'BEP20 deposits reach the platform wallet quickly, but manual finance verification is still required before crediting.',
+  },
+  BTC: {
+    title: 'Bitcoin',
+    displayLabel: 'Bitcoin',
+    confirmationNote: '~10 min per block',
+    feeNote: 'Fee varies by mempool load',
+    confirmationsNeeded: '1-3',
+    eta: '~10-30 minutes',
+    infoCopy:
+      'Bitcoin transfers can take longer to settle. Wait for blockchain confirmation, then finance can review the transfer manually.',
+  },
+}
 
 function formatAmount(value: number | null | undefined, digits = 2) {
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(Number.isFinite(value ?? NaN) ? value ?? 0 : 0)
+}
+
+function formatAssetAmount(value: number | null | undefined) {
+  if (!Number.isFinite(value ?? NaN)) {
+    return formatAmount(0)
+  }
+
+  const absoluteValue = Math.abs(value ?? 0)
+
+  if (absoluteValue > 0 && absoluteValue < 1) {
+    return formatAmount(value, 6)
+  }
+
+  return formatAmount(value, 2)
 }
 
 function formatDateTime(value: string) {
@@ -81,6 +115,39 @@ function shortenHash(value: string) {
   }
 
   return `${value.slice(0, 10)}...${value.slice(-6)}`
+}
+
+function getWalletMeta(wallet: PlatformDepositWallet | null) {
+  const network = wallet?.network.trim().toUpperCase() ?? ''
+
+  return (
+    networkMetaMap[network] ?? {
+      title: network || 'Custom network',
+      displayLabel: wallet?.network || 'Custom network',
+      confirmationNote: 'Confirmation time varies by network',
+      feeNote: 'Blockchain fees depend on network congestion',
+      confirmationsNeeded: 'Varies',
+      eta: 'Varies',
+      infoCopy:
+        'After sending, wait for blockchain confirmation and finance review before expecting the balance to update.',
+    }
+  )
+}
+
+function isDeclarationSupported(wallet: PlatformDepositWallet | null) {
+  if (!wallet) {
+    return false
+  }
+
+  const network = wallet.network.trim().toUpperCase()
+  const coin = wallet.coin.trim().toUpperCase()
+
+  return coin === 'USDT' && (network === 'TRC20' || network === 'ERC20')
+}
+
+function walletDisplayTitle(wallet: PlatformDepositWallet) {
+  const meta = getWalletMeta(wallet)
+  return `${wallet.coin} on ${meta.displayLabel}`
 }
 
 function DepositStatusPill({ deposit }: { deposit: WalletDeposit }) {
@@ -136,35 +203,57 @@ export default function DepositPage() {
   const pushNotification = useNotificationStore((state) => state.push)
   const [historyLoading, setHistoryLoading] = useState(true)
   const [deposits, setDeposits] = useState<WalletDeposit[]>([])
-  const [selectedNetwork, setSelectedNetwork] = useState<WalletNetwork>('TRC20')
+  const [platformWallets, setPlatformWallets] = useState<PlatformDepositWallet[]>([])
+  const [walletsLoading, setWalletsLoading] = useState(true)
+  const [selectedWalletId, setSelectedWalletId] = useState('')
   const [amountInput, setAmountInput] = useState('')
   const [step, setStep] = useState<'amount' | 'address'>('amount')
   const [copySuccess, setCopySuccess] = useState(false)
-  const [addressLoading, setAddressLoading] = useState(false)
-  const [addressError, setAddressError] = useState<string | null>(null)
-  const [addressBook, setAddressBook] = useState<Partial<Record<WalletNetwork, DepositAddressResponse>>>({})
   const [declaringDeposit, setDeclaringDeposit] = useState(false)
   const [depositDeclared, setDepositDeclared] = useState(false)
 
   const parsedAmount = Number.parseFloat(amountInput)
-  const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount >= MIN_DEPOSIT
-  const selectedMeta = useMemo(
-    () => networks.find((entry) => entry.network === selectedNetwork) ?? networks[0],
-    [selectedNetwork],
+  const selectedWallet = useMemo(
+    () => platformWallets.find((wallet) => wallet.id === selectedWalletId) ?? platformWallets[0] ?? null,
+    [platformWallets, selectedWalletId],
   )
-  const selectedAddress = addressBook[selectedNetwork] ?? null
+  const selectedMeta = useMemo(() => getWalletMeta(selectedWallet), [selectedWallet])
+  const supportsDeclaration = useMemo(
+    () => isDeclarationSupported(selectedWallet),
+    [selectedWallet],
+  )
+  const minimumDeposit = selectedWallet?.minDeposit ?? DEFAULT_MIN_DEPOSIT
+  const isAmountValid =
+    !supportsDeclaration ||
+    (Number.isFinite(parsedAmount) && parsedAmount >= minimumDeposit)
 
   useEffect(() => {
     let active = true
 
     void walletApi
+      .getPlatformDepositWallets()
+      .then((data) => {
+        if (active) {
+          setPlatformWallets(data)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setPlatformWallets([])
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setWalletsLoading(false)
+        }
+      })
+
+    void walletApi
       .listDeposits()
       .then((depositHistory) => {
-        if (!active) {
-          return
+        if (active) {
+          setDeposits(depositHistory)
         }
-
-        setDeposits(depositHistory)
       })
       .catch((error) => {
         if (active) {
@@ -187,58 +276,71 @@ export default function DepositPage() {
   }, [pushNotification])
 
   useEffect(() => {
+    if (platformWallets.length === 0) {
+      setSelectedWalletId('')
+      return
+    }
+
+    const currentWalletExists = platformWallets.some((wallet) => wallet.id === selectedWalletId)
+
+    if (currentWalletExists) {
+      return
+    }
+
+    const preferredWallet =
+      platformWallets.find(
+        (wallet) =>
+          wallet.network.trim().toUpperCase() === 'TRC20' &&
+          wallet.coin.trim().toUpperCase() === 'USDT',
+      ) ?? platformWallets[0]
+
+    setSelectedWalletId(preferredWallet.id)
+  }, [platformWallets, selectedWalletId])
+
+  useEffect(() => {
     setCopySuccess(false)
-  }, [selectedNetwork, step])
-
-  async function loadDepositAddress(network: WalletNetwork, force = false) {
-    if (!force && addressBook[network]) {
-      setAddressError(null)
-      return addressBook[network] ?? null
-    }
-
-    setAddressLoading(true)
-    setAddressError(null)
-
-    try {
-      const response = await walletApi.getDepositAddress(network)
-      setAddressBook((current) => ({
-        ...current,
-        [network]: response,
-      }))
-      return response
-    } catch (_error) {
-      setAddressError('Unable to load deposit address. Please try again.')
-      return null
-    } finally {
-      setAddressLoading(false)
-    }
-  }
+    setDepositDeclared(false)
+  }, [selectedWalletId, step])
 
   async function handleDeclareDeposit() {
-    if (declaringDeposit || depositDeclared || !isAmountValid) {
+    if (
+      declaringDeposit ||
+      depositDeclared ||
+      !selectedWallet ||
+      !supportsDeclaration ||
+      !isAmountValid
+    ) {
       return
     }
 
     setDeclaringDeposit(true)
+
     try {
       await walletApi.requestDeposit({
         amount: parsedAmount,
-        network: selectedNetwork,
+        network: selectedWallet.network as SupportedDepositNetwork,
         asset: 'USDT',
+        platformWalletId: selectedWallet.id,
+        depositAddress: selectedWallet.address,
       })
+
       setDepositDeclared(true)
       pushNotification({
         title: 'Deposit declaration received',
-        description: 'Your deposit is now pending admin review. We will credit your account after verification.',
+        description:
+          'Your deposit is pending finance review. Your trading balance updates after manual approval.',
         type: 'success',
       })
-      // Refresh deposit history
+
       const updated = await walletApi.listDeposits()
       setDeposits(updated)
     } catch (error) {
       pushNotification({
         title: 'Declaration failed',
-        description: error instanceof Error ? error.message : 'Unable to submit deposit declaration. Please try again.',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Unable to submit the deposit declaration. Please try again.',
         type: 'error',
       })
     } finally {
@@ -246,22 +348,16 @@ export default function DepositPage() {
     }
   }
 
-  async function handleContinue() {
-    if (!isAmountValid) {
+  function handleContinue() {
+    if (!selectedWallet || !isAmountValid) {
       return
     }
 
     setStep('address')
-    setDepositDeclared(false)
-    await loadDepositAddress(selectedNetwork)
-  }
-
-  async function handleRetry() {
-    await loadDepositAddress(selectedNetwork, true)
   }
 
   async function handleCopy() {
-    if (!selectedAddress?.address || typeof navigator === 'undefined' || !navigator.clipboard) {
+    if (!selectedWallet?.address || typeof navigator === 'undefined' || !navigator.clipboard) {
       pushNotification({
         title: 'Copy unavailable',
         description: 'Clipboard access is not available in this browser session.',
@@ -270,11 +366,11 @@ export default function DepositPage() {
       return
     }
 
-    await navigator.clipboard.writeText(selectedAddress.address)
+    await navigator.clipboard.writeText(selectedWallet.address)
     setCopySuccess(true)
     pushNotification({
       title: 'Deposit address copied',
-      description: `${selectedMeta.title} address copied to clipboard.`,
+      description: `${walletDisplayTitle(selectedWallet)} address copied to clipboard.`,
       type: 'success',
     })
     window.setTimeout(() => setCopySuccess(false), 2000)
@@ -287,10 +383,11 @@ export default function DepositPage() {
           Client Portal / Deposit
         </p>
         <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-[#F9FAFB]">
-          Deposit USDT
+          Crypto Deposit
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-[#9CA3AF]">
-          Confirm the amount first, then send USDT on the matching network to your dedicated deposit address. The balance updates only after admin approval.
+          Select a network, copy the platform wallet address, and send only the matching asset on
+          the matching chain. Your trading balance updates after finance review.
         </p>
       </header>
 
@@ -300,79 +397,112 @@ export default function DepositPage() {
             <div className="space-y-6">
               <div className="space-y-1 text-center">
                 <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#F9FAFB]">
-                  Deposit USDT
+                  Choose Deposit Wallet
                 </h2>
                 <p className="text-sm text-[#9CA3AF]">
-                  Enter the amount and choose the network before revealing your deposit address.
+                  Pick the network first. If the selected wallet supports in-app declaration, enter
+                  the amount before revealing the address.
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <Input
-                  label="Amount (USDT)"
-                  type="number"
-                  inputMode="decimal"
-                  min={String(MIN_DEPOSIT)}
-                  step="0.01"
-                  placeholder="0.00"
-                  value={amountInput}
-                  onChange={(event) => setAmountInput(event.target.value)}
-                  className="h-16 border-[#334155] bg-[#0A0E1A] px-5 text-center text-4xl font-semibold tracking-[-0.03em] text-[#F9FAFB]"
-                />
-                <p className="text-center text-sm text-[#9CA3AF]">
-                  Minimum deposit: ${formatAmount(MIN_DEPOSIT)} USDT
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9CA3AF]">
-                  Network
-                </p>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {networks.map((item) => {
-                    const selected = item.network === selectedNetwork
-
-                    return (
-                      <button
-                        key={item.network}
-                        type="button"
-                        onClick={() => setSelectedNetwork(item.network)}
-                        className={
-                          selected
-                            ? 'rounded-xl border border-[#F5A623] bg-[#1B1407] p-4 text-left shadow-[0_0_0_1px_rgba(245,166,35,0.12)] transition'
-                            : 'rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4 text-left transition hover:border-[#334155] hover:bg-[#101827]'
-                        }
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-base font-semibold text-[#F9FAFB]">{item.title}</p>
-                            <p className="mt-2 text-sm text-[#D1D5DB]">{item.confirmationNote}</p>
-                            <p className="mt-1 text-sm text-[#9CA3AF]">{item.feeNote}</p>
-                          </div>
-                          {item.recommended ? (
-                            <span
-                              className={
-                                selected
-                                  ? 'rounded-full bg-[#F5A623] px-2.5 py-1 text-xs font-semibold text-[#0A0E1A]'
-                                  : 'rounded-full border border-[#7C5A15] bg-[#2A1E08] px-2.5 py-1 text-xs font-semibold text-[#FDE68A]'
-                              }
-                            >
-                              Recommended ✓
-                            </span>
-                          ) : null}
-                        </div>
-                      </button>
-                    )
-                  })}
+              {walletsLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-24 w-full bg-[#1A2234]" />
+                  <Skeleton className="h-24 w-full bg-[#1A2234]" />
                 </div>
-              </div>
+              ) : platformWallets.length === 0 ? (
+                <div className="rounded-xl border border-[#7F1D1D] bg-[#2A1013] p-5">
+                  <p className="text-sm font-medium text-[#FCA5A5]">
+                    No active crypto deposit wallet is configured right now. Please contact support
+                    before sending funds.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9CA3AF]">
+                      Networks
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {platformWallets.map((wallet) => {
+                        const meta = getWalletMeta(wallet)
+                        const selected = wallet.id === selectedWallet?.id
+                        const recommended =
+                          meta.recommended && wallet.coin.trim().toUpperCase() === 'USDT'
+
+                        return (
+                          <button
+                            key={wallet.id}
+                            type="button"
+                            onClick={() => setSelectedWalletId(wallet.id)}
+                            className={
+                              selected
+                                ? 'rounded-xl border border-[#F5A623] bg-[#1B1407] p-4 text-left shadow-[0_0_0_1px_rgba(245,166,35,0.12)] transition'
+                                : 'rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4 text-left transition hover:border-[#334155] hover:bg-[#101827]'
+                            }
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-base font-semibold text-[#F9FAFB]">
+                                  {wallet.network}
+                                </p>
+                                <p className="mt-1 text-sm text-[#D1D5DB]">{wallet.coin}</p>
+                                <p className="mt-2 text-sm text-[#D1D5DB]">{meta.confirmationNote}</p>
+                                <p className="mt-1 text-sm text-[#9CA3AF]">{meta.feeNote}</p>
+                              </div>
+                              {recommended ? (
+                                <span
+                                  className={
+                                    selected
+                                      ? 'rounded-full bg-[#F5A623] px-2.5 py-1 text-xs font-semibold text-[#0A0E1A]'
+                                      : 'rounded-full border border-[#7C5A15] bg-[#2A1E08] px-2.5 py-1 text-xs font-semibold text-[#FDE68A]'
+                                  }
+                                >
+                                  Recommended ✓
+                                </span>
+                              ) : null}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {selectedWallet ? (
+                    supportsDeclaration ? (
+                      <div className="space-y-3">
+                        <Input
+                          label={`Amount (${selectedWallet.coin})`}
+                          type="number"
+                          inputMode="decimal"
+                          min={String(minimumDeposit)}
+                          step="0.01"
+                          placeholder="0.00"
+                          value={amountInput}
+                          onChange={(event) => setAmountInput(event.target.value)}
+                          className="h-16 border-[#334155] bg-[#0A0E1A] px-5 text-center text-4xl font-semibold tracking-[-0.03em] text-[#F9FAFB]"
+                        />
+                        <p className="text-center text-sm text-[#9CA3AF]">
+                          Minimum deposit: {formatAssetAmount(minimumDeposit)} {selectedWallet.coin}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-[#1D4ED8] bg-[#0B1733] px-4 py-4 text-sm leading-6 text-[#BFDBFE]">
+                        In-app declaration currently supports USDT on TRC20 and ERC20 only. You can
+                        still copy this wallet address and send {selectedWallet.coin}, but manual
+                        review will require the blockchain transaction hash.
+                      </div>
+                    )
+                  ) : null}
+                </>
+              )}
 
               <Button
                 className="h-12 w-full text-base font-semibold"
-                disabled={!isAmountValid}
-                onClick={() => void handleContinue()}
+                disabled={!selectedWallet || walletsLoading || platformWallets.length === 0 || !isAmountValid}
+                onClick={handleContinue}
               >
-                Continue
+                {supportsDeclaration ? 'Continue' : 'Show Wallet Address'}
               </Button>
             </div>
           ) : (
@@ -382,57 +512,46 @@ export default function DepositPage() {
                   type="button"
                   onClick={() => setStep('amount')}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#1F2937] bg-[#0A0E1A] text-[#F9FAFB] transition hover:border-[#334155] hover:bg-[#131B2B]"
-                  aria-label="Back to amount entry"
+                  aria-label="Back to wallet selection"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div className="flex-1 rounded-xl border border-[#5B4212] bg-[#2A1E08] px-4 py-3 text-sm font-medium text-[#FDE68A]">
-                  You are depositing: ${formatAmount(parsedAmount)} USDT via {selectedNetwork}
+                  {selectedWallet
+                    ? `Selected wallet: ${walletDisplayTitle(selectedWallet)}`
+                    : 'No wallet selected'}
                 </div>
               </div>
 
-              {addressLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-24 w-full bg-[#1A2234]" />
-                  <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-                    <Skeleton className="mx-auto h-[220px] w-[220px] bg-[#1A2234]" />
-                    <div className="space-y-3">
-                      <Skeleton className="h-16 w-full bg-[#1A2234]" />
-                      <Skeleton className="h-12 w-full bg-[#1A2234]" />
-                      <Skeleton className="h-40 w-full bg-[#1A2234]" />
-                    </div>
-                  </div>
-                </div>
-              ) : addressError ? (
+              {!selectedWallet ? (
                 <div className="rounded-xl border border-[#7F1D1D] bg-[#2A1013] p-5">
                   <p className="text-sm font-medium text-[#FCA5A5]">
-                    Unable to load deposit address. Please try again.
+                    No deposit wallet is configured. Please contact support.
                   </p>
-                  <Button variant="secondary" className="mt-4 h-11 px-5" onClick={() => void handleRetry()}>
-                    Retry
-                  </Button>
                 </div>
-              ) : selectedAddress ? (
+              ) : (
                 <div className="space-y-5">
                   <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm text-[#FDE68A]">
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
                       <p>
-                        Only send USDT ({selectedNetwork}) to this address. Sending any other token
-                        will result in permanent loss of funds.
+                        Only send {selectedWallet.coin} on {selectedWallet.network}. Sending the
+                        wrong token or the wrong network will result in permanent loss.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex justify-center">
                     <div className="rounded-[24px] border border-[#1F2937] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.25)]">
-                      <QRCode value={selectedAddress.address} size={220} bgColor="#FFFFFF" fgColor="#0A0E1A" />
+                      <QRCode value={selectedWallet.address} size={220} bgColor="#FFFFFF" fgColor="#0A0E1A" />
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4">
-                      <p className="break-all font-mono text-sm text-[#F9FAFB]">{selectedAddress.address}</p>
+                      <p className="break-all font-mono text-sm text-[#F9FAFB]">
+                        {selectedWallet.address}
+                      </p>
                     </div>
                     <Button
                       variant={copySuccess ? 'success' : 'secondary'}
@@ -447,11 +566,13 @@ export default function DepositPage() {
                   <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A]">
                     {[
                       ['Network', selectedMeta.displayLabel],
-                      ['Token', 'USDT'],
-                      ['Amount to send', `${formatAmount(parsedAmount)} USDT`],
-                      ['Min deposit', `${formatAmount(MIN_DEPOSIT)} USDT`],
+                      ['Coin / token', selectedWallet.coin],
+                      ['Minimum deposit', `${formatAssetAmount(selectedWallet.minDeposit)} ${selectedWallet.coin}`],
                       ['Confirmations needed', selectedMeta.confirmationsNeeded],
                       ['Expected confirmation', selectedMeta.eta],
+                      ...(supportsDeclaration
+                        ? [['Declared amount', `${formatAssetAmount(parsedAmount)} ${selectedWallet.coin}`]]
+                        : []),
                     ].map(([label, value], index) => (
                       <div
                         key={label}
@@ -471,29 +592,37 @@ export default function DepositPage() {
                     {selectedMeta.infoCopy}
                   </div>
 
-                  {depositDeclared ? (
-                    <div className="rounded-xl border border-[#065F46] bg-[#022C22] px-5 py-4">
-                      <div className="flex items-start gap-3">
-                        <Check className="mt-0.5 h-5 w-5 flex-none text-[#10B981]" />
-                        <div>
-                          <p className="font-semibold text-[#A7F3D0]">Deposit declared successfully</p>
-                          <p className="mt-1 text-sm text-[#6EE7B7]">
-                            Your deposit of ${formatAmount(parsedAmount)} USDT via {selectedNetwork} is now pending admin review. You will be notified once it is approved.
-                          </p>
+                  {supportsDeclaration ? (
+                    depositDeclared ? (
+                      <div className="rounded-xl border border-[#065F46] bg-[#022C22] px-5 py-4">
+                        <div className="flex items-start gap-3">
+                          <Check className="mt-0.5 h-5 w-5 flex-none text-[#10B981]" />
+                          <div>
+                            <p className="font-semibold text-[#A7F3D0]">Deposit declared successfully</p>
+                            <p className="mt-1 text-sm text-[#6EE7B7]">
+                              Your deposit of {formatAssetAmount(parsedAmount)} USDT via{' '}
+                              {selectedWallet.network} is pending finance review.
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <Button
+                        className="h-14 w-full text-base font-semibold"
+                        disabled={declaringDeposit}
+                        onClick={() => void handleDeclareDeposit()}
+                      >
+                        {declaringDeposit ? 'Submitting…' : 'I Have Sent the Money'}
+                      </Button>
+                    )
                   ) : (
-                    <Button
-                      className="h-14 w-full text-base font-semibold"
-                      disabled={declaringDeposit}
-                      onClick={() => void handleDeclareDeposit()}
-                    >
-                      {declaringDeposit ? 'Submitting…' : 'I Have Sent the Money'}
-                    </Button>
+                    <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm leading-6 text-[#FDE68A]">
+                      After you send {selectedWallet.coin}, keep the transaction hash and contact
+                      support or the finance desk for manual review.
+                    </div>
                   )}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
@@ -518,7 +647,8 @@ export default function DepositPage() {
             <div className="space-y-2">
               <p className="text-lg font-semibold text-[#F9FAFB]">No deposits yet</p>
               <p className="max-w-sm text-sm leading-6 text-[#9CA3AF]">
-                Your USDT deposit history will appear here after the first on-chain detection.
+                Your deposit history will appear here after the first declaration or blockchain
+                detection.
               </p>
             </div>
           </div>
@@ -538,10 +668,14 @@ export default function DepositPage() {
                 {deposits.map((entry) => (
                   <tr key={entry.id} className="hover:bg-[#0D1320]/70">
                     <td className="border-b border-[#1F2937] py-4 pr-4 font-mono text-xs text-[#D1D5DB]" title={entry.txHash ?? undefined}>
-                      {entry.txHash ? shortenHash(entry.txHash) : <span className="text-[#9CA3AF] italic">Manual declaration</span>}
+                      {entry.txHash ? (
+                        shortenHash(entry.txHash)
+                      ) : (
+                        <span className="text-[#9CA3AF] italic">Manual declaration</span>
+                      )}
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4 text-right font-semibold text-[#10B981]">
-                      +{formatAmount(entry.usdtAmount)} USDT
+                      +{formatAssetAmount(entry.usdtAmount)} USDT
                     </td>
                     <td className="border-b border-[#1F2937] py-4 pr-4 text-[#F9FAFB]">
                       {entry.network ?? '—'}

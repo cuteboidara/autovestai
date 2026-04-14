@@ -38,6 +38,9 @@ describe('PnlEngineService', () => {
       positionsService as never,
       auditService as never,
       tradingEventsService as never,
+      {
+        sendStopOut: jest.fn().mockResolvedValue(undefined),
+      } as never,
     );
 
     await (service as any).handleLiquidationIfNeeded(

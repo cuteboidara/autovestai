@@ -7,6 +7,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { GetDepositAddressDto } from './dto/get-deposit-address.dto';
+import { GetPlatformDepositWalletsDto } from './dto/get-platform-deposit-wallets.dto';
 import { ListDepositsQueryDto } from './dto/list-deposits-query.dto';
 import { ListTransactionsQueryDto } from './dto/list-transactions-query.dto';
 import { ListWithdrawalsQueryDto } from './dto/list-withdrawals-query.dto';
@@ -26,14 +27,14 @@ export class WalletController {
   @Get('wallet/deposit-address')
   @RateLimit({
     keyPrefix: 'wallet-deposit-address',
-    limit: 10,
-    ttlSeconds: 3600,
+    limit: 30,
+    ttlSeconds: 300,
   })
-  getDepositAddress(
+  getPlatformDepositWallets(
     @CurrentUser() user: AuthenticatedUser,
-    @Query() query: GetDepositAddressDto,
+    @Query() query: GetPlatformDepositWalletsDto,
   ) {
-    return this.walletService.getDepositAddress(user.id, query.network);
+    return this.walletService.getPlatformDepositWallets(user.id, query);
   }
 
   @Get('wallet/address')
@@ -46,7 +47,7 @@ export class WalletController {
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: GetDepositAddressDto,
   ) {
-    return this.walletService.getDepositAddress(user.id, query.network);
+    return this.walletService.getDedicatedDepositAddress(user.id, query.network);
   }
 
   @Post('wallet/generate-address')
@@ -59,7 +60,7 @@ export class WalletController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: GetDepositAddressDto,
   ) {
-    return this.walletService.getDepositAddress(user.id, dto.network);
+    return this.walletService.getDedicatedDepositAddress(user.id, dto.network);
   }
 
   @Get('wallet/addresses')
@@ -106,6 +107,14 @@ export class WalletController {
     @Query() query: ListWithdrawalsQueryDto,
   ) {
     return this.walletService.listWithdrawals(user.id, query);
+  }
+
+  @Get('wallet/platform-deposit-wallets')
+  getPlatformDepositWalletsAlias(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: GetPlatformDepositWalletsDto,
+  ) {
+    return this.walletService.getPlatformDepositWallets(user.id, query);
   }
 
   @Post('deposit')

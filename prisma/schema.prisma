@@ -1076,3 +1076,18 @@ model EmailVerificationToken {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model DepositWallet {
+  id         String   @id @default(cuid())
+  network    String
+  coin       String   @default("USDT")
+  address    String
+  label      String?
+  isActive   Boolean  @default(true)
+  minDeposit Float    @default(10)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([network, coin])
+  @@index([isActive])
+}

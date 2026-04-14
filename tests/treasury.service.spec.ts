@@ -96,6 +96,14 @@ function createTreasuryService(options?: {
     prismaService as never,
     auditService as never,
     configService as never,
+    {
+      getTreasuryWalletSettings: jest.fn().mockReturnValue({
+        network: 'TRC20',
+        masterWalletTrc20: 'TTEST_WALLET',
+        masterWalletErc20: null,
+        masterWalletAddress: 'TTEST_WALLET',
+      }),
+    } as never,
     manualTreasuryBalanceProvider as never,
     explorerTreasuryBalanceProvider as never,
   );

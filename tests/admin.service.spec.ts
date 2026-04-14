@@ -31,6 +31,7 @@ describe('AdminService', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
     );
 
     await service.approveTransaction(
@@ -95,6 +96,7 @@ describe('AdminService', () => {
       {
         getAccountMetrics: jest.fn(),
       } as never,
+      {} as never,
       {} as never,
       {} as never,
       {} as never,

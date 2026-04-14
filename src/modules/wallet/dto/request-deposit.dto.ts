@@ -34,4 +34,14 @@ export class RequestDepositDto {
   @IsString()
   @MaxLength(255)
   transactionHash?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  platformWalletId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  depositAddress?: string;
 }

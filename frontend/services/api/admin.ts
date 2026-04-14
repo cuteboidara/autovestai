@@ -22,6 +22,7 @@ import {
   SurveillanceCase,
   AuditLogRecord,
 } from '@/types/admin';
+import { PlatformDepositWallet } from '@/types/wallet';
 import { AffiliateCommission, AffiliateProfile } from '@/types/affiliates';
 import { ReconciliationRun } from '@/types/reconciliation';
 import {
@@ -370,6 +371,41 @@ export const adminApi = {
     return apiRequest<{ success: boolean }>('/admin/admin-users/me/change-password', {
       method: 'POST',
       body: payload,
+      retry: false,
+    });
+  },
+
+  // Deposit Wallets
+  listDepositWallets() {
+    return apiRequest<PlatformDepositWallet[]>('/admin/deposit-wallets');
+  },
+  createDepositWallet(payload: {
+    network: string;
+    coin?: string;
+    address: string;
+    label?: string;
+    isActive?: boolean;
+    minDeposit?: number;
+  }) {
+    return apiRequest<PlatformDepositWallet>('/admin/deposit-wallets', {
+      method: 'POST',
+      body: payload,
+      retry: false,
+    });
+  },
+  updateDepositWallet(
+    id: string,
+    payload: { address?: string; label?: string; isActive?: boolean; minDeposit?: number },
+  ) {
+    return apiRequest<PlatformDepositWallet>(`/admin/deposit-wallets/${id}`, {
+      method: 'PUT',
+      body: payload,
+      retry: false,
+    });
+  },
+  deleteDepositWallet(id: string) {
+    return apiRequest<PlatformDepositWallet>(`/admin/deposit-wallets/${id}`, {
+      method: 'DELETE',
       retry: false,
     });
   },

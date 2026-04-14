@@ -113,8 +113,12 @@ export default function AdminWalletPage() {
     return false;
   }
 
-  function hasVerifiedDepositReference(item: WalletTransaction) {
+  function canApproveDepositTransaction(item: WalletTransaction) {
     if (item.type !== 'DEPOSIT') {
+      return true;
+    }
+
+    if (item.metadata?.declaredByClient === true) {
       return true;
     }
 
@@ -193,7 +197,7 @@ export default function AdminWalletPage() {
 
       <Panel
         title="Pending Review Queue"
-        description="All pending deposit and withdrawal transactions awaiting manual admin approval."
+        description="All pending deposit and withdrawal transactions awaiting manual admin approval, including client-declared platform wallet deposits."
       >
         <DataTable
           columns={[
@@ -217,6 +221,8 @@ export default function AdminWalletPage() {
                 String(
                   (typeof item.metadata?.blockchainTxId === 'string'
                     ? item.metadata.blockchainTxId
+                    : typeof item.metadata?.depositAddress === 'string'
+                      ? item.metadata.depositAddress
                     : item.reference) ?? '--',
                 ),
             },
@@ -228,7 +234,7 @@ export default function AdminWalletPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="secondary"
-                      disabled={!hasVerifiedDepositReference(item)}
+                      disabled={!canApproveDepositTransaction(item)}
                       onClick={() => setPendingAction({ type: 'approve', item })}
                     >
                       Approve
@@ -306,7 +312,7 @@ export default function AdminWalletPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="secondary"
-                      disabled={!hasVerifiedDepositReference(item)}
+                      disabled={!canApproveDepositTransaction(item)}
                       onClick={() => setPendingAction({ type: 'approve', item })}
                     >
                       Approve
@@ -441,7 +447,7 @@ export default function AdminWalletPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="secondary"
-                      disabled={!hasVerifiedDepositReference(item)}
+                      disabled={!canApproveDepositTransaction(item)}
                       onClick={() => setPendingAction({ type: 'approve', item })}
                     >
                       Approve

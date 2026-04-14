@@ -101,6 +101,8 @@ export interface DepositRequest {
   reference?: string
   network?: SupportedDepositNetwork
   transactionHash?: string
+  platformWalletId?: string
+  depositAddress?: string
 }
 
 export interface WithdrawRequest {
@@ -109,4 +111,18 @@ export interface WithdrawRequest {
   address: string
   reference?: string
   network?: SupportedDepositNetwork
+}
+
+export interface PlatformDepositWallet {
+  id: string
+  network: string
+  coin: string
+  address: string
+  label?: string | null
+  isActive: boolean
+  minDeposit: number
+  createdAt: string
+  updatedAt: string
+  source?: 'database' | 'environment'
+  envKey?: string | null
 }

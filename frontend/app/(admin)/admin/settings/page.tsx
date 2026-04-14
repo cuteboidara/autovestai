@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 
 import { PermissionDenied } from '@/components/auth/permission-denied';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Panel } from '@/components/ui/panel';
 import { useAuth } from '@/hooks/use-auth';
+import { adminRoute } from '@/lib/admin-route';
 import { adminApi } from '@/services/api/admin';
 import { useNotificationStore } from '@/store/notification-store';
 import { BrokerSettingsResponse, SymbolConfigRecord } from '@/types/admin';
@@ -387,6 +389,22 @@ export default function AdminSettingsPage() {
         ) : (
           <p className="text-sm text-secondary">Loading settings...</p>
         )}
+      </Panel>
+
+      <Panel
+        title="Crypto Deposit Wallets"
+        description="Manage the platform wallet addresses shown on the client deposit page."
+        actions={
+          <Button asChild variant="secondary">
+            <Link href={adminRoute('/settings/wallets')}>Open wallet manager</Link>
+          </Button>
+        }
+      >
+        <div className="rounded-2xl border border-border bg-page p-5 text-sm leading-6 text-secondary">
+          Configure the active TRC20, ERC20, BEP20, Bitcoin, or other supported deposit wallets
+          from the dedicated wallet settings screen. The client deposit page reads those records
+          first and falls back to backend environment variables only when the database is empty.
+        </div>
       </Panel>
 
       <Panel title="Symbol Configuration" description="Leverage, markup, trading enablement, and exposure thresholds.">
