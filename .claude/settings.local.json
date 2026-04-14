@@ -19,7 +19,11 @@
       "Bash(node -e \":*)",
       "Bash(npx ts-node:*)",
       "Bash(railway:*)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_SxkuX6KFh2EN@ep-super-moon-amwlfrw3-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx ts-node scripts/reset-admin.ts)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_SxkuX6KFh2EN@ep-super-moon-amwlfrw3-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx ts-node scripts/reset-admin.ts)",
+      "Bash(npx next:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find /c/Users/daram/autovestai/src -type f -name *.ts)",
+      "Bash(grep -E \"page\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

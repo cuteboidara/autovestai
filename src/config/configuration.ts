@@ -37,6 +37,8 @@ export default () => ({
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean) ?? [],
   pricing: {
+    enableCandleStorage:
+      (process.env.ENABLE_CANDLE_STORAGE ?? 'false').toLowerCase() === 'true',
     binanceWsUrl:
       process.env.BINANCE_WS_URL ??
       'wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker',

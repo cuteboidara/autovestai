@@ -1,9 +1,14 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { Candle } from '../../common/interfaces/candle.interface';
 import { PriceSnapshot } from '../../common/interfaces/price-snapshot.interface';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
+import {
+  checkDiskFullError,
+  isDiskFullCircuitOpen,
+} from '../../common/utils/db-disk-full.util';
 import { toDecimal, toNumber } from '../../common/utils/decimal';
 import { TradingEventsService } from '../trading/trading-events.service';
 import { SupportedResolution } from '../market-data/symbols.config';
@@ -14,25 +19,60 @@ import {
   SUPPORTED_CANDLE_RESOLUTIONS,
 } from './pricing.constants';
 
+/** How long to keep MarketCandle rows (3 days). */
+const CANDLE_RETENTION_MS = 3 * 24 * 60 * 60 * 1000;
+/** How long to keep SymbolExposureSnapshot rows (24 hours). */
+const SNAPSHOT_RETENTION_MS = 24 * 60 * 60 * 1000;
+/** Run the retention sweep every hour. */
+const RETENTION_INTERVAL_MS = 60 * 60 * 1000;
+
 @Injectable()
-export class CandleService implements OnModuleInit {
+export class CandleService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CandleService.name);
   private readonly currentCandles = new Map<string, Candle>();
   private readonly candleHistory = new Map<string, Candle[]>();
+  private readonly candleStorageEnabled: boolean;
+  private retentionTimer?: NodeJS.Timeout;
 
   constructor(
     private readonly redisService: RedisService,
     private readonly prismaService: PrismaService,
     private readonly tradingEventsService: TradingEventsService,
     private readonly symbolsService: SymbolsService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.candleStorageEnabled = this.configService.get<boolean>(
+      'pricing.enableCandleStorage',
+      false,
+    );
+  }
 
   async onModuleInit(): Promise<void> {
     await this.symbolsService.reload();
+
+    if (!this.candleStorageEnabled) {
+      this.logger.log(
+        'Candle DB storage disabled (ENABLE_CANDLE_STORAGE=false). Candles will be kept in-memory/Redis only.',
+      );
+    }
+
     // Run in background — don't block app startup
     this.loadAllCandles().catch((err: Error) =>
       console.error(`[CandleService] Background candle load failed: ${err.message}`),
     );
+
+    // Start hourly retention sweep
+    this.retentionTimer = setInterval(() => {
+      void this.runRetention();
+    }, RETENTION_INTERVAL_MS);
+    // Also run once shortly after startup (30s delay)
+    setTimeout(() => void this.runRetention(), 30_000);
+  }
+
+  onModuleDestroy(): void {
+    if (this.retentionTimer) {
+      clearInterval(this.retentionTimer);
+    }
   }
 
   private async loadAllCandles(): Promise<void> {
@@ -209,33 +249,46 @@ export class CandleService implements OnModuleInit {
     const trimmed = candles.slice(-MAX_CANDLES_PER_SYMBOL);
     this.candleHistory.set(cacheKey, trimmed);
 
-    await Promise.all([
+    // Always write to Redis (cheap). Only write to Postgres when enabled and DB isn't full.
+    const promises: Promise<unknown>[] = [
       this.redisService.getClient().set(cacheKey, JSON.stringify(trimmed)),
-      this.prismaService.marketCandle.upsert({
-        where: {
-          symbol_resolution_timestamp: {
-            symbol,
-            resolution,
-            timestamp: new Date(candle.timestamp),
-          },
-        },
-        create: {
-          symbol,
-          resolution,
-          timestamp: new Date(candle.timestamp),
-          open: toDecimal(candle.open),
-          high: toDecimal(candle.high),
-          low: toDecimal(candle.low),
-          close: toDecimal(candle.close),
-        },
-        update: {
-          open: toDecimal(candle.open),
-          high: toDecimal(candle.high),
-          low: toDecimal(candle.low),
-          close: toDecimal(candle.close),
-        },
-      }),
-    ]);
+    ];
+
+    if (this.candleStorageEnabled && !isDiskFullCircuitOpen()) {
+      promises.push(
+        this.prismaService.marketCandle
+          .upsert({
+            where: {
+              symbol_resolution_timestamp: {
+                symbol,
+                resolution,
+                timestamp: new Date(candle.timestamp),
+              },
+            },
+            create: {
+              symbol,
+              resolution,
+              timestamp: new Date(candle.timestamp),
+              open: toDecimal(candle.open),
+              high: toDecimal(candle.high),
+              low: toDecimal(candle.low),
+              close: toDecimal(candle.close),
+            },
+            update: {
+              open: toDecimal(candle.open),
+              high: toDecimal(candle.high),
+              low: toDecimal(candle.low),
+              close: toDecimal(candle.close),
+            },
+          })
+          .catch((error) => {
+            checkDiskFullError(error);
+            throw error;
+          }),
+      );
+    }
+
+    await Promise.all(promises);
   }
 
   private toBucketStart(timestamp: string, resolution: SupportedResolution): string {
@@ -250,5 +303,40 @@ export class CandleService implements OnModuleInit {
 
   private buildCacheKey(symbol: string, resolution: SupportedResolution): string {
     return `${CANDLE_CACHE_PREFIX}:${symbol}:${resolution}`;
+  }
+
+  /**
+   * Hourly retention sweep — deletes old MarketCandle rows (>3 days)
+   * and SymbolExposureSnapshot rows (>24 hours) to stay within DB limits.
+   */
+  private async runRetention(): Promise<void> {
+    if (isDiskFullCircuitOpen()) {
+      return;
+    }
+
+    try {
+      const candleCutoff = new Date(Date.now() - CANDLE_RETENTION_MS);
+      const snapshotCutoff = new Date(Date.now() - SNAPSHOT_RETENTION_MS);
+
+      const [candleResult, snapshotResult] = await Promise.all([
+        this.prismaService.marketCandle.deleteMany({
+          where: { timestamp: { lt: candleCutoff } },
+        }),
+        this.prismaService.symbolExposureSnapshot.deleteMany({
+          where: { timestamp: { lt: snapshotCutoff } },
+        }),
+      ]);
+
+      if (candleResult.count > 0 || snapshotResult.count > 0) {
+        this.logger.log(
+          `Retention sweep: deleted ${candleResult.count} candle rows (>3d) and ${snapshotResult.count} exposure snapshot rows (>24h)`,
+        );
+      }
+    } catch (error) {
+      checkDiskFullError(error);
+      this.logger.warn(
+        `Retention sweep failed: ${(error as Error).message}`,
+      );
+    }
   }
 }

@@ -1,12 +1,17 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { HedgeActionStatus, HedgeActionType, OrderSide, PositionStatus } from '@prisma/client';
 
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import {
+  checkDiskFullError,
+  isDiskFullCircuitOpen,
+} from '../../common/utils/db-disk-full.util';
 import { toDecimal, toNumber } from '../../common/utils/decimal';
 import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
@@ -16,6 +21,8 @@ import { TradingEventsService } from '../trading/trading-events.service';
 
 @Injectable()
 export class DealingDeskService {
+  private readonly logger = new Logger(DealingDeskService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly brokerSettingsService: BrokerSettingsService,
