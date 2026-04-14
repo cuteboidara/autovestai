@@ -65,16 +65,15 @@ export function WatchlistPanel({
   const deferredSearch = useDeferredValue(search);
   const previousPricesRef = useRef<Record<string, number>>({});
 
-  const universe = useMemo(
-    () => {
-      const symbolByKey = new Map(symbols.map((item) => [item.symbol, item] as const));
-
-      return watchlist
-        .map((symbol) => symbolByKey.get(symbol) ?? null)
-        .filter((item): item is SymbolInfo => Boolean(item));
-    },
-    [symbols, watchlist],
-  );
+  // Show all available symbols (sorted by category order, then alphabetically)
+  const universe = useMemo(() => {
+    const categoryRank = new Map(categoryOrder.map((cat, i) => [cat, i]));
+    return [...symbols].sort((a, b) => {
+      const rankDiff = (categoryRank.get(a.category) ?? 99) - (categoryRank.get(b.category) ?? 99);
+      if (rankDiff !== 0) return rankDiff;
+      return a.symbol.localeCompare(b.symbol);
+    });
+  }, [symbols]);
 
   const categoryOptions = useMemo(
     () => [

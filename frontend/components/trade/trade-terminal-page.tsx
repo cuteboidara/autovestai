@@ -200,7 +200,9 @@ const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
   const [flashedPnlIds, setFlashedPnlIds] = useState<Record<string, true>>({});
   const resizeStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const previousPnlRef = useRef<Record<string, number>>({});
-  const liveQuotes = useLivePrices([...watchlist, selectedSymbol]);
+  // Subscribe to all loaded symbols so the watchlist panel shows live prices for every instrument
+  const allSymbolKeys = useMemo(() => symbols.map((s) => s.symbol), [symbols]);
+  const liveQuotes = useLivePrices([...allSymbolKeys, selectedSymbol]);
   const watchlistStorageKey = useMemo(() => getWatchlistStorageKey(user?.id), [user?.id]);
 
   const activeBottomTab = mapSearchTab(searchParams.get('tab'));
