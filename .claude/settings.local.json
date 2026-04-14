@@ -26,7 +26,10 @@
       "Bash(grep -E \"page\\\\.\\(tsx|ts\\)$\")",
       "Bash(find /c/Users/daram/autovestai/src/common/guards -type f -name *.ts)",
       "Bash(grep -r \"credit\\\\|Credit\" /c/Users/daram/autovestai/src/modules/crm --include=*.ts)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\daram\\\\autovestai/frontend/app/\\(client\\)/wallet/\")",
+      "Bash(find C:Usersdaramautovestai -name *deposit-address* -type f)",
+      "Bash(grep -r \"settings.manage\\\\|settings\\\\.manage\" C:/Users/daram/autovestai/src/ --include=*.ts -l)"
     ]
   }
 }
