@@ -23,7 +23,10 @@
       "Bash(npx next:*)",
       "Bash(npx tsc:*)",
       "Bash(find /c/Users/daram/autovestai/src -type f -name *.ts)",
-      "Bash(grep -E \"page\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"page\\\\.\\(tsx|ts\\)$\")",
+      "Bash(find /c/Users/daram/autovestai/src/common/guards -type f -name *.ts)",
+      "Bash(grep -r \"credit\\\\|Credit\" /c/Users/daram/autovestai/src/modules/crm --include=*.ts)",
+      "Bash(wc:*)"
     ]
   }
 }
