@@ -12,7 +12,7 @@ import { useNotificationStore } from '@/store/notification-store'
 import { PlatformDepositWallet, SupportedDepositNetwork, WalletDeposit } from '@/types/wallet'
 
 const cardClass =
-  'rounded-md border border-[#1F2937] bg-[#111827] p-5 shadow-[0_18px_40px_rgba(2,6,23,0.28)]'
+  'rounded-2xl border border-[#1F2937] bg-[#111827] p-4 shadow-[0_18px_40px_rgba(2,6,23,0.28)] sm:p-5 lg:p-6'
 
 const DEFAULT_MIN_DEPOSIT = 10
 
@@ -377,12 +377,12 @@ export default function DepositPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <header className="max-w-3xl space-y-2">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
           Client Portal / Deposit
         </p>
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-[#F9FAFB]">
+        <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-[#F9FAFB] sm:text-[28px] lg:text-[32px]">
           Crypto Deposit
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-[#9CA3AF]">
@@ -391,12 +391,12 @@ export default function DepositPage() {
         </p>
       </header>
 
-      <section className="mx-auto max-w-3xl">
+      <section className="mx-auto w-full max-w-5xl">
         <div className={cardClass}>
           {step === 'amount' ? (
-            <div className="space-y-6">
-              <div className="space-y-1 text-center">
-                <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#F9FAFB]">
+            <div className="space-y-6 lg:space-y-8">
+              <div className="mx-auto max-w-2xl space-y-2 text-center">
+                <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#F9FAFB] sm:text-[28px]">
                   Choose Deposit Wallet
                 </h2>
                 <p className="text-sm text-[#9CA3AF]">
@@ -423,7 +423,7 @@ export default function DepositPage() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9CA3AF]">
                       Networks
                     </p>
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {platformWallets.map((wallet) => {
                         const meta = getWalletMeta(wallet)
                         const selected = wallet.id === selectedWallet?.id
@@ -435,32 +435,40 @@ export default function DepositPage() {
                             key={wallet.id}
                             type="button"
                             onClick={() => setSelectedWalletId(wallet.id)}
+                            aria-pressed={selected}
                             className={
                               selected
-                                ? 'rounded-xl border border-[#F5A623] bg-[#1B1407] p-4 text-left shadow-[0_0_0_1px_rgba(245,166,35,0.12)] transition'
-                                : 'rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4 text-left transition hover:border-[#334155] hover:bg-[#101827]'
+                                ? 'h-full rounded-xl border border-[#F5A623] bg-[#1B1407] p-4 text-left shadow-[0_0_0_1px_rgba(245,166,35,0.12)] transition'
+                                : 'h-full rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4 text-left transition hover:border-[#334155] hover:bg-[#101827]'
                             }
                           >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
+                            <div className="flex h-full flex-col gap-3">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-base font-semibold text-[#F9FAFB]">
+                                    {wallet.network}
+                                  </p>
+                                  <p className="mt-1 text-sm text-[#D1D5DB]">{wallet.coin}</p>
+                                </div>
+                                {recommended ? (
+                                  <span
+                                    className={
+                                      selected
+                                        ? 'inline-flex self-start rounded-full bg-[#F5A623] px-2.5 py-1 text-xs font-semibold text-[#0A0E1A]'
+                                        : 'inline-flex self-start rounded-full border border-[#7C5A15] bg-[#2A1E08] px-2.5 py-1 text-xs font-semibold text-[#FDE68A]'
+                                    }
+                                  >
+                                    Recommended
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="space-y-1">
                                 <p className="text-base font-semibold text-[#F9FAFB]">
-                                  {wallet.network}
+                                  {meta.displayLabel}
                                 </p>
-                                <p className="mt-1 text-sm text-[#D1D5DB]">{wallet.coin}</p>
                                 <p className="mt-2 text-sm text-[#D1D5DB]">{meta.confirmationNote}</p>
                                 <p className="mt-1 text-sm text-[#9CA3AF]">{meta.feeNote}</p>
                               </div>
-                              {recommended ? (
-                                <span
-                                  className={
-                                    selected
-                                      ? 'rounded-full bg-[#F5A623] px-2.5 py-1 text-xs font-semibold text-[#0A0E1A]'
-                                      : 'rounded-full border border-[#7C5A15] bg-[#2A1E08] px-2.5 py-1 text-xs font-semibold text-[#FDE68A]'
-                                  }
-                                >
-                                  Recommended ✓
-                                </span>
-                              ) : null}
                             </div>
                           </button>
                         )
@@ -480,7 +488,7 @@ export default function DepositPage() {
                           placeholder="0.00"
                           value={amountInput}
                           onChange={(event) => setAmountInput(event.target.value)}
-                          className="h-16 border-[#334155] bg-[#0A0E1A] px-5 text-center text-4xl font-semibold tracking-[-0.03em] text-[#F9FAFB]"
+                          className="h-14 border-[#334155] bg-[#0A0E1A] px-4 text-center text-3xl font-semibold tracking-[-0.03em] text-[#F9FAFB] sm:h-16 sm:px-5 sm:text-4xl"
                         />
                         <p className="text-center text-sm text-[#9CA3AF]">
                           Minimum deposit: {formatAssetAmount(minimumDeposit)} {selectedWallet.coin}
@@ -498,7 +506,7 @@ export default function DepositPage() {
               )}
 
               <Button
-                className="h-12 w-full text-base font-semibold"
+                className="h-12 w-full text-base font-semibold sm:h-14"
                 disabled={!selectedWallet || walletsLoading || platformWallets.length === 0 || !isAmountValid}
                 onClick={handleContinue}
               >
@@ -506,8 +514,8 @@ export default function DepositPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between gap-3">
+            <div className="space-y-5 lg:space-y-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                 <button
                   type="button"
                   onClick={() => setStep('amount')}
@@ -516,10 +524,13 @@ export default function DepositPage() {
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <div className="flex-1 rounded-xl border border-[#5B4212] bg-[#2A1E08] px-4 py-3 text-sm font-medium text-[#FDE68A]">
-                  {selectedWallet
-                    ? `Selected wallet: ${walletDisplayTitle(selectedWallet)}`
-                    : 'No wallet selected'}
+                <div className="min-w-0 flex-1 rounded-xl border border-[#5B4212] bg-[#2A1E08] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#F6C56B]">
+                    Selected wallet
+                  </p>
+                  <p className="mt-1 break-words text-sm font-medium leading-6 text-[#FDE68A]">
+                    {selectedWallet ? walletDisplayTitle(selectedWallet) : 'No wallet selected'}
+                  </p>
                 </div>
               </div>
 
@@ -530,97 +541,121 @@ export default function DepositPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-5">
-                  <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm text-[#FDE68A]">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
-                      <p>
-                        Only send {selectedWallet.coin} on {selectedWallet.network}. Sending the
-                        wrong token or the wrong network will result in permanent loss.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center">
-                    <div className="rounded-[24px] border border-[#1F2937] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.25)]">
-                      <QRCode value={selectedWallet.address} size={220} bgColor="#FFFFFF" fgColor="#0A0E1A" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4">
-                      <p className="break-all font-mono text-sm text-[#F9FAFB]">
-                        {selectedWallet.address}
-                      </p>
-                    </div>
-                    <Button
-                      variant={copySuccess ? 'success' : 'secondary'}
-                      className="h-11 w-full"
-                      onClick={() => void handleCopy()}
-                    >
-                      {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copySuccess ? 'Copied ✓' : 'Copy Address'}
-                    </Button>
-                  </div>
-
-                  <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A]">
-                    {[
-                      ['Network', selectedMeta.displayLabel],
-                      ['Coin / token', selectedWallet.coin],
-                      ['Minimum deposit', `${formatAssetAmount(selectedWallet.minDeposit)} ${selectedWallet.coin}`],
-                      ['Confirmations needed', selectedMeta.confirmationsNeeded],
-                      ['Expected confirmation', selectedMeta.eta],
-                      ...(supportsDeclaration
-                        ? [['Declared amount', `${formatAssetAmount(parsedAmount)} ${selectedWallet.coin}`]]
-                        : []),
-                    ].map(([label, value], index) => (
-                      <div
-                        key={label}
-                        className={
-                          index === 0
-                            ? 'flex items-center justify-between gap-4 px-4 py-3'
-                            : 'flex items-center justify-between gap-4 border-t border-[#1F2937] px-4 py-3'
-                        }
-                      >
-                        <span className="text-sm text-[#9CA3AF]">{label}</span>
-                        <span className="text-right text-sm font-medium text-[#F9FAFB]">{value}</span>
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
+                  <div className="min-w-0 space-y-4">
+                    <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm text-[#FDE68A]">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
+                        <p className="leading-6">
+                          Only send {selectedWallet.coin} on {selectedWallet.network}. Sending the
+                          wrong token or the wrong network will result in permanent loss.
+                        </p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  <div className="rounded-xl border border-[#1D4ED8] bg-[#0B1733] px-4 py-4 text-sm leading-6 text-[#BFDBFE]">
-                    {selectedMeta.infoCopy}
-                  </div>
-
-                  {supportsDeclaration ? (
-                    depositDeclared ? (
-                      <div className="rounded-xl border border-[#065F46] bg-[#022C22] px-5 py-4">
-                        <div className="flex items-start gap-3">
-                          <Check className="mt-0.5 h-5 w-5 flex-none text-[#10B981]" />
-                          <div>
-                            <p className="font-semibold text-[#A7F3D0]">Deposit declared successfully</p>
-                            <p className="mt-1 text-sm text-[#6EE7B7]">
-                              Your deposit of {formatAssetAmount(parsedAmount)} USDT via{' '}
-                              {selectedWallet.network} is pending finance review.
-                            </p>
-                          </div>
+                    <div className="rounded-2xl border border-[#1F2937] bg-[#0A0E1A] p-4 sm:p-5">
+                      <div className="flex justify-center">
+                        <div className="w-full max-w-[280px] rounded-[24px] border border-[#1F2937] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.25)] sm:p-5">
+                          <QRCode
+                            value={selectedWallet.address}
+                            size={256}
+                            bgColor="#FFFFFF"
+                            fgColor="#0A0E1A"
+                            style={{ height: 'auto', width: '100%' }}
+                          />
                         </div>
                       </div>
-                    ) : (
-                      <Button
-                        className="h-14 w-full text-base font-semibold"
-                        disabled={declaringDeposit}
-                        onClick={() => void handleDeclareDeposit()}
-                      >
-                        {declaringDeposit ? 'Submitting…' : 'I Have Sent the Money'}
-                      </Button>
-                    )
-                  ) : (
-                    <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm leading-6 text-[#FDE68A]">
-                      After you send {selectedWallet.coin}, keep the transaction hash and contact
-                      support or the finance desk for manual review.
+                      <p className="mt-4 text-center text-sm leading-6 text-[#9CA3AF]">
+                        Scan the QR code with the exact {selectedWallet.network} wallet, or copy the
+                        address below.
+                      </p>
                     </div>
-                  )}
+
+                    <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A] p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9CA3AF]">
+                        Deposit address
+                      </p>
+                      <p className="mt-3 break-all font-mono text-xs text-[#F9FAFB] sm:text-sm">
+                        {selectedWallet.address}
+                      </p>
+                      <Button
+                        variant={copySuccess ? 'success' : 'secondary'}
+                        className="mt-4 h-11 w-full"
+                        onClick={() => void handleCopy()}
+                      >
+                        {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copySuccess ? 'Copied ✓' : 'Copy Address'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 space-y-4">
+                    <div className="rounded-xl border border-[#1F2937] bg-[#0A0E1A]">
+                      {[
+                        ['Network', selectedMeta.displayLabel],
+                        ['Coin / token', selectedWallet.coin],
+                        [
+                          'Minimum deposit',
+                          `${formatAssetAmount(selectedWallet.minDeposit)} ${selectedWallet.coin}`,
+                        ],
+                        ['Confirmations needed', selectedMeta.confirmationsNeeded],
+                        ['Expected confirmation', selectedMeta.eta],
+                        ...(supportsDeclaration
+                          ? [['Declared amount', `${formatAssetAmount(parsedAmount)} ${selectedWallet.coin}`]]
+                          : []),
+                      ].map(([label, value], index) => (
+                        <div
+                          key={label}
+                          className={
+                            index === 0
+                              ? 'flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4'
+                              : 'flex flex-col gap-1.5 border-t border-[#1F2937] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4'
+                          }
+                        >
+                          <span className="text-sm text-[#9CA3AF]">{label}</span>
+                          <span className="break-words text-sm font-medium text-[#F9FAFB] sm:max-w-[55%] sm:text-right">
+                            {value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="rounded-xl border border-[#1D4ED8] bg-[#0B1733] px-4 py-4 text-sm leading-6 text-[#BFDBFE]">
+                      {selectedMeta.infoCopy}
+                    </div>
+
+                    {supportsDeclaration ? (
+                      depositDeclared ? (
+                        <div className="rounded-xl border border-[#065F46] bg-[#022C22] px-5 py-4">
+                          <div className="flex items-start gap-3">
+                            <Check className="mt-0.5 h-5 w-5 flex-none text-[#10B981]" />
+                            <div>
+                              <p className="font-semibold text-[#A7F3D0]">
+                                Deposit declared successfully
+                              </p>
+                              <p className="mt-1 text-sm leading-6 text-[#6EE7B7]">
+                                Your deposit of {formatAssetAmount(parsedAmount)} USDT via{' '}
+                                {selectedWallet.network} is pending finance review.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          className="h-14 w-full text-base font-semibold"
+                          disabled={declaringDeposit}
+                          onClick={() => void handleDeclareDeposit()}
+                        >
+                          {declaringDeposit ? 'Submitting…' : 'I Have Sent the Money'}
+                        </Button>
+                      )
+                    ) : (
+                      <div className="rounded-xl border border-[#7C5A15] bg-[#2A1E08] px-4 py-4 text-sm leading-6 text-[#FDE68A]">
+                        After you send {selectedWallet.coin}, keep the transaction hash and contact
+                        support or the finance desk for manual review.
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -653,43 +688,97 @@ export default function DepositPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-5 overflow-x-auto">
-            <table className="min-w-full border-separate border-spacing-0 text-sm">
-              <thead>
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
-                  <th className="border-b border-[#1F2937] pb-3 pr-4">TxHash</th>
-                  <th className="border-b border-[#1F2937] pb-3 pr-4 text-right">Amount</th>
-                  <th className="border-b border-[#1F2937] pb-3 pr-4">Network</th>
-                  <th className="border-b border-[#1F2937] pb-3 pr-4">Status</th>
-                  <th className="border-b border-[#1F2937] pb-3">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deposits.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-[#0D1320]/70">
-                    <td className="border-b border-[#1F2937] py-4 pr-4 font-mono text-xs text-[#D1D5DB]" title={entry.txHash ?? undefined}>
-                      {entry.txHash ? (
-                        shortenHash(entry.txHash)
-                      ) : (
-                        <span className="text-[#9CA3AF] italic">Manual declaration</span>
-                      )}
-                    </td>
-                    <td className="border-b border-[#1F2937] py-4 pr-4 text-right font-semibold text-[#10B981]">
-                      +{formatAssetAmount(entry.usdtAmount)} USDT
-                    </td>
-                    <td className="border-b border-[#1F2937] py-4 pr-4 text-[#F9FAFB]">
-                      {entry.network ?? '—'}
-                    </td>
-                    <td className="border-b border-[#1F2937] py-4 pr-4">
+          <div className="mt-5">
+            <div className="space-y-3 sm:hidden">
+              {deposits.map((entry) => (
+                <article
+                  key={entry.id}
+                  className="rounded-2xl border border-[#1F2937] bg-[#0A0E1A] p-4"
+                >
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
+                          Transaction
+                        </p>
+                        {entry.txHash ? (
+                          <p className="mt-2 break-all font-mono text-xs text-[#D1D5DB]">
+                            {entry.txHash}
+                          </p>
+                        ) : (
+                          <p className="mt-2 text-sm italic text-[#9CA3AF]">Manual declaration</p>
+                        )}
+                      </div>
                       <DepositStatusPill deposit={entry} />
-                    </td>
-                    <td className="border-b border-[#1F2937] py-4 text-[#9CA3AF]">
-                      {formatDateTime(entry.createdAt)}
-                    </td>
+                    </div>
+                    <dl className="grid gap-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <dt className="text-sm text-[#9CA3AF]">Amount</dt>
+                        <dd className="text-right text-sm font-semibold text-[#10B981]">
+                          +{formatAssetAmount(entry.usdtAmount)} USDT
+                        </dd>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <dt className="text-sm text-[#9CA3AF]">Network</dt>
+                        <dd className="text-right text-sm text-[#F9FAFB]">
+                          {entry.network ?? '—'}
+                        </dd>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <dt className="text-sm text-[#9CA3AF]">Date</dt>
+                        <dd className="text-right text-sm text-[#9CA3AF]">
+                          {formatDateTime(entry.createdAt)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="min-w-[720px] w-full border-separate border-spacing-0 text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
+                    <th className="border-b border-[#1F2937] pb-3 pr-4 whitespace-nowrap">TxHash</th>
+                    <th className="border-b border-[#1F2937] pb-3 pr-4 text-right whitespace-nowrap">
+                      Amount
+                    </th>
+                    <th className="border-b border-[#1F2937] pb-3 pr-4 whitespace-nowrap">Network</th>
+                    <th className="border-b border-[#1F2937] pb-3 pr-4 whitespace-nowrap">Status</th>
+                    <th className="border-b border-[#1F2937] pb-3 whitespace-nowrap">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {deposits.map((entry) => (
+                    <tr key={entry.id} className="hover:bg-[#0D1320]/70">
+                      <td
+                        className="max-w-[220px] border-b border-[#1F2937] py-4 pr-4 font-mono text-xs text-[#D1D5DB] whitespace-nowrap"
+                        title={entry.txHash ?? undefined}
+                      >
+                        {entry.txHash ? (
+                          shortenHash(entry.txHash)
+                        ) : (
+                          <span className="text-[#9CA3AF] italic">Manual declaration</span>
+                        )}
+                      </td>
+                      <td className="border-b border-[#1F2937] py-4 pr-4 text-right font-semibold text-[#10B981] whitespace-nowrap">
+                        +{formatAssetAmount(entry.usdtAmount)} USDT
+                      </td>
+                      <td className="border-b border-[#1F2937] py-4 pr-4 text-[#F9FAFB] whitespace-nowrap">
+                        {entry.network ?? '—'}
+                      </td>
+                      <td className="border-b border-[#1F2937] py-4 pr-4 whitespace-nowrap">
+                        <DepositStatusPill deposit={entry} />
+                      </td>
+                      <td className="border-b border-[#1F2937] py-4 text-[#9CA3AF] whitespace-nowrap">
+                        {formatDateTime(entry.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>

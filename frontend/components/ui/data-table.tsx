@@ -47,15 +47,15 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="-mx-4 overflow-x-auto sm:mx-0">
-      <table className="min-w-max border-separate border-spacing-0 px-4 text-left text-[12px] sm:min-w-full sm:table-fixed sm:px-0 sm:text-[13px]">
+    <div className="-mx-4 overflow-x-auto pb-1 sm:mx-0">
+      <table className="min-w-[640px] w-full border-separate border-spacing-0 px-4 text-left text-[12px] sm:min-w-full sm:px-0 sm:text-[13px]">
         <thead>
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
                 className={cn(
-                  'max-w-[160px] overflow-hidden border-b border-border pb-3 pr-4 text-ellipsis font-semibold uppercase tracking-[0.12em] text-muted whitespace-nowrap sm:max-w-[200px]',
+                  'max-w-[160px] overflow-hidden border-b border-border pb-3 pr-4 align-bottom text-ellipsis font-semibold uppercase tracking-[0.12em] text-muted break-words whitespace-normal sm:max-w-[200px] sm:whitespace-nowrap',
                   column.align === 'right' ? 'text-right' : '',
                   column.align === 'center' ? 'text-center' : '',
                   column.className,
@@ -81,7 +81,7 @@ export function DataTable<T>({
                 <td
                   key={column.key}
                   className={cn(
-                    'max-w-[160px] overflow-hidden border-b border-border/60 py-3.5 pr-4 align-middle text-ellipsis whitespace-nowrap sm:max-w-[200px]',
+                    'max-w-[160px] overflow-hidden border-b border-border/60 py-3.5 pr-4 align-top text-ellipsis break-words whitespace-normal sm:max-w-[220px] sm:whitespace-nowrap',
                     column.align === 'right' ? 'text-right' : '',
                     column.align === 'center' ? 'text-center' : '',
                     column.className,

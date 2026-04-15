@@ -165,7 +165,7 @@ export default function AdminDepositWalletsPage() {
         title="Platform deposit wallets"
         description="Manage the wallet addresses displayed to clients on the deposit page. Clients copy the platform address and send crypto manually."
         actions={
-          <Button onClick={openCreate}>
+          <Button className="w-full sm:w-auto" onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add wallet
           </Button>
@@ -181,62 +181,134 @@ export default function AdminDepositWalletsPage() {
             <p className="mt-1 text-sm text-secondary">
               Add a wallet address so clients know where to send funds.
             </p>
-            <Button className="mt-4" onClick={openCreate}>
+            <Button className="mt-4 w-full sm:w-auto" onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Add first wallet
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary">
-                  <th className="pb-3 pr-4">Network</th>
-                  <th className="pb-3 pr-4">Coin</th>
-                  <th className="pb-3 pr-4">Address</th>
-                  <th className="pb-3 pr-4">Label</th>
-                  <th className="pb-3 pr-4">Min deposit</th>
-                  <th className="pb-3 pr-4">Status</th>
-                  <th className="pb-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {wallets.map((wallet) => (
-                  <tr key={wallet.id} className="border-b border-border last:border-0">
-                    <td className="py-3 pr-4 font-semibold text-primary">{wallet.network}</td>
-                    <td className="py-3 pr-4 text-secondary">{wallet.coin}</td>
-                    <td className="py-3 pr-4 max-w-[220px] truncate font-mono text-xs text-primary" title={wallet.address}>
-                      {wallet.address}
-                    </td>
-                    <td className="py-3 pr-4 text-secondary">{wallet.label ?? '—'}</td>
-                    <td className="py-3 pr-4 text-secondary">${wallet.minDeposit}</td>
-                    <td className="py-3 pr-4">
-                      <StatusBadge value={wallet.isActive ? 'ACTIVE' : 'DISABLED'} />
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-secondary transition hover:bg-hover hover:text-primary"
-                          onClick={() => openEdit(wallet)}
-                          title="Edit"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-secondary transition hover:bg-danger/10 hover:text-danger"
-                          onClick={() => setDeleteTarget(wallet)}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+          <div className="space-y-4">
+            <div className="space-y-3 lg:hidden">
+              {wallets.map((wallet) => (
+                <article
+                  key={wallet.id}
+                  className="rounded-2xl border border-border bg-page p-4"
+                >
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-base font-semibold text-primary">{wallet.network}</p>
+                          <span className="inline-flex rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-secondary">
+                            {wallet.coin}
+                          </span>
+                          <StatusBadge value={wallet.isActive ? 'ACTIVE' : 'DISABLED'} />
+                        </div>
+                        <p className="mt-2 text-sm text-secondary">
+                          {wallet.label?.trim() ? wallet.label : 'No label'}
+                        </p>
                       </div>
-                    </td>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="label-eyebrow">Wallet address</p>
+                      <p className="break-all font-mono text-xs text-primary">{wallet.address}</p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-border bg-surface px-3 py-3">
+                        <p className="label-eyebrow">Minimum deposit</p>
+                        <p className="mt-2 text-sm font-medium text-primary">${wallet.minDeposit}</p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-surface px-3 py-3">
+                        <p className="label-eyebrow">Visibility</p>
+                        <p className="mt-2 text-sm font-medium text-primary">
+                          {wallet.isActive ? 'Shown to clients' : 'Hidden from clients'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        variant="secondary"
+                        className="w-full sm:flex-1"
+                        onClick={() => openEdit(wallet)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit wallet
+                      </Button>
+                      <Button
+                        variant="danger"
+                        className="w-full sm:flex-1"
+                        onClick={() => setDeleteTarget(wallet)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete wallet
+                      </Button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-[980px] w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary">
+                    <th className="pb-3 pr-4 whitespace-nowrap">Network</th>
+                    <th className="pb-3 pr-4 whitespace-nowrap">Coin</th>
+                    <th className="pb-3 pr-4 whitespace-nowrap">Address</th>
+                    <th className="pb-3 pr-4 whitespace-nowrap">Label</th>
+                    <th className="pb-3 pr-4 whitespace-nowrap">Min deposit</th>
+                    <th className="pb-3 pr-4 whitespace-nowrap">Status</th>
+                    <th className="pb-3 whitespace-nowrap" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {wallets.map((wallet) => (
+                    <tr key={wallet.id} className="border-b border-border last:border-0">
+                      <td className="py-3 pr-4 font-semibold text-primary whitespace-nowrap">
+                        {wallet.network}
+                      </td>
+                      <td className="py-3 pr-4 text-secondary whitespace-nowrap">{wallet.coin}</td>
+                      <td
+                        className="max-w-[320px] py-3 pr-4 truncate font-mono text-xs text-primary"
+                        title={wallet.address}
+                      >
+                        {wallet.address}
+                      </td>
+                      <td className="max-w-[220px] py-3 pr-4 truncate text-secondary" title={wallet.label ?? undefined}>
+                        {wallet.label ?? '—'}
+                      </td>
+                      <td className="py-3 pr-4 text-secondary whitespace-nowrap">${wallet.minDeposit}</td>
+                      <td className="py-3 pr-4 whitespace-nowrap">
+                        <StatusBadge value={wallet.isActive ? 'ACTIVE' : 'DISABLED'} />
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-secondary transition hover:bg-hover hover:text-primary"
+                            onClick={() => openEdit(wallet)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-secondary transition hover:bg-danger/10 hover:text-danger"
+                            onClick={() => setDeleteTarget(wallet)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </Panel>
@@ -275,30 +347,38 @@ export default function AdminDepositWalletsPage() {
             label="Wallet address"
             placeholder="Paste wallet address"
             value={form.address}
+            className="font-mono text-[13px]"
             onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
           />
-          <Input
-            label="Label (optional)"
-            placeholder="e.g. Main TRC20 wallet"
-            value={form.label}
-            onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-          />
-          <Input
-            label="Min deposit (USD)"
-            type="number"
-            min="0"
-            step="1"
-            value={form.minDeposit}
-            onChange={(e) => setForm((f) => ({ ...f, minDeposit: e.target.value }))}
-          />
-          <label className="flex cursor-pointer items-center gap-3 text-sm text-primary">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Label (optional)"
+              placeholder="e.g. Main TRC20 wallet"
+              value={form.label}
+              onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+            />
+            <Input
+              label="Min deposit (USD)"
+              type="number"
+              min="0"
+              step="1"
+              value={form.minDeposit}
+              onChange={(e) => setForm((f) => ({ ...f, minDeposit: e.target.value }))}
+            />
+          </div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-page px-4 py-3 text-sm text-primary">
             <input
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-              className="h-4 w-4 rounded border-border accent-accent"
+              className="mt-0.5 h-4 w-4 rounded border-border accent-accent"
             />
-            Active (visible to clients)
+            <span className="min-w-0">
+              <span className="font-medium text-primary">Active (visible to clients)</span>
+              <span className="mt-1 block text-secondary">
+                Disable a wallet to keep it on file without showing it on the client deposit page.
+              </span>
+            </span>
           </label>
         </div>
       </ConfirmDialog>

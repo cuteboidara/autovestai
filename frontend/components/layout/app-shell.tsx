@@ -88,7 +88,7 @@ function ShellNavigation({
                   className={cn(
                     'group relative flex min-h-[46px] items-center rounded-xl text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35',
                     mobile
-                      ? 'gap-3 px-3 py-2.5'
+                      ? 'items-start gap-3 px-3 py-3'
                       : 'justify-center px-0 py-2.5 lg:justify-start lg:px-3',
                     active
                       ? 'bg-sidebarActive text-white shadow-[inset_0_0_0_1px_rgba(240,180,41,0.08)]'
@@ -106,8 +106,10 @@ function ShellNavigation({
                   </span>
                   <span
                     className={cn(
-                      'min-w-0 truncate whitespace-nowrap',
-                      mobile ? 'block' : 'hidden lg:block',
+                      'min-w-0 leading-5',
+                      mobile
+                        ? 'block break-words whitespace-normal'
+                        : 'hidden lg:block lg:truncate lg:whitespace-nowrap',
                     )}
                   >
                     {item.label}
@@ -467,7 +469,7 @@ export function BrokerShell({
               : 'border-white/10 bg-sidebar/95',
           )}
         >
-          <div className="flex min-h-[var(--shell-navbar-height)] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex min-h-[var(--shell-navbar-height)] w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -581,10 +583,14 @@ export function BrokerShell({
             'min-w-0',
             isTerminalRoute
               ? 'h-[calc(100dvh-var(--shell-navbar-height))] overflow-hidden bg-[#0F1117] p-0'
-              : 'px-3 py-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:px-8 lg:py-8',
+              : 'px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:px-8 lg:py-8 xl:px-10 2xl:px-12',
           )}
         >
-          {children}
+          {isTerminalRoute ? (
+            children
+          ) : (
+            <div className="mx-auto w-full max-w-[1600px] min-w-0">{children}</div>
+          )}
         </main>
       </div>
     </div>

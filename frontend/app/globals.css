@@ -55,14 +55,6 @@ a {
   box-sizing: border-box;
 }
 
-td,
-th {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 button,
 input,
 select,
@@ -219,14 +211,6 @@ body[data-page='terminal'] .page-shell {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-
-td,
-th {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 @keyframes terminalPulse {
