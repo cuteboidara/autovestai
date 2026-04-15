@@ -674,7 +674,7 @@ export function TradeTerminalPage() {
 
             <div
               data-testid="trade-terminal-scroll-region"
-              className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0 lg:gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:grid-rows-[minmax(0,1fr)_auto] xl:items-start 2xl:grid-cols-[minmax(0,1fr)_336px]"
+              className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0 lg:min-h-0 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch lg:gap-4 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_336px]"
             >
               {/* Mobile: symbol selector bar */}
               <button
@@ -709,32 +709,66 @@ export function TradeTerminalPage() {
                 <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
               </button>
 
-              <div className="terminal-panel flex min-h-[320px] flex-col overflow-hidden xl:min-h-0">
-                {/* Desktop: instrument header with timeframes */}
-                <div className="hidden md:block">
-                  <TradeInstrumentHeader
-                    symbol={activeSymbol}
-                    symbolInfo={selectedSymbolInfo}
-                    quote={selectedQuote}
-                    spreadDisplay={spreadDisplay}
-                    marketStatus={marketStatus}
-                    timeframes={resolvedTimeframes}
-                    selectedTimeframe={selectedResolution}
-                    onSelectTimeframe={setSelectedResolution}
-                  />
+              <div className="min-w-0 flex flex-col gap-3 lg:min-h-0 lg:grid lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4">
+                <div className="terminal-panel flex min-h-[320px] min-w-0 flex-col overflow-hidden lg:min-h-0">
+                  {/* Desktop: instrument header with timeframes */}
+                  <div className="hidden md:block">
+                    <TradeInstrumentHeader
+                      symbol={activeSymbol}
+                      symbolInfo={selectedSymbolInfo}
+                      quote={selectedQuote}
+                      spreadDisplay={spreadDisplay}
+                      marketStatus={marketStatus}
+                      timeframes={resolvedTimeframes}
+                      selectedTimeframe={selectedResolution}
+                      onSelectTimeframe={setSelectedResolution}
+                    />
+                  </div>
+
+                  {/* Chart – fixed height on mobile, flex-1 on desktop */}
+                  <div className="h-[44vh] min-h-[320px] shrink-0 md:h-auto md:min-h-0 md:flex-1">
+                    <TradingViewPanel
+                      symbol={activeSymbol}
+                      resolution={selectedResolution}
+                      className="h-full"
+                    />
+                  </div>
                 </div>
 
-                {/* Chart – fixed height on mobile, flex-1 on desktop */}
-                <div className="h-[44vh] min-h-[320px] shrink-0 md:h-auto md:min-h-0 md:flex-1">
-                  <TradingViewPanel
-                    symbol={activeSymbol}
-                    resolution={selectedResolution}
-                    className="h-full"
+                <div className="min-w-0 lg:min-h-0">
+                  <TradeActivityPanel
+                    activeTab={activeBottomTab}
+                    bottomTabMeta={bottomTabMeta}
+                    rows={rows}
+                    quotes={terminalQuotes}
+                    symbolDigitsMap={symbolDigitsMap}
+                    positionsHeight={positionsHeight}
+                    closingPositionId={closingPositionId}
+                    flashedPnlIds={flashedPnlIds}
+                    mobileExpanded={mobilePositionsExpanded}
+                    onSetTab={(tab) => {
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set('tab', mapBottomTabToSearch(tab));
+                      router.replace(`${pathname}?${params.toString()}`);
+                    }}
+                    onClosePosition={(positionId) => {
+                      setClosingPositionId(positionId);
+                      void positionsApi
+                        .close(positionId)
+                        .then(() => refreshTerminalData())
+                        .finally(() => setClosingPositionId(null));
+                    }}
+                    onResizeStart={(clientY) => {
+                      resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
+                      document.body.style.cursor = 'row-resize';
+                      document.body.style.userSelect = 'none';
+                    }}
+                    onMobileExpandedChange={setMobilePositionsExpanded}
                   />
                 </div>
               </div>
 
-              <div className="shrink-0 xl:min-h-0">
+              <div className="min-w-0 shrink-0 lg:min-h-0">
                 <OrderTicket
                   accountId={activeAccountId}
                   selectedSymbol={activeSymbol}
@@ -745,39 +779,7 @@ export function TradeTerminalPage() {
                   preferredSide={preferredSide}
                   accountDisabledReason={tradingAvailability.message}
                   isMobileLayout={false}
-                  className="h-auto xl:h-full"
-                />
-              </div>
-
-              <div className="min-w-0 xl:col-span-2">
-                <TradeActivityPanel
-                  activeTab={activeBottomTab}
-                  bottomTabMeta={bottomTabMeta}
-                  rows={rows}
-                  quotes={terminalQuotes}
-                  symbolDigitsMap={symbolDigitsMap}
-                  positionsHeight={positionsHeight}
-                  closingPositionId={closingPositionId}
-                  flashedPnlIds={flashedPnlIds}
-                  mobileExpanded={mobilePositionsExpanded}
-                  onSetTab={(tab) => {
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set('tab', mapBottomTabToSearch(tab));
-                    router.replace(`${pathname}?${params.toString()}`);
-                  }}
-                  onClosePosition={(positionId) => {
-                    setClosingPositionId(positionId);
-                    void positionsApi
-                      .close(positionId)
-                      .then(() => refreshTerminalData())
-                      .finally(() => setClosingPositionId(null));
-                  }}
-                  onResizeStart={(clientY) => {
-                    resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
-                    document.body.style.cursor = 'row-resize';
-                    document.body.style.userSelect = 'none';
-                  }}
-                  onMobileExpandedChange={setMobilePositionsExpanded}
+                  className="h-auto lg:h-full"
                 />
               </div>
             </div>
@@ -853,7 +855,7 @@ export function TradeTerminalPage() {
       </div>
 
       {loading ? (
-        <div className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/78 p-4 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        <div className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/78 p-4 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-4 lg:grid-cols-[280px_minmax(0,1fr)_300px] xl:grid-cols-[280px_minmax(0,1fr)_320px]">
           <div className="terminal-panel space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="flex items-center gap-3 rounded-xl px-1 py-2">
@@ -872,7 +874,7 @@ export function TradeTerminalPage() {
           <div className="terminal-panel p-4">
             <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
           </div>
-          <div className="terminal-panel hidden space-y-4 p-4 xl:block">
+          <div className="terminal-panel hidden space-y-4 p-4 lg:block">
             <div className="h-10 w-full animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
             <div className="grid gap-3">
               {Array.from({ length: 6 }).map((_, index) => (

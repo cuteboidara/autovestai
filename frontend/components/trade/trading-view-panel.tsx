@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -9,6 +9,8 @@ interface TradingViewPanelProps {
   resolution: string;
   className?: string;
 }
+
+const TV_SCRIPT_SRC = 'https://s3.tradingview.com/tv.js';
 
 declare global {
   interface Window {
@@ -85,6 +87,13 @@ function getTVInterval(resolution: string) {
   return TIMEFRAME_MAP[resolution] ?? resolution;
 }
 
+function isDetachedParentNodeError(error: unknown) {
+  return (
+    error instanceof Error &&
+    /parentNode/i.test(error.message)
+  );
+}
+
 function ChartFallback({ message }: { message?: string }) {
   return (
     <div className="flex h-full min-h-[360px] w-full items-center justify-center bg-transparent px-6">
@@ -101,31 +110,43 @@ export function TradingViewPanel({
   className,
 }: TradingViewPanelProps) {
   const widgetRef = useRef<{ remove?: () => void } | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerId = useId().replace(/:/g, '_');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const activeSymbol = useMemo(() => symbol.trim(), [symbol]);
   const selectedTimeframe = useMemo(() => getTVInterval(resolution), [resolution]);
 
   useEffect(() => {
-    if (!activeSymbol || typeof window === 'undefined') {
+    if (!activeSymbol || typeof window === 'undefined' || !containerRef.current) {
       return;
     }
 
     setErrorMessage(null);
+    let disposed = false;
 
-    const container = document.getElementById('tv_chart_container');
-    if (container) {
-      container.innerHTML = '';
-    }
-
-    widgetRef.current?.remove?.();
-    widgetRef.current = null;
+    const disposeWidget = () => {
+      try {
+        widgetRef.current?.remove?.();
+      } catch (error) {
+        if (!isDetachedParentNodeError(error)) {
+          throw error;
+        }
+      } finally {
+        widgetRef.current = null;
+      }
+    };
 
     const initializeWidget = () => {
+      if (disposed || !containerRef.current) {
+        return;
+      }
+
       if (typeof window.TradingView === 'undefined') {
         setErrorMessage('Chart temporarily unavailable');
         return;
       }
 
+      disposeWidget();
       widgetRef.current = new window.TradingView.widget({
         autosize: true,
         symbol: getTVSymbol(activeSymbol),
@@ -139,7 +160,7 @@ export function TradingViewPanel({
         hide_side_toolbar: false,
         allow_symbol_change: false,
         save_image: false,
-        container_id: 'tv_chart_container',
+        container_id: containerId,
         backgroundColor: '#0A0E1A',
         gridColor: 'rgba(255,255,255,0.04)',
         hide_top_toolbar: false,
@@ -147,36 +168,44 @@ export function TradingViewPanel({
     };
 
     let script: HTMLScriptElement | null = null;
+    const handleLoad = () => {
+      if (!disposed) {
+        initializeWidget();
+      }
+    };
+    const handleError = () => {
+      if (!disposed) {
+        setErrorMessage('Chart temporarily unavailable');
+      }
+    };
 
     if (typeof window.TradingView !== 'undefined') {
       initializeWidget();
     } else {
-      script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => {
-        initializeWidget();
-      };
-      script.onerror = () => {
-        setErrorMessage('Chart temporarily unavailable');
-      };
-      document.head.appendChild(script);
+      script =
+        document.querySelector<HTMLScriptElement>(`script[src="${TV_SCRIPT_SRC}"]`) ??
+        document.createElement('script');
+
+      if (!script.isConnected) {
+        script.src = TV_SCRIPT_SRC;
+        script.async = true;
+        document.head.appendChild(script);
+      }
+
+      script.addEventListener('load', handleLoad);
+      script.addEventListener('error', handleError);
     }
 
     return () => {
-      widgetRef.current?.remove?.();
-      widgetRef.current = null;
+      disposed = true;
+      disposeWidget();
 
-      const nextContainer = document.getElementById('tv_chart_container');
-      if (nextContainer) {
-        nextContainer.innerHTML = '';
-      }
-
-      if (script && document.head.contains(script)) {
-        document.head.removeChild(script);
+      if (script) {
+        script.removeEventListener('load', handleLoad);
+        script.removeEventListener('error', handleError);
       }
     };
-  }, [activeSymbol, selectedTimeframe]);
+  }, [activeSymbol, containerId, selectedTimeframe]);
 
   if (!activeSymbol) {
     return <ChartFallback message="Select a symbol to load the chart" />;
@@ -191,7 +220,8 @@ export function TradingViewPanel({
     >
       {errorMessage ? <ChartFallback message={errorMessage} /> : null}
       <div
-        id="tv_chart_container"
+        ref={containerRef}
+        id={containerId}
         style={{ height: '100%', width: '100%' }}
         className={cn('h-full min-h-[360px] overflow-hidden', errorMessage ? 'hidden' : 'block')}
       />
