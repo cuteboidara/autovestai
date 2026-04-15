@@ -87,7 +87,7 @@ function getTVInterval(resolution: string) {
 
 function ChartFallback({ message }: { message?: string }) {
   return (
-    <div className="flex h-[460px] w-full items-center justify-center rounded-md bg-[var(--terminal-bg-primary)]">
+    <div className="flex h-full min-h-[360px] w-full items-center justify-center bg-transparent px-6">
       <p className="text-sm text-[var(--terminal-text-secondary)]">
         {message ?? 'Chart temporarily unavailable'}
       </p>
@@ -185,15 +185,15 @@ export function TradingViewPanel({
   return (
     <div
       className={cn(
-        'w-full overflow-hidden bg-[var(--terminal-bg-primary)]',
+        'h-full min-h-[360px] w-full overflow-hidden bg-transparent',
         className,
       )}
     >
       {errorMessage ? <ChartFallback message={errorMessage} /> : null}
       <div
         id="tv_chart_container"
-        style={{ height: '460px', width: '100%' }}
-        className={cn('rounded-md overflow-hidden', errorMessage ? 'hidden' : 'block')}
+        style={{ height: '100%', width: '100%' }}
+        className={cn('h-full min-h-[360px] overflow-hidden', errorMessage ? 'hidden' : 'block')}
       />
     </div>
   );

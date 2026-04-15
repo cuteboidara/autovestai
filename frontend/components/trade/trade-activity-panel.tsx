@@ -57,22 +57,30 @@ function formatTarget(
 
 function sideBadge(side: 'BUY' | 'SELL') {
   return side === 'BUY'
-    ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300'
-    : 'border-red-500/25 bg-red-500/10 text-red-300';
+    ? 'bg-emerald-500/10 text-emerald-300'
+    : 'bg-red-500/10 text-red-300';
 }
 
 function statusBadge(status: OrderRecord['status']) {
   switch (status) {
     case 'EXECUTED':
-      return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300';
+      return 'bg-emerald-500/10 text-emerald-300';
     case 'PENDING':
     case 'OPEN':
     case 'PROCESSING':
-      return 'border-amber-500/25 bg-amber-500/10 text-amber-300';
+      return 'bg-amber-500/10 text-amber-300';
     default:
-      return 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-secondary)]';
+      return 'bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-secondary)]';
   }
 }
+
+const desktopHeadCellClass =
+  'border-b border-[var(--terminal-border)]/70 px-4 py-3 text-left text-[11px] font-medium tracking-[0.02em] text-[var(--terminal-text-secondary)]';
+
+const desktopRowClass =
+  'text-[13px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[rgba(255,255,255,0.02)]';
+
+const desktopCellClass = 'px-4 py-3.5 align-middle';
 
 function EmptyState({
   title,
@@ -86,12 +94,12 @@ function EmptyState({
       data-testid="terminal-empty-state"
       className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
     >
-      <div className="flex h-12 w-12 items-center justify-center border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-secondary)]">
+      <div className="terminal-panel-soft flex h-12 w-12 items-center justify-center text-[var(--terminal-text-secondary)]">
         <ListPlus className="h-5 w-5" />
       </div>
       <div>
         <p className="text-sm font-semibold text-[var(--terminal-text-primary)]">{title}</p>
-        <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+        <p className="mt-2 text-sm text-[var(--terminal-text-secondary)]">
           {description}
         </p>
       </div>
@@ -132,58 +140,55 @@ export function TradeActivityPanel({
     if (isOrderTab) {
       return (
         <table className="min-w-full border-separate border-spacing-0">
-          <thead className="sticky top-0 z-10 bg-[var(--terminal-bg-surface)]">
-            <tr className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+          <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+            <tr>
               {['Symbol', 'Side', 'Type', 'Volume', 'Price', 'Status', 'Updated'].map((label) => (
-                <th key={label} className="border-b border-[var(--terminal-border)] px-3 py-3 text-left">
+                <th key={label} className={desktopHeadCellClass}>
                   {label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[var(--terminal-border)]/60">
             {orderRows.map((row) => (
-              <tr
-                key={row.id}
-                className="text-[13px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)]"
-              >
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 font-medium">
+              <tr key={row.id} className={desktopRowClass}>
+                <td className={cn(desktopCellClass, 'font-medium')}>
                   {row.symbol}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
                       sideBadge(row.side),
                     )}
                   >
                     {row.side}
                   </span>
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {row.type}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {formatNumber(row.volume, 2)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {row.executionPrice
                     ? formatNumber(row.executionPrice, symbolDigitsMap[row.symbol] ?? 2)
                     : row.requestedPrice
                       ? formatNumber(row.requestedPrice, symbolDigitsMap[row.symbol] ?? 2)
                       : '--'}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
                       statusBadge(row.status),
                     )}
                   >
                     {row.status}
                   </span>
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {formatDateTime(row.updatedAt)}
                 </td>
               </tr>
@@ -196,8 +201,8 @@ export function TradeActivityPanel({
     if (isClosedPositionsTab) {
       return (
         <table className="min-w-full border-separate border-spacing-0">
-          <thead className="sticky top-0 z-10 bg-[var(--terminal-bg-surface)]">
-            <tr className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+          <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+            <tr>
               {[
                 'Symbol',
                 'Side',
@@ -208,45 +213,43 @@ export function TradeActivityPanel({
                 'Open Time',
                 'Close Time',
               ].map((label) => (
-                <th key={label} className="border-b border-[var(--terminal-border)] px-3 py-3 text-left">
+                <th key={label} className={desktopHeadCellClass}>
                   {label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[var(--terminal-border)]/60">
             {positionRows.map((row) => (
-              <tr
-                key={row.id}
-                className="text-[13px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)]"
-              >
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 font-medium">
+              <tr key={row.id} className={desktopRowClass}>
+                <td className={cn(desktopCellClass, 'font-medium')}>
                   {row.symbol}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
                       sideBadge(row.side),
                     )}
                   >
                     {row.side}
                   </span>
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {formatNumber(row.volume, 2)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {formatNumber(row.entryPrice, symbolDigitsMap[row.symbol] ?? 2)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {row.exitPrice != null
                     ? formatNumber(row.exitPrice, symbolDigitsMap[row.symbol] ?? 2)
                     : '--'}
                 </td>
                 <td
                   className={cn(
-                    'border-b border-[var(--terminal-border)] px-3 py-3 font-semibold',
+                    desktopCellClass,
+                    'font-semibold',
                     positionPnl(row) >= 0
                       ? 'text-[var(--terminal-green)]'
                       : 'text-[var(--terminal-red)]',
@@ -254,10 +257,10 @@ export function TradeActivityPanel({
                 >
                   {formatUsdt(positionPnl(row))}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {formatDateTime(row.openedAt)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {row.closedAt ? formatDateTime(row.closedAt) : '--'}
                 </td>
               </tr>
@@ -269,8 +272,8 @@ export function TradeActivityPanel({
 
     return (
       <table className="min-w-full border-separate border-spacing-0">
-        <thead className="sticky top-0 z-10 bg-[var(--terminal-bg-surface)]">
-          <tr className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+        <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+          <tr>
             {[
               'Symbol',
               'Side',
@@ -282,47 +285,45 @@ export function TradeActivityPanel({
               'TP',
               'Close',
             ].map((label) => (
-              <th key={label} className="border-b border-[var(--terminal-border)] px-3 py-3 text-left">
+              <th key={label} className={desktopHeadCellClass}>
                 {label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-[var(--terminal-border)]/60">
           {positionRows.map((row) => {
             const digits = symbolDigitsMap[row.symbol] ?? 2;
             const currentMark = currentPositionMark(row, quotes[row.symbol]);
 
             return (
-              <tr
-                key={row.id}
-                className="text-[13px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)]"
-              >
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 font-medium">
+              <tr key={row.id} className={desktopRowClass}>
+                <td className={cn(desktopCellClass, 'font-medium')}>
                   {row.symbol}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
                       sideBadge(row.side),
                     )}
                   >
                     {row.side}
                   </span>
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {formatNumber(row.volume, 2)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {formatNumber(row.entryPrice, digits)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   {typeof currentMark === 'number' ? formatNumber(currentMark, digits) : '--'}
                 </td>
                 <td
                   className={cn(
-                    'border-b border-[var(--terminal-border)] px-3 py-3 font-semibold',
+                    desktopCellClass,
+                    'font-semibold',
                     positionPnl(row) >= 0
                       ? 'text-[var(--terminal-green)]'
                       : 'text-[var(--terminal-red)]',
@@ -331,16 +332,16 @@ export function TradeActivityPanel({
                 >
                   {formatUsdt(positionPnl(row))}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {formatTarget(row.stopLoss, digits)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3 text-[var(--terminal-text-secondary)]">
+                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {formatTarget(row.takeProfit, digits)}
                 </td>
-                <td className="border-b border-[var(--terminal-border)] px-3 py-3">
+                <td className={desktopCellClass}>
                   <button
                     type="button"
-                    className="inline-flex h-8 w-8 items-center justify-center border border-red-500/25 bg-red-500/10 text-sm font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-sm font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
                     onClick={() => onClosePosition(row.id)}
                     disabled={closingPositionId === row.id}
                   >
@@ -373,14 +374,14 @@ export function TradeActivityPanel({
           {orderRows.slice(0, 12).map((row) => (
             <div
               key={row.id}
-              className="border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] p-4"
+              className="terminal-panel-soft p-4"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-[var(--terminal-text-primary)]">{row.symbol}</p>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2 py-1 text-[10px] font-semibold',
                       sideBadge(row.side),
                     )}
                   >
@@ -389,7 +390,7 @@ export function TradeActivityPanel({
                 </div>
                 <span
                   className={cn(
-                    'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                    'inline-flex rounded-full px-2 py-1 text-[10px] font-semibold',
                     statusBadge(row.status),
                   )}
                 >
@@ -425,14 +426,14 @@ export function TradeActivityPanel({
           return (
             <div
               key={row.id}
-              className="border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] p-4"
+              className="terminal-panel-soft p-4"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-[var(--terminal-text-primary)]">{row.symbol}</p>
                   <span
                     className={cn(
-                      'inline-flex border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full px-2 py-1 text-[10px] font-semibold',
                       sideBadge(row.side),
                     )}
                   >
@@ -470,7 +471,7 @@ export function TradeActivityPanel({
               {row.status === 'OPEN' ? (
                 <button
                   type="button"
-                  className="mt-3 inline-flex h-9 items-center justify-center border border-red-500/25 bg-red-500/10 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
+                  className="mt-3 inline-flex h-9 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 px-3 text-[11px] font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
                   onClick={() => onClosePosition(row.id)}
                   disabled={closingPositionId === row.id}
                 >
@@ -487,36 +488,41 @@ export function TradeActivityPanel({
   return (
     <>
       <div
-        className="hidden border-t border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] md:block"
+        className="terminal-panel hidden overflow-hidden md:block"
         style={{ height: positionsHeight }}
       >
         <button
           type="button"
-          className="flex h-4 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)]"
+          className="flex h-5 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[rgba(255,255,255,0.02)]"
           onMouseDown={(event) => onResizeStart(event.clientY)}
         >
-          <span className="h-[2px] w-16 bg-[var(--terminal-text-muted)]" />
+          <span className="h-[3px] w-14 rounded-full bg-[var(--terminal-text-muted)]" />
         </button>
 
-        <div className="flex h-[calc(100%-16px)] min-h-0 flex-col">
-          <div className="flex items-center gap-5 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-3">
-            {(Object.entries(bottomTabMeta) as Array<[TradeBottomTab, TradeBottomTabMeta]>).map(
-              ([value, meta]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onSetTab(value)}
-                  className={cn(
-                    'border-b-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] transition duration-150',
-                    activeTab === value
-                      ? 'border-[var(--terminal-accent)] text-[var(--terminal-text-primary)]'
-                      : 'border-transparent text-[var(--terminal-text-secondary)] hover:text-[var(--terminal-text-primary)]',
-                  )}
-                >
-                  {meta.label}
-                </button>
-              ),
-            )}
+        <div className="flex h-[calc(100%-20px)] min-h-0 flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--terminal-border)] px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {(Object.entries(bottomTabMeta) as Array<[TradeBottomTab, TradeBottomTabMeta]>).map(
+                ([value, meta]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onSetTab(value)}
+                    className={cn(
+                      'inline-flex h-9 items-center rounded-full border px-3 text-[12px] font-semibold transition duration-150',
+                      activeTab === value
+                        ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
+                        : 'border-[var(--terminal-border)] bg-[rgba(255,255,255,0.02)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
+                    )}
+                  >
+                    {meta.label}
+                  </button>
+                ),
+              )}
+            </div>
+            <span className="text-xs text-[var(--terminal-text-secondary)]">
+              {rows.length} {rows.length === 1 ? 'item' : 'items'}
+            </span>
           </div>
 
           <div className="terminal-scrollbar min-h-0 flex-1 overflow-auto">
@@ -537,14 +543,14 @@ export function TradeActivityPanel({
         }}
         animate={{ height: mobileExpanded ? '60vh' : 88 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
-        className="fixed inset-x-0 bottom-0 z-20 overflow-hidden rounded-t-md border-t border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 overflow-hidden rounded-t-[24px] border-t border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] shadow-[0_-20px_50px_rgba(2,6,23,0.45)] md:hidden"
       >
         <button
           type="button"
           className="flex w-full flex-col items-center border-b border-[var(--terminal-border)] px-4 py-3"
           onClick={() => onMobileExpandedChange(!mobileExpanded)}
         >
-          <span className="h-[2px] w-14 bg-[var(--terminal-text-muted)]" />
+          <span className="h-[3px] w-14 rounded-full bg-[var(--terminal-text-muted)]" />
           <div className="mt-3 flex w-full items-center justify-between">
             <p className="text-sm font-semibold text-[var(--terminal-text-primary)]">
               {bottomTabMeta[activeTab].label}
@@ -567,7 +573,7 @@ export function TradeActivityPanel({
                   type="button"
                   onClick={() => onSetTab(value)}
                   className={cn(
-                    'inline-flex h-8 shrink-0 items-center border px-3 text-[10px] font-semibold uppercase tracking-[0.16em] transition duration-150',
+                    'inline-flex h-8 shrink-0 items-center rounded-full border px-3 text-[11px] font-semibold transition duration-150',
                     activeTab === value
                       ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
                       : 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-secondary)]',

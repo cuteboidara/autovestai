@@ -587,9 +587,9 @@ export function TradeTerminalPage() {
         />
 
         {demoAccount ? (
-          <div className="border-b border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <p className="font-semibold">
+          <div className="border-b border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] px-4 py-2.5 text-sm text-amber-100 lg:px-5 xl:px-6">
+            <div className="flex flex-col gap-3 rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+              <p className="font-semibold text-amber-100">
                 DEMO ACCOUNT {demoAccount.accountNo} • Virtual Balance{' '}
                 {formatUsdt(demoAccount.balance)}
               </p>
@@ -597,7 +597,7 @@ export function TradeTerminalPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="inline-flex min-h-[38px] items-center justify-center border border-amber-500/30 bg-amber-500/10 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200 transition duration-150 hover:bg-amber-500/20"
+                  className="inline-flex min-h-[38px] items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 px-4 text-xs font-semibold text-amber-200 transition duration-150 hover:bg-amber-500/20"
                   onClick={() => {
                     void resetDemoAccount(demoAccount.id)
                       .then(() => refreshTerminalData())
@@ -623,7 +623,7 @@ export function TradeTerminalPage() {
 
                 <button
                   type="button"
-                  className="inline-flex min-h-[38px] items-center justify-center border border-amber-500/30 bg-amber-500 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-[#0A0E1A] transition duration-150 hover:opacity-90"
+                  className="inline-flex min-h-[38px] items-center justify-center rounded-full border border-amber-500/30 bg-amber-500 px-4 text-xs font-semibold text-[#0A0E1A] transition duration-150 hover:opacity-90"
                   onClick={() => {
                     if (
                       typeof window !== 'undefined' &&
@@ -644,142 +644,143 @@ export function TradeTerminalPage() {
         ) : null}
 
         <div className="flex min-h-0 flex-1 bg-[var(--terminal-bg-primary)]">
-          <div
-            className="hidden min-h-0 shrink-0 border-r border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] md:block"
-            style={{ width: watchlistCollapsed ? 68 : 260 }}
-          >
-            {watchlistCollapsed ? (
+          <div className="flex min-h-0 w-full flex-1 gap-3 px-3 py-3 lg:gap-4 lg:px-4 lg:py-4 xl:px-5 xl:py-5">
+            <div
+              className="hidden min-h-0 shrink-0 md:block"
+              style={{ width: watchlistCollapsed ? 60 : 280 }}
+            >
+              {watchlistCollapsed ? (
+                <button
+                  type="button"
+                  className="terminal-panel flex h-full w-full items-center justify-center text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--terminal-accent)]/40"
+                  onClick={() => setWatchlistCollapsed(false)}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              ) : (
+                <WatchlistPanel
+                  symbols={symbols}
+                  watchlist={watchlist}
+                  quotes={terminalQuotes}
+                  selectedSymbol={selectedSymbol}
+                  loading={loading}
+                  onSelect={setSelectedSymbol}
+                  onClearSelection={() => setSelectedSymbol('')}
+                  onToggleCollapse={() => setWatchlistCollapsed(true)}
+                  className="h-full"
+                />
+              )}
+            </div>
+
+            <div
+              data-testid="trade-terminal-scroll-region"
+              className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0 lg:gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:grid-rows-[minmax(0,1fr)_auto] xl:items-start 2xl:grid-cols-[minmax(0,1fr)_336px]"
+            >
+              {/* Mobile: symbol selector bar */}
               <button
                 type="button"
-                className="flex h-full w-full items-center justify-center text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--terminal-accent)]/40"
-                onClick={() => setWatchlistCollapsed(false)}
+                className="terminal-panel flex shrink-0 items-center justify-between px-4 py-3 text-left md:hidden xl:col-span-2"
+                onClick={() => {
+                  setSymbolSearch('');
+                  setMobileSymbolModalOpen(true);
+                }}
               >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            ) : (
-              <WatchlistPanel
-                symbols={symbols}
-                watchlist={watchlist}
-                quotes={terminalQuotes}
-                selectedSymbol={selectedSymbol}
-                loading={loading}
-                onSelect={setSelectedSymbol}
-                onClearSelection={() => setSelectedSymbol('')}
-                onToggleCollapse={() => setWatchlistCollapsed(true)}
-                className="h-full"
-              />
-            )}
-          </div>
-
-          <div
-            data-testid="trade-terminal-scroll-region"
-            className="flex min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0"
-          >
-            {/* Mobile: symbol selector bar */}
-            <button
-              type="button"
-              className="flex shrink-0 items-center justify-between border-b border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] px-4 py-2.5 text-left md:hidden"
-              onClick={() => { setSymbolSearch(''); setMobileSymbolModalOpen(true); }}
-            >
-              <div className="min-w-0">
-                <span className="block text-sm font-semibold text-[var(--terminal-text-primary)]">
-                  {activeSymbol || 'Select Symbol'}
-                </span>
-                {selectedQuote && selectedSymbolInfo ? (
-                  <span className="price-display block text-[10px] text-[var(--terminal-text-secondary)]">
-                    <span className="text-[var(--terminal-green)]">{formatNumber(selectedQuote.bid, selectedSymbolInfo.digits)}</span>
-                    {' / '}
-                    <span className="text-[var(--terminal-red)]">{formatNumber(selectedQuote.ask, selectedSymbolInfo.digits)}</span>
-                    {' · '}spread {spreadDisplay}
+                <div className="min-w-0">
+                  <span className="block text-sm font-semibold text-[var(--terminal-text-primary)]">
+                    {activeSymbol || 'Select Symbol'}
                   </span>
-                ) : (
-                  <span className="block text-[10px] text-[var(--terminal-text-secondary)]">Tap to search symbols</span>
-                )}
+                  {selectedQuote && selectedSymbolInfo ? (
+                    <span className="price-display block text-[10px] text-[var(--terminal-text-secondary)]">
+                      <span className="text-[var(--terminal-green)]">
+                        {formatNumber(selectedQuote.bid, selectedSymbolInfo.digits)}
+                      </span>
+                      {' / '}
+                      <span className="text-[var(--terminal-red)]">
+                        {formatNumber(selectedQuote.ask, selectedSymbolInfo.digits)}
+                      </span>
+                      {' · '}spread {spreadDisplay}
+                    </span>
+                  ) : (
+                    <span className="block text-[10px] text-[var(--terminal-text-secondary)]">
+                      Tap to search symbols
+                    </span>
+                  )}
+                </div>
+                <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
+              </button>
+
+              <div className="terminal-panel flex min-h-[320px] flex-col overflow-hidden xl:min-h-0">
+                {/* Desktop: instrument header with timeframes */}
+                <div className="hidden md:block">
+                  <TradeInstrumentHeader
+                    symbol={activeSymbol}
+                    symbolInfo={selectedSymbolInfo}
+                    quote={selectedQuote}
+                    spreadDisplay={spreadDisplay}
+                    marketStatus={marketStatus}
+                    timeframes={resolvedTimeframes}
+                    selectedTimeframe={selectedResolution}
+                    onSelectTimeframe={setSelectedResolution}
+                  />
+                </div>
+
+                {/* Chart – fixed height on mobile, flex-1 on desktop */}
+                <div className="h-[44vh] min-h-[320px] shrink-0 md:h-auto md:min-h-0 md:flex-1">
+                  <TradingViewPanel
+                    symbol={activeSymbol}
+                    resolution={selectedResolution}
+                    className="h-full"
+                  />
+                </div>
               </div>
-              <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
-            </button>
 
-            {/* Desktop: instrument header with timeframes */}
-            <div className="hidden md:block">
-              <TradeInstrumentHeader
-                symbol={activeSymbol}
-                symbolInfo={selectedSymbolInfo}
-                quote={selectedQuote}
-                spreadDisplay={spreadDisplay}
-                marketStatus={marketStatus}
-                timeframes={resolvedTimeframes}
-                selectedTimeframe={selectedResolution}
-                onSelectTimeframe={setSelectedResolution}
-              />
+              <div className="shrink-0 xl:min-h-0">
+                <OrderTicket
+                  accountId={activeAccountId}
+                  selectedSymbol={activeSymbol}
+                  symbols={symbols}
+                  quote={selectedQuote}
+                  onSymbolChange={setSelectedSymbol}
+                  onSubmitted={refreshTerminalData}
+                  preferredSide={preferredSide}
+                  accountDisabledReason={tradingAvailability.message}
+                  isMobileLayout={false}
+                  className="h-auto xl:h-full"
+                />
+              </div>
+
+              <div className="min-w-0 xl:col-span-2">
+                <TradeActivityPanel
+                  activeTab={activeBottomTab}
+                  bottomTabMeta={bottomTabMeta}
+                  rows={rows}
+                  quotes={terminalQuotes}
+                  symbolDigitsMap={symbolDigitsMap}
+                  positionsHeight={positionsHeight}
+                  closingPositionId={closingPositionId}
+                  flashedPnlIds={flashedPnlIds}
+                  mobileExpanded={mobilePositionsExpanded}
+                  onSetTab={(tab) => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set('tab', mapBottomTabToSearch(tab));
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                  onClosePosition={(positionId) => {
+                    setClosingPositionId(positionId);
+                    void positionsApi
+                      .close(positionId)
+                      .then(() => refreshTerminalData())
+                      .finally(() => setClosingPositionId(null));
+                  }}
+                  onResizeStart={(clientY) => {
+                    resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
+                    document.body.style.cursor = 'row-resize';
+                    document.body.style.userSelect = 'none';
+                  }}
+                  onMobileExpandedChange={setMobilePositionsExpanded}
+                />
+              </div>
             </div>
-
-            {/* Chart – fixed height on mobile, flex-1 on desktop */}
-            <div className="h-[42vh] shrink-0 md:h-auto md:min-h-0 md:flex-1">
-              <TradingViewPanel
-                symbol={activeSymbol}
-                resolution={selectedResolution}
-                className="h-full"
-              />
-            </div>
-
-            {/* Mobile: inline compact order ticket */}
-            <div className="shrink-0 border-t border-[var(--terminal-border)] md:hidden">
-              <OrderTicket
-                accountId={activeAccountId}
-                selectedSymbol={activeSymbol}
-                symbols={symbols}
-                quote={selectedQuote}
-                onSymbolChange={setSelectedSymbol}
-                onSubmitted={refreshTerminalData}
-                preferredSide={preferredSide}
-                accountDisabledReason={tradingAvailability.message}
-                isMobileLayout
-              />
-            </div>
-
-            <TradeActivityPanel
-              activeTab={activeBottomTab}
-              bottomTabMeta={bottomTabMeta}
-              rows={rows}
-              quotes={terminalQuotes}
-              symbolDigitsMap={symbolDigitsMap}
-              positionsHeight={positionsHeight}
-              closingPositionId={closingPositionId}
-              flashedPnlIds={flashedPnlIds}
-              mobileExpanded={mobilePositionsExpanded}
-              onSetTab={(tab) => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('tab', mapBottomTabToSearch(tab));
-                router.replace(`${pathname}?${params.toString()}`);
-              }}
-              onClosePosition={(positionId) => {
-                setClosingPositionId(positionId);
-                void positionsApi
-                  .close(positionId)
-                  .then(() => refreshTerminalData())
-                  .finally(() => setClosingPositionId(null));
-              }}
-              onResizeStart={(clientY) => {
-                resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
-                document.body.style.cursor = 'row-resize';
-                document.body.style.userSelect = 'none';
-              }}
-              onMobileExpandedChange={setMobilePositionsExpanded}
-            />
-          </div>
-
-          <div className="hidden w-[320px] shrink-0 xl:block">
-            <OrderTicket
-              accountId={activeAccountId}
-              selectedSymbol={activeSymbol}
-              symbols={symbols}
-              quote={selectedQuote}
-              onSymbolChange={setSelectedSymbol}
-              onSubmitted={refreshTerminalData}
-              preferredSide={preferredSide}
-              accountDisabledReason={tradingAvailability.message}
-              className="h-full"
-            />
           </div>
         </div>
 
@@ -852,8 +853,8 @@ export function TradeTerminalPage() {
       </div>
 
       {loading ? (
-        <div className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/78 p-4 md:grid md:grid-cols-[320px_minmax(0,1fr)_360px] md:gap-4">
-          <div className="space-y-3 rounded-2xl border border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] p-4">
+        <div className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/78 p-4 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+          <div className="terminal-panel space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="flex items-center gap-3 rounded-xl px-1 py-2">
                 <div className="h-9 w-9 animate-pulse rounded-full bg-[var(--terminal-bg-elevated)]" />
@@ -868,10 +869,10 @@ export function TradeTerminalPage() {
               </div>
             ))}
           </div>
-          <div className="rounded-2xl border border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] p-4">
+          <div className="terminal-panel p-4">
             <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
           </div>
-          <div className="space-y-4 rounded-2xl border border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] p-4">
+          <div className="terminal-panel hidden space-y-4 p-4 xl:block">
             <div className="h-10 w-full animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
             <div className="grid gap-3">
               {Array.from({ length: 6 }).map((_, index) => (

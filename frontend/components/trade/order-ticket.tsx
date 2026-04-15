@@ -42,7 +42,9 @@ const defaultState = {
 };
 
 const inputClass =
-  'h-11 w-full border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] px-3 text-sm text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-accent)]';
+  'h-11 w-full rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] px-3 text-sm text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-accent)]';
+
+const sectionCardClass = 'terminal-panel-soft p-4';
 
 function clampValue(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -131,12 +133,14 @@ export function OrderTicket({
     symbolDisabledReason ?? accountDisabledReason ?? platformBlockedReason;
   const staleQuoteWarning =
     currentMarketStatus === 'DELAYED'
-      ? 'Price may be up to 30s delayed'
+      ? selectedSymbolHealth?.reason ?? 'Price may be up to 30s delayed'
       : currentMarketStatus === 'STALE' &&
           (selectedSymbolHealth?.tradingAvailable ?? quote?.tradingAvailable ?? true)
-        ? 'Quote feed is stale. Orders still route using the latest cached price.'
+        ? selectedSymbolHealth?.reason ??
+          'Quote feed is stale. Orders still route using the latest cached price.'
         : currentMarketStatus === 'DEGRADED' && quote?.tradingAvailable !== false
-          ? 'Live quote feed is degraded. Orders still route using the latest cached price.'
+          ? selectedSymbolHealth?.reason ??
+            'Live quote feed is degraded. Orders still route using the latest cached price.'
           : null;
   const currentAssetClass =
     selectedSymbolInfo?.assetClass ?? selectedSymbolInfo?.category ?? null;
@@ -371,27 +375,35 @@ export function OrderTicket({
   return (
     <aside
       className={cn(
-        'flex h-full min-h-0 flex-col border-l border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)]',
+        'terminal-panel flex h-full min-h-0 flex-col overflow-hidden',
         className,
       )}
     >
-      <div className="border-b border-[var(--terminal-border)] px-4 py-4">
+      <div className="border-b border-[var(--terminal-border)] px-5 py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+            <p className="terminal-label">
               Order Ticket
             </p>
-            <p className="mt-2 text-2xl font-semibold text-[var(--terminal-text-primary)]">
-              {selectedSymbol || 'Select Symbol'}
-            </p>
-            <p className="mt-1 text-sm text-[var(--terminal-text-secondary)]">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="truncate text-[28px] font-semibold tracking-[-0.03em] text-[var(--terminal-text-primary)]">
+                {selectedSymbol || 'Select Symbol'}
+              </p>
+              {currentAssetClass ? (
+                <span className="terminal-chip">{currentAssetClass}</span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-sm leading-6 text-[var(--terminal-text-secondary)]">
               {selectedSymbolInfo
                 ? selectedSymbolInfo.displayName || selectedSymbolInfo.assetClass
                 : 'Select an instrument from the watchlist to enable order entry'}
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="min-w-[108px] text-right">
+            <p className="terminal-label">
+              {form.type === 'LIMIT' ? 'Pending price' : 'Execution'}
+            </p>
             <p
               className={cn(
                 'price-display text-2xl font-semibold text-[var(--terminal-text-primary)]',
@@ -403,16 +415,16 @@ export function OrderTicket({
                 ? formatNumber(executionPrice, selectedSymbolInfo?.digits ?? 5)
                 : '--'}
             </p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+            <p className="mt-1 text-xs text-[var(--terminal-text-secondary)]">
               Spread {spread}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="terminal-scrollbar flex-1 overflow-y-auto px-4 py-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+      <div className="terminal-scrollbar flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
             {(['SELL', 'BUY'] as OrderSide[]).map((side) => {
               const active = form.side === side;
               const price =
@@ -431,21 +443,21 @@ export function OrderTicket({
                   disabled={controlsDisabled}
                   onClick={() => updateForm({ side })}
                   className={cn(
-                    'border px-3 py-3 text-left transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    'rounded-2xl border px-4 py-4 text-left transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                     side === 'SELL'
                       ? active
                         ? 'border-[var(--terminal-red)] bg-[var(--terminal-red-bg)] text-white'
-                        : 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-red)]'
+                        : 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-red)]'
                       : active
                         ? 'border-[var(--terminal-green)] bg-[var(--terminal-green-bg)] text-white'
-                        : 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-green)]',
+                        : 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-green)]',
                     side === 'SELL' && priceFlash.bid === 'up' ? 'terminal-price-up' : '',
                     side === 'SELL' && priceFlash.bid === 'down' ? 'terminal-price-down' : '',
                     side === 'BUY' && priceFlash.ask === 'up' ? 'terminal-price-up' : '',
                     side === 'BUY' && priceFlash.ask === 'down' ? 'terminal-price-down' : '',
                   )}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  <p className="text-[11px] font-semibold">
                     {side}
                   </p>
                   <p className="price-display mt-2 text-xl font-semibold">{price}</p>
@@ -454,35 +466,38 @@ export function OrderTicket({
             })}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'Market', value: 'MARKET' as TicketOrderType, enabled: true },
-              { label: 'Limit', value: 'LIMIT' as TicketOrderType, enabled: true },
-              { label: 'Stop', value: 'STOP' as TicketOrderType, enabled: false },
-              { label: 'Stop Limit', value: 'STOP_LIMIT' as TicketOrderType, enabled: false },
-            ].map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                disabled={!item.enabled || controlsDisabled}
-                onClick={() => item.enabled && updateForm({ type: item.value })}
-                className={cn(
-                  'inline-flex h-9 items-center justify-center border px-3 text-[11px] font-semibold uppercase tracking-[0.14em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
-                  form.type === item.value
-                    ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
-                    : item.enabled
-                      ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]'
-                      : 'border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-muted)]',
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className={sectionCardClass}>
+            <p className="terminal-label">Order type</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                { label: 'Market', value: 'MARKET' as TicketOrderType, enabled: true },
+                { label: 'Limit', value: 'LIMIT' as TicketOrderType, enabled: true },
+                { label: 'Stop', value: 'STOP' as TicketOrderType, enabled: false },
+                { label: 'Stop Limit', value: 'STOP_LIMIT' as TicketOrderType, enabled: false },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  disabled={!item.enabled || controlsDisabled}
+                  onClick={() => item.enabled && updateForm({ type: item.value })}
+                  className={cn(
+                    'inline-flex min-h-[40px] items-center justify-center rounded-2xl border px-3 text-[11px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    form.type === item.value
+                      ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
+                      : item.enabled
+                        ? 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]'
+                        : 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.5)] text-[var(--terminal-text-muted)]',
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {form.type === 'LIMIT' ? (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+            <div className={sectionCardClass}>
+              <p className="terminal-label">
                 Pending Price
               </p>
               <input
@@ -497,67 +512,71 @@ export function OrderTicket({
                 disabled={controlsDisabled}
                 onChange={(event) => updateForm({ price: event.target.value })}
                 placeholder="Enter pending price"
-                className={cn('mt-2', inputClass)}
+                className={cn('mt-3', inputClass)}
               />
             </div>
           ) : null}
 
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
-                Volume
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className={sectionCardClass}>
+              <div className="flex items-center justify-between gap-3">
+                <p className="terminal-label">Volume</p>
+                <p className="text-[11px] text-[var(--terminal-text-secondary)]">
+                  Margin
+                </p>
+              </div>
+              <p className="mt-1 text-[11px] font-medium text-[var(--terminal-text-primary)]">
+                {hasSelectedSymbol ? formatUsdt(requiredMargin) : '--'}
               </p>
-              <p className="text-[11px] text-[var(--terminal-text-secondary)]">
-                Margin required: {hasSelectedSymbol ? formatUsdt(requiredMargin) : '--'}
-              </p>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                  disabled={controlsDisabled}
+                  onClick={() => adjustVolume('down')}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+
+                <input
+                  type="number"
+                  min={minVolume}
+                  max={maxVolume}
+                  step={volumeStep}
+                  value={form.volume}
+                  disabled={controlsDisabled}
+                  onChange={(event) => updateForm({ volume: event.target.value })}
+                  className={cn('text-center text-base font-semibold', inputClass)}
+                />
+
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                  disabled={controlsDisabled}
+                  onClick={() => adjustVolume('up')}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex h-11 w-11 items-center justify-center border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
-                disabled={controlsDisabled}
-                onClick={() => adjustVolume('down')}
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-
+            <div className={sectionCardClass}>
+              <p className="terminal-label">Leverage</p>
               <input
                 type="number"
-                min={minVolume}
-                max={maxVolume}
-                step={volumeStep}
-                value={form.volume}
+                min="1"
+                max={maxLeverage}
+                step="1"
+                value={form.leverage}
                 disabled={controlsDisabled}
-                onChange={(event) => updateForm({ volume: event.target.value })}
-                className={cn('text-center text-base font-semibold', inputClass)}
+                onChange={(event) => handleLeverageChange(event.target.value)}
+                className={cn('mt-3', inputClass)}
               />
-
-              <button
-                type="button"
-                className="inline-flex h-11 w-11 items-center justify-center border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
-                disabled={controlsDisabled}
-                onClick={() => adjustVolume('up')}
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+              <p className="mt-2 text-[11px] text-[var(--terminal-text-secondary)]">
+                Max available {maxLeverage ? `1:${maxLeverage}` : '--'}
+              </p>
             </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
-              Leverage
-            </p>
-            <input
-              type="number"
-              min="1"
-              max={maxLeverage}
-              step="1"
-              value={form.leverage}
-              disabled={controlsDisabled}
-              onChange={(event) => handleLeverageChange(event.target.value)}
-              className={cn('mt-2', inputClass)}
-            />
           </div>
 
           {[
@@ -580,10 +599,10 @@ export function OrderTicket({
               onChange: (value: string) => updateForm({ takeProfit: value }),
             },
           ].map((field) => (
-            <div key={field.label} className="border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] px-3 py-3">
+            <div key={field.label} className={sectionCardClass}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--terminal-text-secondary)]">
+                  <p className="terminal-label">
                     {field.label}
                   </p>
                   <p className="mt-1 text-[11px] text-[var(--terminal-text-muted)]">
@@ -600,7 +619,7 @@ export function OrderTicket({
                     }
                   }}
                   className={cn(
-                    'inline-flex h-8 items-center border px-3 text-[11px] font-semibold uppercase tracking-[0.14em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    'inline-flex h-8 items-center rounded-full border px-3 text-[11px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                     field.enabled
                       ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
                       : 'border-[var(--terminal-border)] bg-transparent text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
@@ -619,7 +638,7 @@ export function OrderTicket({
                         type="button"
                         disabled={controlsDisabled}
                         className={cn(
-                          'inline-flex h-8 items-center border px-3 text-[10px] font-semibold uppercase tracking-[0.16em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                          'inline-flex h-8 items-center rounded-full border px-3 text-[10px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                           field.mode === mode
                             ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-elevated)] text-[var(--terminal-text-primary)]'
                             : 'border-[var(--terminal-border)] bg-transparent text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
@@ -646,7 +665,7 @@ export function OrderTicket({
             </div>
           ))}
 
-          <div className="border border-[var(--terminal-border)] bg-[var(--terminal-bg-primary)] px-3 py-3 text-sm">
+          <div className={cn(sectionCardClass, 'text-sm')}>
             {[
               [
                 'Execution Price',
@@ -662,7 +681,7 @@ export function OrderTicket({
             ].map(([label, value]) => (
               <div
                 key={label}
-                className="flex items-center justify-between gap-3 border-b border-[var(--terminal-border)] py-2 last:border-b-0 last:pb-0 first:pt-0"
+                className="flex items-center justify-between gap-3 border-b border-[var(--terminal-border)]/70 py-2.5 last:border-b-0 last:pb-0 first:pt-0"
               >
                 <span className="text-[var(--terminal-text-secondary)]">{label}</span>
                 <span className="price-display text-right font-medium text-[var(--terminal-text-primary)]">
@@ -673,13 +692,13 @@ export function OrderTicket({
           </div>
 
           {staleQuoteWarning && !submissionBlockedReason ? (
-            <div className="border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-sm text-amber-200">
+            <div className="rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
               {staleQuoteWarning}
             </div>
           ) : null}
 
           {submissionBlockedReason ? (
-            <div className="border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-sm text-amber-200">
+            <div className="rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
               {submissionBlockedReason}
             </div>
           ) : null}
@@ -688,13 +707,13 @@ export function OrderTicket({
         </div>
       </div>
 
-      <div className="border-t border-[var(--terminal-border)] px-4 py-4">
+      <div className="border-t border-[var(--terminal-border)] px-4 py-4 sm:px-5">
         <button
           type="button"
           onClick={() => void handleSubmit()}
           disabled={submitting || Boolean(submissionBlockedReason)}
           className={cn(
-            'flex min-h-[52px] w-full items-center justify-center border text-base font-semibold uppercase tracking-[0.14em] text-white transition duration-150 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex min-h-[54px] w-full items-center justify-center rounded-2xl border text-base font-semibold text-white transition duration-150 disabled:cursor-not-allowed disabled:opacity-50',
             form.side === 'BUY'
               ? 'border-[var(--terminal-green)] bg-[var(--terminal-green)] hover:opacity-90'
               : 'border-[var(--terminal-red)] bg-[var(--terminal-red)] hover:opacity-90',
@@ -709,7 +728,7 @@ export function OrderTicket({
 
         <p
           className={cn(
-            'mt-3 text-center text-[11px] text-[var(--terminal-text-secondary)]',
+            'mt-3 text-center text-[11px] leading-5 text-[var(--terminal-text-secondary)]',
             isMobileLayout ? 'pb-2' : '',
           )}
         >

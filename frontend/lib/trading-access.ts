@@ -27,6 +27,10 @@ export function getActiveAccountLabel(
     return wallet.accountNo;
   }
 
+  if (wallet?.id) {
+    return `Acct ${wallet.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+  }
+
   if (user?.id) {
     return `Acct ${user.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
   }
