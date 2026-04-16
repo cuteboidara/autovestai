@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { HttpResponseError } from './provider-health.util';
+
 interface FetchOptions {
   headers?: HeadersInit;
   retries?: number;
@@ -56,7 +58,7 @@ export class RateLimitedFetcher {
             this.logger.warn(`Rate limit hit for ${url}. Retrying in ${retryDelayMs}ms.`);
 
             if (attempt >= retries) {
-              throw new Error(`HTTP 429 for ${url}`);
+              throw new HttpResponseError(429, url);
             }
 
             await this.delay(retryDelayMs);
@@ -64,7 +66,7 @@ export class RateLimitedFetcher {
           }
 
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status} for ${url}`);
+            throw new HttpResponseError(response.status, url);
           }
 
           return response;

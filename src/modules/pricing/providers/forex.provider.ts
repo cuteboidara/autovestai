@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Symbol as TradingSymbol } from '@prisma/client';
 
 import {
@@ -6,6 +7,13 @@ import {
   PricingUpdateHandler,
 } from './pricing-provider.types';
 import { RateLimitedFetcher } from './rate-limited-fetcher';
+import {
+  applyStaleProviderStatus,
+  createProviderStatus,
+  disabledProviderStatus,
+  okProviderStatus,
+  providerStatusWithFailure,
+} from './provider-health.util';
 
 interface ForexApiResponse {
   rates?: Record<string, number>;
@@ -21,19 +29,22 @@ const FOREX_API_URLS = [
 export class ForexProvider implements OnModuleDestroy {
   private readonly logger = new Logger(ForexProvider.name);
   private readonly pollMs = 30_000;
+  private readonly providerEnabled: boolean;
+  private readonly staleAfterMs = this.pollMs * 3;
+  private readonly failureBackoffScheduleMs = [30_000, 60_000, 120_000] as const;
   private instruments: TradingSymbol[] = [];
   private timer?: NodeJS.Timeout;
   private updateHandler?: PricingUpdateHandler;
-  private status: PricingProviderStatus = {
-    provider: 'forex-api',
-    transport: 'polling',
-    status: 'disconnected',
-    symbolCount: 0,
-    lastUpdateAt: null,
-    lastError: null,
-  };
+  private retryAtMs = 0;
+  private status: PricingProviderStatus = createProviderStatus('forex-api', 'polling');
 
-  constructor(private readonly fetcher: RateLimitedFetcher) {}
+  constructor(
+    private readonly fetcher: RateLimitedFetcher,
+    private readonly configService: ConfigService,
+  ) {
+    this.providerEnabled =
+      this.configService.get<boolean>('pricing.forexEnabled') ?? true;
+  }
 
   onModuleDestroy(): void {
     this.stop();
@@ -49,11 +60,34 @@ export class ForexProvider implements OnModuleDestroy {
     this.status = {
       ...this.status,
       symbolCount: instruments.length,
-      status: instruments.length > 0 ? 'polling' : 'disconnected',
-      lastError: null,
+      status: 'DEGRADED',
+      reason: 'awaiting_first_update',
+      message:
+        instruments.length > 0
+          ? 'Awaiting the first successful forex poll.'
+          : 'No active forex instruments are configured.',
+      retryAt: null,
+      recommendedAction: null,
+      consecutiveFailures: 0,
     };
 
+    if (!this.providerEnabled) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'disabled_by_config',
+        'Forex polling is disabled by configuration.',
+        'Set FOREX_PROVIDER_ENABLED=true to enable the forex polling provider.',
+      );
+      return;
+    }
+
     if (instruments.length === 0) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'no_symbols_configured',
+        'No active forex instruments are configured.',
+        null,
+      );
       return;
     }
 
@@ -71,10 +105,14 @@ export class ForexProvider implements OnModuleDestroy {
   }
 
   getStatus() {
-    return { ...this.status };
+    return applyStaleProviderStatus({ ...this.status }, this.staleAfterMs);
   }
 
   private async fetchForexRates() {
+    if (Date.now() < this.retryAtMs) {
+      return;
+    }
+
     try {
       let payload: ForexApiResponse | null = null;
 
@@ -118,19 +156,23 @@ export class ForexProvider implements OnModuleDestroy {
         });
       }
 
-      this.status = {
-        ...this.status,
-        status: 'polling',
-        lastUpdateAt: timestamp,
-        lastError: null,
-      };
+      this.retryAtMs = 0;
+      this.status = okProviderStatus(this.status, timestamp);
     } catch (error) {
-      this.status = {
-        ...this.status,
-        status: 'degraded',
-        lastError: (error as Error).message,
-      };
-      this.logger.warn(`Forex polling failed: ${(error as Error).message}`);
+      const backoffMs =
+        this.failureBackoffScheduleMs[
+          Math.min(this.status.consecutiveFailures, this.failureBackoffScheduleMs.length - 1)
+        ];
+      this.retryAtMs = Date.now() + backoffMs;
+      this.status = providerStatusWithFailure(
+        this.status,
+        'Forex API',
+        error,
+        this.retryAtMs,
+      );
+      this.logger.warn(
+        `Forex polling failed: ${this.status.message}. Backing off for ${backoffMs}ms.`,
+      );
     }
   }
 

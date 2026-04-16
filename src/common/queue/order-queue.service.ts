@@ -18,6 +18,19 @@ export interface QueueMetricsSnapshot {
   completed: number;
 }
 
+export interface QueueHealthSummary {
+  name: string;
+  status: 'OK' | 'DEGRADED' | 'DISCONNECTED';
+  backlog: number;
+  active: number;
+  waiting: number;
+  delayed: number;
+  failed: number;
+  completed: number;
+  summary: string;
+  recommendedAction: string | null;
+}
+
 export interface FailedQueueJobRecord {
   id: string;
   name: string;

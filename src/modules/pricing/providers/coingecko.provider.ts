@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Symbol as TradingSymbol } from '@prisma/client';
 
 import {
@@ -6,6 +7,13 @@ import {
   PricingUpdateHandler,
 } from './pricing-provider.types';
 import { RateLimitedFetcher } from './rate-limited-fetcher';
+import {
+  applyStaleProviderStatus,
+  createProviderStatus,
+  disabledProviderStatus,
+  okProviderStatus,
+  providerStatusWithFailure,
+} from './provider-health.util';
 
 interface CoinGeckoSimplePriceResponse {
   [id: string]: {
@@ -50,19 +58,23 @@ const COINGECKO_BASE_URL =
 export class CoinGeckoProvider implements OnModuleDestroy {
   private readonly logger = new Logger(CoinGeckoProvider.name);
   private readonly pollMs = 60_000; // 60s — well within free-tier 30 req/min
+  private readonly providerEnabled: boolean;
+  private readonly staleAfterMs = this.pollMs * 3;
+  private readonly rateLimitBackoffMs = 5 * 60_000;
+  private readonly failureBackoffScheduleMs = [60_000, 120_000, 300_000] as const;
   private instruments: TradingSymbol[] = [];
   private timer?: NodeJS.Timeout;
   private updateHandler?: PricingUpdateHandler;
-  private status: PricingProviderStatus = {
-    provider: 'coingecko',
-    transport: 'polling',
-    status: 'disconnected',
-    symbolCount: 0,
-    lastUpdateAt: null,
-    lastError: null,
-  };
+  private retryAtMs = 0;
+  private status: PricingProviderStatus = createProviderStatus('coingecko', 'polling');
 
-  constructor(private readonly fetcher: RateLimitedFetcher) {}
+  constructor(
+    private readonly fetcher: RateLimitedFetcher,
+    private readonly configService: ConfigService,
+  ) {
+    this.providerEnabled =
+      this.configService.get<boolean>('pricing.coinGeckoEnabled') ?? true;
+  }
 
   onModuleDestroy(): void {
     this.stop();
@@ -81,11 +93,34 @@ export class CoinGeckoProvider implements OnModuleDestroy {
     this.status = {
       ...this.status,
       symbolCount: this.instruments.length,
-      status: this.instruments.length > 0 ? 'polling' : 'disconnected',
-      lastError: null,
+      status: 'DEGRADED',
+      reason: 'awaiting_first_update',
+      message:
+        this.instruments.length > 0
+          ? 'Awaiting the first successful CoinGecko poll.'
+          : 'No symbols are assigned to CoinGecko.',
+      retryAt: null,
+      recommendedAction: null,
+      consecutiveFailures: 0,
     };
 
+    if (!this.providerEnabled) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'disabled_by_config',
+        'CoinGecko is disabled by configuration.',
+        'Set COINGECKO_PROVIDER_ENABLED=true to enable CoinGecko polling.',
+      );
+      return;
+    }
+
     if (this.instruments.length === 0) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'no_symbols_configured',
+        'No active CoinGecko symbols are configured.',
+        null,
+      );
       return;
     }
 
@@ -103,10 +138,14 @@ export class CoinGeckoProvider implements OnModuleDestroy {
   }
 
   getStatus() {
-    return { ...this.status };
+    return applyStaleProviderStatus({ ...this.status }, this.staleAfterMs);
   }
 
   private async fetchPrices(): Promise<void> {
+    if (Date.now() < this.retryAtMs) {
+      return;
+    }
+
     try {
       const ids = this.instruments
         .map((i) => SYMBOL_TO_COINGECKO_ID.get(i.symbol))
@@ -146,12 +185,8 @@ export class CoinGeckoProvider implements OnModuleDestroy {
         });
       }
 
-      this.status = {
-        ...this.status,
-        status: 'polling',
-        lastUpdateAt: timestamp,
-        lastError: null,
-      };
+      this.retryAtMs = 0;
+      this.status = okProviderStatus(this.status, timestamp);
 
       if (updatedCount > 0 && !this.firstLogDone) {
         this.firstLogDone = true;
@@ -160,12 +195,22 @@ export class CoinGeckoProvider implements OnModuleDestroy {
         );
       }
     } catch (error) {
-      this.status = {
-        ...this.status,
-        status: 'degraded',
-        lastError: (error as Error).message,
-      };
-      this.logger.warn(`CoinGecko polling failed: ${(error as Error).message}`);
+      const backoffMs =
+        providerStatusWithFailure(this.status, 'CoinGecko', error).status === 'RATE_LIMITED'
+          ? this.rateLimitBackoffMs
+          : this.failureBackoffScheduleMs[
+              Math.min(this.status.consecutiveFailures, this.failureBackoffScheduleMs.length - 1)
+            ];
+      this.retryAtMs = Date.now() + backoffMs;
+      this.status = providerStatusWithFailure(
+        this.status,
+        'CoinGecko',
+        error,
+        this.retryAtMs,
+      );
+      this.logger.warn(
+        `CoinGecko polling failed: ${this.status.message}. Backing off for ${backoffMs}ms.`,
+      );
     }
   }
 

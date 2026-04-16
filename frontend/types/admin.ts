@@ -349,10 +349,64 @@ export interface AdminSymbolRecord {
 export interface PricingProviderHealth {
   provider: string;
   transport: 'streaming' | 'polling';
-  status: 'connecting' | 'connected' | 'polling' | 'degraded' | 'disconnected';
+  status: 'OK' | 'DEGRADED' | 'DISCONNECTED' | 'DISABLED' | 'MISCONFIGURED' | 'RATE_LIMITED';
+  reason:
+    | 'awaiting_first_update'
+    | 'disabled_by_config'
+    | 'missing_api_key'
+    | 'no_symbols_configured'
+    | 'http_429'
+    | 'geo_blocked'
+    | 'connection_failed'
+    | 'stale_quotes'
+    | 'auth_failed'
+    | 'subscription_rejected'
+    | 'upstream_error'
+    | null;
+  message: string | null;
   symbolCount: number;
   lastUpdateAt: string | null;
-  lastError: string | null;
+  retryAt: string | null;
+  recommendedAction: string | null;
+  consecutiveFailures: number;
+}
+
+export interface DependencyHealthCheck {
+  status: 'ok' | 'warning' | 'error';
+  connected: boolean;
+  summary: string;
+  detail: string;
+  recommendedAction: string | null;
+}
+
+export interface QueueHealthSummary {
+  name: string;
+  status: 'OK' | 'DEGRADED' | 'DISCONNECTED';
+  backlog: number;
+  active: number;
+  waiting: number;
+  delayed: number;
+  failed: number;
+  completed: number;
+  summary: string;
+  recommendedAction: string | null;
+}
+
+export interface QueueRuntimeHealth {
+  status: 'ok' | 'warning' | 'error';
+  summary: string;
+  totalBacklog: number;
+  totalFailed: number;
+  orderExecution: QueueHealthSummary;
+  copyTrading: QueueHealthSummary;
+  recommendedAction: string | null;
+}
+
+export interface WebsocketHealthCheck {
+  status: 'ok' | 'info';
+  connectedClients: number;
+  summary: string;
+  recommendedAction: string | null;
 }
 
 export interface PricingSampleQuote {
@@ -376,6 +430,12 @@ export interface OperationalMetrics {
     copyTrading: number;
   };
   websocketConnectedClients: number;
+  infrastructure: {
+    database: DependencyHealthCheck;
+    redis: DependencyHealthCheck;
+    queues: QueueRuntimeHealth;
+    websocket: WebsocketHealthCheck;
+  };
   surveillanceAlertCounts: Record<string, number>;
   symbolHealth: Record<string, PlatformSymbolHealth>;
   providerHealth: Record<string, PricingProviderHealth>;
@@ -429,8 +489,15 @@ export interface AdminOrderRecord {
 export interface ReadinessChecklistItem {
   key: string;
   label: string;
-  status: 'ok' | 'warning' | 'error' | 'degraded';
-  detail: unknown;
+  category: 'infra' | 'providers' | 'operations' | 'config';
+  status: 'ok' | 'info' | 'warning' | 'error' | 'degraded';
+  summary: string;
+  detail?: string | null;
+  fields?: Array<{
+    label: string;
+    value: string;
+  }>;
+  action?: string | null;
 }
 
 export interface AuditLogRecord {

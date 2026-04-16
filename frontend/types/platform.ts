@@ -27,10 +27,26 @@ export interface PlatformStatus {
     {
       provider: string;
       transport: 'streaming' | 'polling';
-      status: 'connecting' | 'connected' | 'polling' | 'degraded' | 'disconnected';
+      status: 'OK' | 'DEGRADED' | 'DISCONNECTED' | 'DISABLED' | 'MISCONFIGURED' | 'RATE_LIMITED';
+      reason:
+        | 'awaiting_first_update'
+        | 'disabled_by_config'
+        | 'missing_api_key'
+        | 'no_symbols_configured'
+        | 'http_429'
+        | 'geo_blocked'
+        | 'connection_failed'
+        | 'stale_quotes'
+        | 'auth_failed'
+        | 'subscription_rejected'
+        | 'upstream_error'
+        | null;
+      message: string | null;
       symbolCount: number;
       lastUpdateAt: string | null;
-      lastError: string | null;
+      retryAt: string | null;
+      recommendedAction: string | null;
+      consecutiveFailures: number;
     }
   >;
   timestamp: string;

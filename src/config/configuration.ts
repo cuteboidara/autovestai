@@ -39,6 +39,16 @@ export default () => ({
   pricing: {
     enableCandleStorage:
       (process.env.ENABLE_CANDLE_STORAGE ?? 'false').toLowerCase() === 'true',
+    coinGeckoEnabled:
+      (process.env.COINGECKO_PROVIDER_ENABLED ?? 'true').toLowerCase() === 'true',
+    binanceEnabled:
+      (process.env.BINANCE_PROVIDER_ENABLED ?? 'true').toLowerCase() === 'true',
+    twelveDataEnabled:
+      (process.env.TWELVE_DATA_PROVIDER_ENABLED ?? 'true').toLowerCase() === 'true',
+    forexEnabled:
+      (process.env.FOREX_PROVIDER_ENABLED ?? 'true').toLowerCase() === 'true',
+    yahooEnabled:
+      (process.env.YAHOO_PROVIDER_ENABLED ?? 'true').toLowerCase() === 'true',
     binanceWsUrl:
       process.env.BINANCE_WS_URL ??
       'wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker',

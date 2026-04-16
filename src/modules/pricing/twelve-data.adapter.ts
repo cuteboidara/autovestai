@@ -4,6 +4,14 @@ import { Symbol as TradingSymbol, SymbolCategory } from '@prisma/client';
 import WebSocket = require('ws');
 
 import { PricingProviderStatus } from './providers/pricing-provider.types';
+import {
+  applyStaleProviderStatus,
+  createProviderStatus,
+  disabledProviderStatus,
+  misconfiguredProviderStatus,
+  okProviderStatus,
+  providerStatusWithFailure,
+} from './providers/provider-health.util';
 
 export interface TwelveDataQuoteTick {
   symbol: string;
@@ -41,26 +49,27 @@ export class TwelveDataAdapter implements OnModuleDestroy {
   private readonly logger = new Logger(TwelveDataAdapter.name);
   private readonly baseUrl = 'wss://ws.twelvedata.com/v1/quotes/price';
   private readonly apiKey: string;
+  private readonly providerEnabled: boolean;
   private readonly configuredRealtimeSymbols: Set<string>;
   private readonly reconnectInitialDelayMs: number;
   private readonly reconnectMaxDelayMs: number;
+  private readonly staleAfterMs = 120_000;
+  private readonly maxReconnectAttempts = 4;
+  private readonly circuitOpenMs = 15 * 60_000;
   private readonly providerSymbolsByInternalSymbol = new Map<string, string>();
   private readonly internalSymbolsByProviderSymbol = new Map<string, string>();
   private socket?: WebSocket;
   private reconnectTimer?: NodeJS.Timeout;
   private reconnectAttempt = 0;
+  private circuitOpenUntilMs = 0;
+  private lastSocketError: unknown = null;
   private tickHandler?: TickHandler;
-  private status: PricingProviderStatus = {
-    provider: 'twelve-data',
-    transport: 'streaming',
-    status: 'disconnected',
-    symbolCount: 0,
-    lastUpdateAt: null,
-    lastError: null,
-  };
+  private status: PricingProviderStatus = createProviderStatus('twelve-data', 'streaming');
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('pricing.twelveDataApiKey')?.trim() ?? '';
+    this.providerEnabled =
+      this.configService.get<boolean>('pricing.twelveDataEnabled') ?? true;
     this.configuredRealtimeSymbols = new Set(
       (this.configService.get<string[]>('pricing.twelveDataWsSymbols') ?? []).map(
         normalizeProviderSymbol,
@@ -79,7 +88,7 @@ export class TwelveDataAdapter implements OnModuleDestroy {
   }
 
   isEnabled() {
-    return Boolean(this.apiKey);
+    return this.providerEnabled && Boolean(this.apiKey);
   }
 
   supportsInstrument(
@@ -105,7 +114,11 @@ export class TwelveDataAdapter implements OnModuleDestroy {
   }
 
   connect(instruments: TradingSymbol[], tickHandler: TickHandler): void {
+    this.close();
     this.tickHandler = tickHandler;
+    this.reconnectAttempt = 0;
+    this.circuitOpenUntilMs = 0;
+    this.lastSocketError = null;
     this.providerSymbolsByInternalSymbol.clear();
     this.internalSymbolsByProviderSymbol.clear();
 
@@ -128,19 +141,34 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     this.status = {
       ...this.status,
       symbolCount: this.providerSymbolsByInternalSymbol.size,
-      lastError: null,
-      status:
-        this.providerSymbolsByInternalSymbol.size > 0 && this.apiKey
-          ? 'connecting'
-          : 'disconnected',
+      status: 'DEGRADED',
+      reason: 'awaiting_first_update',
+      message:
+        this.providerSymbolsByInternalSymbol.size > 0
+          ? 'Awaiting the first successful Twelve Data tick.'
+          : 'No Twelve Data realtime symbols are configured.',
+      retryAt: null,
+      recommendedAction: null,
+      consecutiveFailures: 0,
     };
 
+    if (!this.providerEnabled) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'disabled_by_config',
+        'Twelve Data realtime streaming is disabled by configuration.',
+        'Set TWELVE_DATA_PROVIDER_ENABLED=true to enable realtime streaming.',
+      );
+      return;
+    }
+
     if (!this.apiKey) {
-      this.status = {
-        ...this.status,
-        status: 'disconnected',
-        lastError: 'TWELVE_DATA_API_KEY not configured',
-      };
+      this.status = misconfiguredProviderStatus(
+        this.status,
+        'missing_api_key',
+        'TWELVE_DATA_API_KEY is not configured.',
+        'Set TWELVE_DATA_API_KEY or disable Twelve Data realtime explicitly.',
+      );
       this.logger.log(
         'TWELVE_DATA_API_KEY not configured, using polling fallback for non-crypto prices',
       );
@@ -148,11 +176,12 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     }
 
     if (this.providerSymbolsByInternalSymbol.size === 0) {
-      this.status = {
-        ...this.status,
-        status: 'disconnected',
-        lastError: null,
-      };
+      this.status = disabledProviderStatus(
+        this.status,
+        'no_symbols_configured',
+        'No Twelve Data realtime symbols are configured.',
+        'Populate TWELVE_DATA_WEBSOCKET_SYMBOLS to enable realtime streaming for supported markets.',
+      );
       this.logger.log(
         'No Twelve Data realtime symbols configured, using polling fallback for non-crypto prices',
       );
@@ -173,15 +202,10 @@ export class TwelveDataAdapter implements OnModuleDestroy {
       this.socket.close();
       this.socket = undefined;
     }
-
-    this.status = {
-      ...this.status,
-      status: 'disconnected',
-    };
   }
 
   getStatus() {
-    return { ...this.status };
+    return applyStaleProviderStatus({ ...this.status }, this.staleAfterMs);
   }
 
   getProviderSymbol(
@@ -211,6 +235,10 @@ export class TwelveDataAdapter implements OnModuleDestroy {
   }
 
   private openSocket(): void {
+    if (Date.now() < this.circuitOpenUntilMs) {
+      return;
+    }
+
     if (
       this.socket &&
       (this.socket.readyState === WebSocket.OPEN ||
@@ -225,17 +253,28 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     );
     this.status = {
       ...this.status,
-      status: 'connecting',
-      lastError: null,
+      status: 'DEGRADED',
+      reason: this.status.lastUpdateAt ? 'stale_quotes' : 'awaiting_first_update',
+      message: this.status.lastUpdateAt
+        ? 'Twelve Data reconnect in progress.'
+        : 'Connecting to Twelve Data realtime stream.',
+      retryAt: null,
+      recommendedAction: null,
     };
     this.socket = new WebSocket(wsUrl);
 
     this.socket.on('open', () => {
       this.reconnectAttempt = 0;
+      this.lastSocketError = null;
       this.status = {
         ...this.status,
-        status: 'connected',
-        lastError: null,
+        status: 'DEGRADED',
+        reason: this.status.lastUpdateAt ? 'stale_quotes' : 'awaiting_first_update',
+        message: this.status.lastUpdateAt
+          ? 'Twelve Data stream reconnected; awaiting a fresh tick.'
+          : 'Twelve Data stream connected; awaiting the first tick.',
+        retryAt: null,
+        recommendedAction: null,
       };
       this.logger.log('Twelve Data WebSocket connected');
       this.sendSubscription();
@@ -246,11 +285,7 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     });
 
     this.socket.on('error', (error) => {
-      this.status = {
-        ...this.status,
-        status: 'degraded',
-        lastError: error.message,
-      };
+      this.lastSocketError = error;
       this.logger.error(`Twelve Data WebSocket error: ${error.message}`);
     });
 
@@ -263,17 +298,19 @@ export class TwelveDataAdapter implements OnModuleDestroy {
           ? `Twelve Data WebSocket disconnected (${code}): ${closeReason}`
           : `Twelve Data WebSocket disconnected (${code})`,
       );
-      this.status = {
-        ...this.status,
-        status: 'disconnected',
-        lastError: closeReason || this.status.lastError,
-      };
 
-      if (this.providerSymbolsByInternalSymbol.size === 0) {
+      if (
+        this.providerSymbolsByInternalSymbol.size === 0 ||
+        !this.providerEnabled ||
+        !this.apiKey
+      ) {
         return;
       }
 
-      this.scheduleReconnect();
+      this.scheduleReconnect(
+        this.lastSocketError ??
+          new Error(closeReason || `Twelve Data WebSocket closed with code ${code}`),
+      );
     });
   }
 
@@ -312,9 +349,14 @@ export class TwelveDataAdapter implements OnModuleDestroy {
         if (
           payload.status === 'error' ||
           payload.event === 'error' ||
-          payload.event === 'subscribe-status'
+          (payload.event === 'subscribe-status' && payload.status === 'error')
         ) {
           const message = payload.message ?? payload.status ?? payload.event;
+          this.status = providerStatusWithFailure(
+            this.status,
+            'Twelve Data',
+            new Error(message),
+          );
           this.logger.log(`Twelve Data message: ${message}`);
         }
 
@@ -333,12 +375,7 @@ export class TwelveDataAdapter implements OnModuleDestroy {
       }
 
       const timestamp = this.toIsoTimestamp(payload.timestamp);
-      this.status = {
-        ...this.status,
-        status: 'connected',
-        lastUpdateAt: timestamp,
-        lastError: null,
-      };
+      this.status = okProviderStatus(this.status, timestamp);
 
       void this.tickHandler?.({
         symbol,
@@ -351,15 +388,41 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     }
   }
 
-  private scheduleReconnect(): void {
+  private scheduleReconnect(error: unknown): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
     }
 
     this.reconnectAttempt += 1;
+
+    if (this.reconnectAttempt > this.maxReconnectAttempts) {
+      this.circuitOpenUntilMs = Date.now() + this.circuitOpenMs;
+      this.status = providerStatusWithFailure(
+        this.status,
+        'Twelve Data',
+        error,
+        this.circuitOpenUntilMs,
+      );
+      this.logger.warn(
+        `Twelve Data realtime circuit opened after ${this.maxReconnectAttempts} failed attempts. Retrying after ${this.circuitOpenMs}ms.`,
+      );
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectAttempt = 0;
+        this.circuitOpenUntilMs = 0;
+        this.openSocket();
+      }, this.circuitOpenMs);
+      return;
+    }
+
     const delay = Math.min(
       this.reconnectInitialDelayMs * 2 ** (this.reconnectAttempt - 1),
       this.reconnectMaxDelayMs,
+    );
+    this.status = providerStatusWithFailure(
+      this.status,
+      'Twelve Data',
+      error,
+      Date.now() + delay,
     );
 
     this.reconnectTimer = setTimeout(() => {

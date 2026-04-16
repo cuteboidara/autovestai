@@ -22,6 +22,27 @@ import {
 import { KycSubmission } from '@/types/kyc';
 import { WalletTransaction } from '@/types/wallet';
 
+function formatProviderLabel(provider: string) {
+  switch (provider) {
+    case 'coingecko':
+      return 'CoinGecko';
+    case 'binance':
+      return 'Binance';
+    case 'twelve-data':
+      return 'Twelve Data';
+    case 'forex-api':
+      return 'Forex API';
+    case 'yahoo-finance':
+      return 'Yahoo Finance';
+    default:
+      return provider;
+  }
+}
+
+function formatProviderReason(reason: string | null) {
+  return reason ? reason.replace(/_/g, ' ') : 'none';
+}
+
 export default function AdminOverviewPage() {
   const { hasPermission } = useAuth();
   const exposure = useAdminStore((state) => state.exposure);
@@ -63,7 +84,8 @@ export default function AdminOverviewPage() {
 
       setOverview(overviewResponse);
       setMetrics(metricsResponse);
-      setReadinessPreview(readinessResponse.slice(0, 5));
+      const nonOkReadiness = readinessResponse.filter((item) => item.status !== 'ok');
+      setReadinessPreview((nonOkReadiness.length > 0 ? nonOkReadiness : readinessResponse).slice(0, 5));
       setRecentKyc(kycResponse.slice(0, 5));
       setRecentWalletRequests(walletResponse.slice(0, 5));
       setOpenPositionsPreview(openPositionsResponse.slice(0, 8));
@@ -229,113 +251,172 @@ export default function AdminOverviewPage() {
           {canViewMetrics ? (
             <Panel
               title="Platform Health"
-              description="Pricing feed, Redis, database, websocket clients, and queue state."
+              description="Infrastructure runtime, provider coverage, and sampled market data health."
             >
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-page p-4">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
                   <div className="flex items-center justify-between">
-                    <p className="label-eyebrow">DB / Redis</p>
-                    <StatusBadge
-                      value={
-                        metrics &&
-                        Object.values(metrics.providerHealth).every(
-                          (provider) =>
-                            provider.status === 'connected' || provider.status === 'polling',
-                        )
-                          ? 'ok'
-                          : 'warning'
-                      }
-                    />
+                    <p className="label-eyebrow">Database</p>
+                    <StatusBadge value={metrics?.infrastructure.database.status ?? 'warning'} />
                   </div>
-                  <p className="mt-3 text-sm text-secondary">
-                    Queue backlog {metrics?.queueBacklog.orderExecution ?? '--'} / copy {metrics?.queueBacklog.copyTrading ?? '--'}
+                  <p className="mt-3 break-words text-sm text-secondary">
+                    {metrics?.infrastructure.database.summary ?? 'Loading database health...'}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-page p-4">
+                <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
                   <div className="flex items-center justify-between">
-                    <p className="label-eyebrow">Websocket</p>
-                    <StatusBadge
-                      value={metrics && metrics.websocketConnectedClients > 0 ? 'ok' : 'warning'}
-                    />
+                    <p className="label-eyebrow">Redis</p>
+                    <StatusBadge value={metrics?.infrastructure.redis.status ?? 'warning'} />
                   </div>
-                  <p className="mt-3 text-sm text-secondary">
-                    {metrics?.websocketConnectedClients ?? 0} connected clients
+                  <p className="mt-3 break-words text-sm text-secondary">
+                    {metrics?.infrastructure.redis.summary ?? 'Loading Redis health...'}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-page p-4">
+                <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
                   <div className="flex items-center justify-between">
-                    <p className="label-eyebrow">Failed jobs</p>
-                    <StatusBadge
-                      value={
-                        metrics &&
-                        metrics.failedJobs.orderExecution + metrics.failedJobs.copyTrading > 0
-                          ? 'warning'
-                          : 'ok'
-                      }
-                    />
+                    <p className="label-eyebrow">Queues</p>
+                    <StatusBadge value={metrics?.infrastructure.queues.status ?? 'warning'} />
                   </div>
-                  <p className="mt-3 text-sm text-secondary">
-                    {metrics
-                      ? metrics.failedJobs.orderExecution + metrics.failedJobs.copyTrading
-                      : '--'} failed jobs
+                  <p className="mt-3 break-words text-sm text-secondary">
+                    {metrics?.infrastructure.queues.summary ?? 'Loading queue health...'}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-page p-4">
+                <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
                   <div className="flex items-center justify-between">
-                    <p className="label-eyebrow">Surveillance alerts</p>
-                    <StatusBadge value="ok" />
+                    <p className="label-eyebrow">WebSocket</p>
+                    <StatusBadge value={metrics?.infrastructure.websocket.status ?? 'info'} />
                   </div>
-                  <p className="mt-3 text-sm text-secondary">
-                    {metrics ? Object.values(metrics.surveillanceAlertCounts).reduce((sum, count) => sum + count, 0) : '--'} open alerts
+                  <p className="mt-3 break-words text-sm text-secondary">
+                    {metrics?.infrastructure.websocket.summary ?? 'Loading websocket health...'}
                   </p>
                 </div>
               </div>
               {metrics ? (
                 <div className="mt-4 space-y-4">
-                  <div className="grid gap-3 md:grid-cols-3">
-                    {Object.values(metrics.providerHealth).map((provider) => (
-                      <div
-                        key={provider.provider}
-                        className="rounded-2xl border border-border bg-page p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="font-medium text-primary">
-                            {provider.provider}
-                          </p>
-                          <StatusBadge value={provider.status} />
-                        </div>
-                        <p className="mt-2 text-sm text-secondary">
-                          {provider.transport === 'streaming' ? 'Streaming' : 'Polling'} •{' '}
-                          {provider.symbolCount} symbols
-                        </p>
-                        <p className="mt-2 text-sm text-secondary">
-                          Last update:{' '}
-                          {provider.lastUpdateAt
-                            ? formatDateTime(provider.lastUpdateAt)
-                            : '--'}
-                        </p>
-                        {provider.lastError ? (
-                          <p className="mt-2 text-sm text-amber-300">{provider.lastError}</p>
-                        ) : null}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="label-eyebrow">Failed jobs</p>
+                        <StatusBadge
+                          value={
+                            metrics.failedJobs.orderExecution + metrics.failedJobs.copyTrading > 0
+                              ? 'warning'
+                              : 'ok'
+                          }
+                        />
                       </div>
-                    ))}
+                      <p className="mt-3 break-words text-sm text-secondary">
+                        {metrics.failedJobs.orderExecution + metrics.failedJobs.copyTrading} failed
+                        jobs across order execution and copy trading.
+                      </p>
+                    </div>
+                    <div className="min-w-0 rounded-2xl border border-border bg-page p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="label-eyebrow">Surveillance alerts</p>
+                        <StatusBadge value="ok" />
+                      </div>
+                      <p className="mt-3 break-words text-sm text-secondary">
+                        {Object.values(metrics.surveillanceAlertCounts).reduce((sum, count) => sum + count, 0)} open
+                        alerts currently tracked.
+                      </p>
+                    </div>
                   </div>
 
+                  <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="label-eyebrow">Market Providers</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                        Health, reason, retry, and action
+                      </p>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {Object.values(metrics.providerHealth).map((provider) => (
+                        <div
+                          key={provider.provider}
+                          className="min-w-0 rounded-2xl border border-border bg-page p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="break-words font-medium text-primary">
+                                {formatProviderLabel(provider.provider)}
+                              </p>
+                              <p className="mt-2 break-words text-sm text-secondary">
+                                {provider.transport === 'streaming' ? 'Streaming' : 'Polling'} •{' '}
+                                {provider.symbolCount} symbols
+                              </p>
+                            </div>
+                            <StatusBadge value={provider.status} className="shrink-0" />
+                          </div>
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div className="min-w-0 rounded-xl border border-border/70 bg-panel/40 p-3">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                                Reason
+                              </p>
+                              <p className="mt-1 break-words text-sm text-primary">
+                                {formatProviderReason(provider.reason)}
+                              </p>
+                            </div>
+                            <div className="min-w-0 rounded-xl border border-border/70 bg-panel/40 p-3">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                                Last update
+                              </p>
+                              <p className="mt-1 break-words text-sm text-primary">
+                                {provider.lastUpdateAt
+                                  ? formatDateTime(provider.lastUpdateAt)
+                                  : 'No successful update yet'}
+                              </p>
+                            </div>
+                          </div>
+                          {provider.message ? (
+                            <p className="mt-3 break-words text-sm text-secondary">
+                              {provider.message}
+                            </p>
+                          ) : null}
+                          {provider.retryAt ? (
+                            <p className="mt-2 break-words text-sm text-secondary">
+                              Next retry {formatDateTime(provider.retryAt)}
+                            </p>
+                          ) : null}
+                          {provider.recommendedAction ? (
+                            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                                Recommended Action
+                              </p>
+                              <p className="mt-1 break-words text-sm text-amber-100">
+                                {provider.recommendedAction}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="md:col-span-3 flex items-center justify-between gap-3">
+                      <p className="label-eyebrow">Sample Market Coverage</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                        Cached quotes for key instruments
+                      </p>
+                    </div>
+                  </div>
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     {metrics.sampleQuotes.map((item) => (
                       <div
                         key={item.symbol}
-                        className="rounded-2xl border border-border bg-page p-4"
+                        className="min-w-0 rounded-2xl border border-border bg-page p-4"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <p className="font-medium text-primary">{item.symbol}</p>
-                          <StatusBadge value={item.lastPrice ? 'ok' : 'warning'} />
+                          <StatusBadge
+                            value={item.lastPrice ? (item.delayed ? 'degraded' : 'ok') : 'warning'}
+                          />
                         </div>
-                        <p className="mt-2 text-sm text-secondary">
+                        <p className="mt-2 break-words text-sm text-secondary">
                           {item.lastPrice != null ? formatNumber(item.lastPrice, 4) : '--'} •{' '}
                           {item.provider ?? 'unknown'}
                         </p>
-                        <p className="mt-2 text-sm text-secondary">
+                        <p className="mt-2 break-words text-sm text-secondary">
                           {item.lastUpdated ? formatDateTime(item.lastUpdated) : 'No update yet'}
                         </p>
                         {item.delayed ? (
@@ -360,17 +441,21 @@ export default function AdminOverviewPage() {
                 {readinessPreview.map((item) => (
                   <div
                     key={item.key}
-                    className="rounded-2xl border border-border bg-page p-4"
+                    className="min-w-0 rounded-2xl border border-border bg-page p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium text-primary">{item.label}</p>
-                      <StatusBadge value={item.status} />
+                      <div className="min-w-0">
+                        <p className="break-words font-medium text-primary">{item.label}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted">
+                          {item.category}
+                        </p>
+                      </div>
+                      <StatusBadge value={item.status} className="shrink-0" />
                     </div>
-                    <p className="mt-2 text-sm text-secondary">
-                      {typeof item.detail === 'string'
-                        ? item.detail
-                        : JSON.stringify(item.detail)}
-                    </p>
+                    <p className="mt-2 break-words text-sm text-secondary">{item.summary}</p>
+                    {item.action ? (
+                      <p className="mt-2 break-words text-sm text-amber-200">{item.action}</p>
+                    ) : null}
                   </div>
                 ))}
               </div>

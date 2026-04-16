@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Symbol as TradingSymbol } from '@prisma/client';
 
 import { StooqPricingAdapter } from '../stooq.adapter';
@@ -6,6 +7,13 @@ import {
   PricingProviderStatus,
   PricingUpdateHandler,
 } from './pricing-provider.types';
+import {
+  applyStaleProviderStatus,
+  createProviderStatus,
+  disabledProviderStatus,
+  okProviderStatus,
+  providerStatusWithFailure,
+} from './provider-health.util';
 
 interface YahooQuoteResponse {
   quoteResponse?: {
@@ -32,28 +40,29 @@ export class YahooProvider implements OnModuleDestroy {
   private readonly yahooUrl = 'https://query2.finance.yahoo.com/v7/finance/quote';
   private readonly pollMs = 15_000;
   private readonly batchSize = 40;
+  private readonly providerEnabled: boolean;
+  private readonly staleAfterMs = this.pollMs * 4;
   private instruments: TradingSymbol[] = [];
   private timer?: NodeJS.Timeout;
   private backoffDelayMs = 0;
+  private retryAtMs = 0;
+  private pollInFlight = false;
   private updateHandler?: PricingUpdateHandler;
   private crumb: string | null = null;
   private cookie: string | null = null;
   private crumbExpiresAt = 0;
-  private status: PricingProviderStatus = {
-    provider: 'yahoo-finance',
-    transport: 'polling',
-    status: 'disconnected',
-    symbolCount: 0,
-    lastUpdateAt: null,
-    lastError: null,
-  };
-
-  constructor(
-    private readonly stooqPricingAdapter: StooqPricingAdapter,
-  ) {}
+  private status: PricingProviderStatus = createProviderStatus('yahoo-finance', 'polling');
 
   onModuleDestroy(): void {
     this.stop();
+  }
+
+  constructor(
+    private readonly stooqPricingAdapter: StooqPricingAdapter,
+    private readonly configService: ConfigService,
+  ) {
+    this.providerEnabled =
+      this.configService.get<boolean>('pricing.yahooEnabled') ?? true;
   }
 
   async start(
@@ -66,11 +75,34 @@ export class YahooProvider implements OnModuleDestroy {
     this.status = {
       ...this.status,
       symbolCount: this.instruments.length,
-      status: this.instruments.length > 0 ? 'polling' : 'disconnected',
-      lastError: null,
+      status: 'DEGRADED',
+      reason: 'awaiting_first_update',
+      message:
+        this.instruments.length > 0
+          ? 'Awaiting the first successful Yahoo poll.'
+          : 'No active Yahoo symbols are configured.',
+      retryAt: null,
+      recommendedAction: null,
+      consecutiveFailures: 0,
     };
 
+    if (!this.providerEnabled) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'disabled_by_config',
+        'Yahoo Finance polling is disabled by configuration.',
+        'Set YAHOO_PROVIDER_ENABLED=true to enable the Yahoo polling provider.',
+      );
+      return;
+    }
+
     if (this.instruments.length === 0) {
+      this.status = disabledProviderStatus(
+        this.status,
+        'no_symbols_configured',
+        'No active Yahoo symbols are configured.',
+        null,
+      );
       return;
     }
 
@@ -88,7 +120,7 @@ export class YahooProvider implements OnModuleDestroy {
   }
 
   getStatus() {
-    return { ...this.status };
+    return applyStaleProviderStatus({ ...this.status }, this.staleAfterMs);
   }
 
   private async ensureCrumb(): Promise<void> {
@@ -144,6 +176,11 @@ export class YahooProvider implements OnModuleDestroy {
   }
 
   private async fetchQuotes() {
+    if (this.pollInFlight || Date.now() < this.retryAtMs) {
+      return;
+    }
+
+    this.pollInFlight = true;
     const updatedAt = new Date().toISOString();
     const unresolved = new Map(this.instruments.map((instrument) => [instrument.symbol, instrument]));
 
@@ -245,28 +282,23 @@ export class YahooProvider implements OnModuleDestroy {
 
       await this.fetchStooqFallback(unresolved, updatedAt);
 
-      this.status = {
-        ...this.status,
-        status: 'polling',
-        lastUpdateAt: updatedAt,
-        lastError: null,
-      };
+      this.retryAtMs = 0;
+      this.status = okProviderStatus(this.status, updatedAt);
       this.backoffDelayMs = 0;
     } catch (error) {
       this.backoffDelayMs = this.backoffDelayMs === 0
         ? 30_000
         : Math.min(this.backoffDelayMs * 2, 300_000);
-      this.status = {
-        ...this.status,
-        status: 'degraded',
-        lastError: (error as Error).message,
-      };
-      this.logger.warn(
-        `Yahoo polling failed: ${(error as Error).message}. Backing off for ${this.backoffDelayMs}ms.`,
+      this.retryAtMs = Date.now() + this.backoffDelayMs;
+      this.status = providerStatusWithFailure(
+        this.status,
+        'Yahoo Finance',
+        error,
+        this.retryAtMs,
       );
-      if (this.backoffDelayMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, this.backoffDelayMs));
-      }
+      this.logger.warn(
+        `Yahoo polling failed: ${this.status.message}. Backing off for ${this.backoffDelayMs}ms.`,
+      );
       await this.fetchStooqFallback(unresolved, updatedAt).catch((fallbackError) => {
         this.logger.warn(
           `Stooq fallback failed: ${
@@ -274,6 +306,8 @@ export class YahooProvider implements OnModuleDestroy {
           }`,
         );
       });
+    } finally {
+      this.pollInFlight = false;
     }
   }
 

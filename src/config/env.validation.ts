@@ -110,6 +110,17 @@ export function validateEnv(config: EnvShape): EnvShape {
     config.RECONCILIATION_ENABLE_SCHEDULED_RUNS,
     'RECONCILIATION_ENABLE_SCHEDULED_RUNS',
   );
+  ensureBooleanLike(
+    config.COINGECKO_PROVIDER_ENABLED,
+    'COINGECKO_PROVIDER_ENABLED',
+  );
+  ensureBooleanLike(config.BINANCE_PROVIDER_ENABLED, 'BINANCE_PROVIDER_ENABLED');
+  ensureBooleanLike(
+    config.TWELVE_DATA_PROVIDER_ENABLED,
+    'TWELVE_DATA_PROVIDER_ENABLED',
+  );
+  ensureBooleanLike(config.FOREX_PROVIDER_ENABLED, 'FOREX_PROVIDER_ENABLED');
+  ensureBooleanLike(config.YAHOO_PROVIDER_ENABLED, 'YAHOO_PROVIDER_ENABLED');
   ensureBooleanLike(config.REDIS_REQUIRED_ON_STARTUP, 'REDIS_REQUIRED_ON_STARTUP');
   ensureEmailLike(config.SUPER_ADMIN_EMAIL, 'SUPER_ADMIN_EMAIL');
 
