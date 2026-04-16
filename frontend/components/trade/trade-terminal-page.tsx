@@ -1,15 +1,10 @@
 'use client';
 
 import { ChevronRight, X, Search } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 
 import { OrderTicket } from '@/components/trade/order-ticket';
-import {
-  TradeActivityPanel,
-  TradeBottomTab,
-  TradeBottomTabMeta,
-} from '@/components/trade/trade-activity-panel';
 import { TradeInstrumentHeader } from '@/components/trade/trade-instrument-header';
 import { TradeTopBar } from '@/components/trade/trade-top-bar';
 import { TradingViewPanel } from '@/components/trade/trading-view-panel';
@@ -97,51 +92,6 @@ function arraysEqual(left: string[], right: string[]) {
   );
 }
 
-const bottomTabMeta: Record<TradeBottomTab, TradeBottomTabMeta> = {
-  open: {
-    label: 'Open Positions',
-    shortLabel: 'Open',
-    emptyTitle: 'No open positions',
-    emptyDescription: 'Filled live trades will appear here once market exposure is active.',
-  },
-  pending: {
-    label: 'Pending Orders',
-    shortLabel: 'Pending',
-    emptyTitle: 'No pending orders',
-    emptyDescription: 'Working limit orders will appear here when they are queued for execution.',
-  },
-  closed: {
-    label: 'Closed Positions',
-    shortLabel: 'Closed',
-    emptyTitle: 'No closed positions',
-    emptyDescription: 'Settled positions and realized results will appear here after positions close.',
-  },
-  history: {
-    label: 'Order History',
-    shortLabel: 'History',
-    emptyTitle: 'No order history',
-    emptyDescription: 'Executed, rejected, and cancelled orders will appear here once routing activity starts.',
-  },
-};
-
-function mapSearchTab(value: string | null): TradeBottomTab {
-  if (value === 'orders') return 'pending';
-  if (value === 'history') return 'history';
-  if (value === 'closed') return 'closed';
-  return 'open';
-}
-
-function mapBottomTabToSearch(tab: TradeBottomTab) {
-  if (tab === 'pending') return 'orders';
-  if (tab === 'history') return 'history';
-  if (tab === 'closed') return 'closed';
-  return 'open';
-}
-
-function clampHeight(value: number) {
-  return Math.min(Math.max(value, 220), 420);
-}
-
 function dateValue(value?: string | null) {
   return value ? new Date(value).getTime() : 0;
 }
@@ -157,10 +107,6 @@ function resolutionMatches(
   return supportedResolutions.includes(resolution) || (
     resolution === '1D' && supportedResolutions.includes('D')
   );
-}
-
-function positionPnlSignatureValue(value: number) {
-  return Number.isFinite(value) ? value.toFixed(8) : '0.00000000';
 }
 
 function MobileSymbolSearchRow({
@@ -205,9 +151,7 @@ function MobileSymbolSearchRow({
 }
 
 export function TradeTerminalPage() {
-  const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const pushNotification = useNotificationStore((state) => state.push);
   const websocketConnected = useAdminStore((state) => state.websocketConnected);
@@ -220,7 +164,6 @@ export function TradeTerminalPage() {
   const upsertQuote = useMarketDataStore((state) => state.upsertQuote);
   const wallet = useWalletStore((state) => state.wallet);
   const setSnapshot = useWalletStore((state) => state.setSnapshot);
-  const orders = useOrdersStore((state) => state.orders);
   const setOrders = useOrdersStore((state) => state.setOrders);
   const positions = usePositionsStore((state) => state.positions);
   const setPositions = usePositionsStore((state) => state.setPositions);
@@ -236,20 +179,11 @@ export function TradeTerminalPage() {
   const [symbols, setSymbols] = useState<SymbolInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [watchlistCollapsed, setWatchlistCollapsed] = useState(false);
-  // Keep the activity panel mount behind explicit state so it can be re-enabled later.
-  const [showActivity] = useState(false);
-  const [positionsHeight, setPositionsHeight] = useState(280);
-  const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
   const [preferredSide, setPreferredSide] = useState<'BUY' | 'SELL' | null>(null);
   const [mobileSymbolModalOpen, setMobileSymbolModalOpen] = useState(false);
   const [symbolSearch, setSymbolSearch] = useState('');
-  const [closingPositionId, setClosingPositionId] = useState<string | null>(null);
-  const [flashedPnlIds, setFlashedPnlIds] = useState<Record<string, true>>({});
-  const resizeStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
-  const previousPnlRef = useRef<Record<string, number>>({});
   const watchlistStorageKey = useMemo(() => getWatchlistStorageKey(user?.id), [user?.id]);
 
-  const activeBottomTab = mapSearchTab(searchParams.get('tab'));
   const activeSymbol = selectedSymbol.trim();
   const selectedSymbolInfo = useMemo(
     () => symbols.find((symbol) => symbol.symbol === activeSymbol),
@@ -259,10 +193,6 @@ export function TradeTerminalPage() {
   const selectedSymbolHealth = activeSymbol
     ? platformStatus?.symbolHealth[activeSymbol]
     : undefined;
-  const symbolDigitsMap = useMemo(
-    () => Object.fromEntries(symbols.map((symbol) => [symbol.symbol, symbol.digits])),
-    [symbols],
-  );
   const resolvedTimeframes = useMemo(
     () =>
       timeframeButtons.map((timeframe) => ({
@@ -297,58 +227,11 @@ export function TradeTerminalPage() {
     [activeSymbol, allSymbolKeys, openPositions],
   );
   useLivePriceSubscription(liveSubscriptionSymbols);
-  const closedPositions = useMemo(
-    () =>
-      positions
-        .filter(
-          (position) =>
-            position.status === 'CLOSED' &&
-            (!activeAccountId || position.accountId === activeAccountId),
-        )
-        .sort(
-          (left, right) =>
-            dateValue(right.closedAt ?? right.updatedAt) -
-            dateValue(left.closedAt ?? left.updatedAt),
-        ),
-    [activeAccountId, positions],
-  );
-  const pendingOrders = useMemo(
-    () =>
-      orders
-        .filter(
-          (order) =>
-            ['PENDING', 'OPEN', 'PROCESSING'].includes(order.status) &&
-            (!activeAccountId || order.accountId === activeAccountId),
-        )
-        .sort((left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)),
-    [activeAccountId, orders],
-  );
-  const orderHistory = useMemo(
-    () =>
-      orders
-        .filter(
-          (order) =>
-            ['EXECUTED', 'REJECTED', 'CANCELLED'].includes(order.status) &&
-            (!activeAccountId || order.accountId === activeAccountId),
-        )
-        .sort((left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)),
-    [activeAccountId, orders],
-  );
   const liveFloatingPnl = useMarketDataStore((state) =>
     openPositions.reduce(
       (total, position) => total + calculateLivePositionPnl(position, state.quotes[position.symbol]),
       0,
     ),
-  );
-  const liveOpenPositionPnlSignature = useMarketDataStore((state) =>
-    openPositions
-      .map(
-        (position) =>
-          `${position.id}:${positionPnlSignatureValue(
-            calculateLivePositionPnl(position, state.quotes[position.symbol]),
-          )}`,
-      )
-      .join('|'),
   );
 
   async function refreshTerminalData() {
@@ -515,82 +398,6 @@ export function TradeTerminalPage() {
     websocketConnected,
   ]);
 
-  useEffect(() => {
-    if (!liveOpenPositionPnlSignature) {
-      return;
-    }
-
-    const nextFlashes: Record<string, true> = {};
-
-    for (const entry of liveOpenPositionPnlSignature.split('|')) {
-      if (!entry) {
-        continue;
-      }
-
-      const separatorIndex = entry.indexOf(':');
-
-      if (separatorIndex === -1) {
-        continue;
-      }
-
-      const positionId = entry.slice(0, separatorIndex);
-      const nextPnl = Number(entry.slice(separatorIndex + 1));
-      const previous = previousPnlRef.current[positionId];
-
-      if (typeof previous === 'number' && previous !== nextPnl) {
-        nextFlashes[positionId] = true;
-      }
-
-      previousPnlRef.current[positionId] = nextPnl;
-    }
-
-    if (Object.keys(nextFlashes).length === 0) {
-      return;
-    }
-
-    setFlashedPnlIds((current) => ({ ...current, ...nextFlashes }));
-    const timeoutId = window.setTimeout(() => {
-      setFlashedPnlIds((current) => {
-        const next = { ...current };
-
-        for (const positionId of Object.keys(nextFlashes)) {
-          delete next[positionId];
-        }
-
-        return next;
-      });
-    }, 420);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [liveOpenPositionPnlSignature]);
-
-  useEffect(() => {
-    function handleMouseMove(event: MouseEvent) {
-      if (!resizeStateRef.current) {
-        return;
-      }
-
-      const nextHeight = clampHeight(
-        resizeStateRef.current.startHeight - (event.clientY - resizeStateRef.current.startY),
-      );
-      setPositionsHeight(nextHeight);
-    }
-
-    function handleMouseUp() {
-      resizeStateRef.current = null;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    }
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-
   const floatingPnl = liveFloatingPnl;
   const usedMargin =
     wallet?.usedMargin ??
@@ -635,14 +442,6 @@ export function TradeTerminalPage() {
           : 'text-[var(--terminal-red)]',
     },
   ];
-  const rows =
-    activeBottomTab === 'open'
-      ? openPositions
-      : activeBottomTab === 'pending'
-        ? pendingOrders
-        : activeBottomTab === 'closed'
-          ? closedPositions
-          : orderHistory;
   const spreadDisplay =
     selectedQuote && selectedSymbolInfo
       ? formatNumber(selectedQuote.ask - selectedQuote.bid, selectedSymbolInfo.digits)
@@ -762,12 +561,7 @@ export function TradeTerminalPage() {
             <div
               data-testid="trade-terminal-scroll-region"
               style={terminalLayoutStyle}
-              className={cn(
-                'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto md:pb-0 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden',
-                showActivity
-                  ? 'pb-[calc(88px+env(safe-area-inset-bottom))]'
-                  : 'pb-[env(safe-area-inset-bottom)]',
-              )}
+              className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pb-[env(safe-area-inset-bottom)] md:pb-0 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden"
             >
               <button
                 type="button"
@@ -864,39 +658,6 @@ export function TradeTerminalPage() {
                   className="h-auto lg:h-full"
                 />
               </div>
-
-              {showActivity ? (
-                <div className="min-w-0 lg:col-span-3">
-                  <TradeActivityPanel
-                    activeTab={activeBottomTab}
-                    bottomTabMeta={bottomTabMeta}
-                    rows={rows}
-                    symbolDigitsMap={symbolDigitsMap}
-                    positionsHeight={positionsHeight}
-                    closingPositionId={closingPositionId}
-                    flashedPnlIds={flashedPnlIds}
-                    mobileExpanded={mobilePositionsExpanded}
-                    onSetTab={(tab) => {
-                      const params = new URLSearchParams(searchParams.toString());
-                      params.set('tab', mapBottomTabToSearch(tab));
-                      router.replace(`${pathname}?${params.toString()}`);
-                    }}
-                    onClosePosition={(positionId) => {
-                      setClosingPositionId(positionId);
-                      void positionsApi
-                        .close(positionId)
-                        .then(() => refreshTerminalData())
-                        .finally(() => setClosingPositionId(null));
-                    }}
-                    onResizeStart={(clientY) => {
-                      resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
-                      document.body.style.cursor = 'row-resize';
-                      document.body.style.userSelect = 'none';
-                    }}
-                    onMobileExpandedChange={setMobilePositionsExpanded}
-                  />
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
@@ -950,12 +711,7 @@ export function TradeTerminalPage() {
       {loading ? (
         <div
           style={terminalLayoutStyle}
-          className={cn(
-            'pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/82 px-2 py-2 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:gap-2 lg:px-3 lg:py-3',
-            showActivity
-              ? 'lg:grid-rows-[minmax(0,1fr)_260px]'
-              : 'lg:grid-rows-[minmax(0,1fr)]',
-          )}
+          className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/82 px-2 py-2 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)] lg:gap-2 lg:px-3 lg:py-3"
         >
           <div className="terminal-panel space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -986,11 +742,6 @@ export function TradeTerminalPage() {
               ))}
             </div>
           </div>
-          {showActivity ? (
-            <div className="terminal-panel col-span-full hidden p-4 lg:block">
-              <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
-            </div>
-          ) : null}
         </div>
       ) : null}
     </div>

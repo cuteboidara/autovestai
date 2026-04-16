@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { TradeActivityPage } from '@/components/trade/trade-activity-page';
 
 export default function OrdersPage() {
-  // FIX: Preserve the dedicated launch route while reusing the live terminal orders tab.
-  redirect('/trade?tab=orders');
+  return <TradeActivityPage kind="orders" />;
 }

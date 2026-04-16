@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { TradeActivityPage } from '@/components/trade/trade-activity-page';
 
 export default function PositionsPage() {
-  // FIX: Preserve the dedicated launch route while reusing the live terminal positions tab.
-  redirect('/trade?tab=open');
+  return <TradeActivityPage kind="positions" />;
 }
