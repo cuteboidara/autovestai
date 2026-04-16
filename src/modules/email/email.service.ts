@@ -7,6 +7,10 @@ const sgMail: typeof sgMailModule =
   (sgMailModule as unknown as { default?: typeof sgMailModule }).default ?? sgMailModule;
 
 import { PrismaService } from '../../common/prisma/prisma.service';
+import {
+  getUserDisplayName,
+  type EmailIdentitySource,
+} from '../../common/utils/email-recipient-identity';
 
 export type EmailTemplate =
   | 'welcome'
@@ -32,11 +36,22 @@ export type EmailTemplate =
   | 'copy_stopped'
   | 'copy_provider_alert';
 
+type EmailVariableValue = string | number | undefined;
+type EmailVariables = Record<string, EmailVariableValue>;
+
 interface EmailParams {
   to: string;
   template: EmailTemplate;
-  variables: Record<string, string | number | undefined>;
+  variables: EmailVariables;
 }
+
+type ResolvedEmailUser = EmailIdentitySource & {
+  email: string;
+  accountNumber: string;
+  kycSubmission: {
+    fullName: string | null;
+  } | null;
+};
 
 @Injectable()
 export class EmailService {
@@ -115,10 +130,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'welcome',
-      variables: {
-        accountNumber: user.accountNumber,
-        verifyLink,
-      },
+      variables: this.buildTemplateVariables(user, { verifyLink }),
     });
   }
 
@@ -129,7 +141,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'email_verified',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -140,7 +152,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'password_reset',
-      variables: { accountNumber: user.accountNumber, resetLink },
+      variables: this.buildTemplateVariables(user, { resetLink }),
     });
   }
 
@@ -151,7 +163,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'password_changed',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -166,7 +178,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'new_device_login',
-      variables: { accountNumber: user.accountNumber, ip, userAgent },
+      variables: this.buildTemplateVariables(user, { ip, userAgent }),
     });
   }
 
@@ -177,7 +189,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'account_suspended',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -188,7 +200,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'account_activated',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -199,7 +211,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'kyc_submitted',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -210,7 +222,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'kyc_approved',
-      variables: { accountNumber: user.accountNumber },
+      variables: this.buildTemplateVariables(user),
     });
   }
 
@@ -221,7 +233,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'kyc_rejected',
-      variables: { accountNumber: user.accountNumber, reason },
+      variables: this.buildTemplateVariables(user, { reason }),
     });
   }
 
@@ -232,7 +244,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'deposit_pending',
-      variables: { accountNumber: user.accountNumber, amount },
+      variables: this.buildTemplateVariables(user, { amount }),
     });
   }
 
@@ -243,7 +255,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'deposit_approved',
-      variables: { accountNumber: user.accountNumber, amount },
+      variables: this.buildTemplateVariables(user, { amount }),
     });
   }
 
@@ -258,7 +270,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'deposit_rejected',
-      variables: { accountNumber: user.accountNumber, amount, reason },
+      variables: this.buildTemplateVariables(user, { amount, reason }),
     });
   }
 
@@ -272,7 +284,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'withdrawal_requested',
-      variables: { accountNumber: user.accountNumber, amount },
+      variables: this.buildTemplateVariables(user, { amount }),
     });
   }
 
@@ -286,7 +298,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'withdrawal_approved',
-      variables: { accountNumber: user.accountNumber, amount },
+      variables: this.buildTemplateVariables(user, { amount }),
     });
   }
 
@@ -301,7 +313,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'withdrawal_rejected',
-      variables: { accountNumber: user.accountNumber, amount, reason },
+      variables: this.buildTemplateVariables(user, { amount, reason }),
     });
   }
 
@@ -312,7 +324,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'first_trade',
-      variables: { accountNumber: user.accountNumber, symbol },
+      variables: this.buildTemplateVariables(user, { symbol }),
     });
   }
 
@@ -326,7 +338,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'margin_call',
-      variables: { accountNumber: user.accountNumber, marginLevel },
+      variables: this.buildTemplateVariables(user, { marginLevel }),
     });
   }
 
@@ -337,7 +349,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'stop_out',
-      variables: { accountNumber: user.accountNumber, marginLevel },
+      variables: this.buildTemplateVariables(user, { marginLevel }),
     });
   }
 
@@ -351,7 +363,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'copy_started',
-      variables: { accountNumber: user.accountNumber, providerName },
+      variables: this.buildTemplateVariables(user, { providerName }),
     });
   }
 
@@ -365,7 +377,7 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'copy_stopped',
-      variables: { accountNumber: user.accountNumber, providerName },
+      variables: this.buildTemplateVariables(user, { providerName }),
     });
   }
 
@@ -380,18 +392,40 @@ export class EmailService {
     await this.send({
       to: user.email,
       template: 'copy_provider_alert',
-      variables: { accountNumber: user.accountNumber, providerName, message },
+      variables: this.buildTemplateVariables(user, {
+        providerName,
+        message,
+      }),
     });
   }
 
   // --- Internals ---
 
+  private buildTemplateVariables(
+    user: ResolvedEmailUser,
+    extra: EmailVariables = {},
+  ): EmailVariables {
+    return {
+      ...extra,
+      accountNumber: user.accountNumber,
+      recipientName: getUserDisplayName(user),
+    };
+  }
+
   private async resolveUser(
     userId: string,
-  ): Promise<{ email: string; accountNumber: string } | null> {
+  ): Promise<ResolvedEmailUser | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
-      select: { email: true, accountNumber: true },
+      select: {
+        email: true,
+        accountNumber: true,
+        kycSubmission: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -403,7 +437,7 @@ export class EmailService {
 
   private renderTemplate(
     template: EmailTemplate,
-    vars: Record<string, string | number | undefined>,
+    vars: EmailVariables,
   ): { subject: string; html: string } {
     const config = TEMPLATES[template];
     const body = config.body(vars);
@@ -455,19 +489,19 @@ ${body}
 // --- Template definitions ---
 
 const v = (
-  vars: Record<string, string | number | undefined>,
+  vars: EmailVariables,
   key: string,
 ): string => String(vars[key] ?? '');
 
-const greeting = (vars: Record<string, string | number | undefined>) =>
-  `<p style="margin:0 0 16px;color:#F9FAFB;">Hello ${v(vars, 'accountNumber')},</p>`;
+const greeting = (vars: EmailVariables) =>
+  `<p style="margin:0 0 16px;color:#F9FAFB;">Hello ${v(vars, 'recipientName') || 'there'},</p>`;
 
 const cta = (href: string, label: string) =>
   `<p style="margin:24px 0;"><a href="${href}" style="display:inline-block;padding:12px 28px;background-color:#F5A623;color:#0A0E1A;font-size:14px;font-weight:600;border-radius:8px;text-decoration:none;">${label}</a></p>`;
 
 type TemplateConfig = {
-  subject: (vars: Record<string, string | number | undefined>) => string;
-  body: (vars: Record<string, string | number | undefined>) => string;
+  subject: (vars: EmailVariables) => string;
+  body: (vars: EmailVariables) => string;
 };
 
 const TEMPLATES: Record<EmailTemplate, TemplateConfig> = {

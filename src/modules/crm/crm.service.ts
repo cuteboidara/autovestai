@@ -26,6 +26,7 @@ import {
 } from '../../common/prisma/selects';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { toNumber } from '../../common/utils/decimal';
+import { getUserDisplayName } from '../../common/utils/email-recipient-identity';
 import {
   serializeOrder,
   serializePosition,
@@ -576,6 +577,11 @@ export class CrmService {
         id: true,
         email: true,
         accountNumber: true,
+        kycSubmission: {
+          select: {
+            fullName: true,
+          },
+        },
       },
     });
 
@@ -587,10 +593,11 @@ export class CrmService {
       params.status === KycStatus.APPROVED
         ? 'Your KYC review has been approved'
         : 'Your KYC review has been rejected';
+    const recipientName = getUserDisplayName(user);
     const body =
       params.status === KycStatus.APPROVED
-        ? `<p>Hello ${user.accountNumber},</p><p>Your KYC review has been approved. You can now access the client platform.</p>`
-        : `<p>Hello ${user.accountNumber},</p><p>Your KYC review has been rejected.</p><p>Reason: ${params.reason ?? 'Additional information is required.'}</p>`;
+        ? `<p>Hello ${recipientName},</p><p>Your KYC review has been approved. You can now access the client platform.</p>`
+        : `<p>Hello ${recipientName},</p><p>Your KYC review has been rejected.</p><p>Reason: ${params.reason ?? 'Additional information is required.'}</p>`;
     const transport = this.createTransport(sender);
 
     try {

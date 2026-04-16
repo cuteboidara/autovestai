@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ChevronUp, ListPlus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { useLiveQuote } from '@/hooks/use-live-prices';
 import { calculateLivePositionPnl, getLivePositionMark } from '@/lib/trade-live-metrics';
@@ -110,10 +110,12 @@ export function TradeActivityPanel({
   onResizeStart,
   onMobileExpandedChange,
 }: TradeActivityPanelProps) {
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const isOrderTab = activeTab === 'pending' || activeTab === 'history';
   const isClosedPositionsTab = activeTab === 'closed';
   const positionRows = rows as PositionRecord[];
   const orderRows = rows as OrderRecord[];
+  const desktopPanelId = useId();
 
   const renderDesktopTable = () => {
     if (rows.length === 0) {
@@ -375,46 +377,72 @@ export function TradeActivityPanel({
 
   return (
     <>
-      <div
-        className="terminal-panel hidden overflow-hidden md:block"
-        style={{ height: positionsHeight }}
-      >
-        <button
-          type="button"
-          className="flex h-3 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[rgba(9,16,26,0.9)]"
-          onMouseDown={(event) => onResizeStart(event.clientY)}
-        >
-          <span className="h-px w-12 bg-[var(--terminal-text-muted)]" />
-        </button>
-
-        <div className="flex h-[calc(100%-12px)] min-h-0 flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-1">
-              {(Object.entries(bottomTabMeta) as Array<[TradeBottomTab, TradeBottomTabMeta]>).map(
-                ([value, meta]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => onSetTab(value)}
-                    className={cn(
-                      'inline-flex h-7 items-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150',
-                      activeTab === value
-                        ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
-                        : 'border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
-                    )}
-                  >
-                    {meta.label}
-                  </button>
-                ),
+      <div className="hidden md:block">
+        <div className="flex justify-center py-1.5">
+          <button
+            type="button"
+            aria-controls={desktopPanelId}
+            aria-expanded={isActivityOpen}
+            aria-label={isActivityOpen ? 'Collapse activity panel' : 'Expand activity panel'}
+            className="inline-flex h-7 w-12 items-center justify-center rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.92)] text-[var(--terminal-text-secondary)] transition duration-200 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]"
+            onClick={() => setIsActivityOpen((open) => !open)}
+          >
+            <ChevronUp
+              className={cn(
+                'h-4 w-4 transition-transform duration-300',
+                isActivityOpen ? '' : 'rotate-180',
               )}
-            </div>
-            <span className="text-[11px] text-[var(--terminal-text-secondary)]">
-              {rows.length} {rows.length === 1 ? 'row' : 'rows'}
-            </span>
-          </div>
+            />
+          </button>
+        </div>
 
-          <div className="terminal-scrollbar min-h-0 flex-1 overflow-auto">
-            {renderDesktopTable()}
+        <div
+          id={desktopPanelId}
+          className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+          style={{ maxHeight: isActivityOpen ? `${positionsHeight}px` : '0px' }}
+        >
+          <div
+            className="terminal-panel overflow-hidden"
+            style={{ height: positionsHeight }}
+          >
+            <button
+              type="button"
+              className="flex h-3 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[rgba(9,16,26,0.9)]"
+              onMouseDown={(event) => onResizeStart(event.clientY)}
+            >
+              <span className="h-px w-12 bg-[var(--terminal-text-muted)]" />
+            </button>
+
+            <div className="flex h-[calc(100%-12px)] min-h-0 flex-col">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-1">
+                  {(Object.entries(bottomTabMeta) as Array<[TradeBottomTab, TradeBottomTabMeta]>).map(
+                    ([value, meta]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => onSetTab(value)}
+                        className={cn(
+                          'inline-flex h-7 items-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150',
+                          activeTab === value
+                            ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
+                            : 'border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
+                        )}
+                      >
+                        {meta.label}
+                      </button>
+                    ),
+                  )}
+                </div>
+                <span className="text-[11px] text-[var(--terminal-text-secondary)]">
+                  {rows.length} {rows.length === 1 ? 'row' : 'rows'}
+                </span>
+              </div>
+
+              <div className="terminal-scrollbar min-h-0 flex-1 overflow-auto">
+                {renderDesktopTable()}
+              </div>
+            </div>
           </div>
         </div>
       </div>
