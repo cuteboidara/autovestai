@@ -2,9 +2,11 @@
 
 import { motion } from 'framer-motion';
 import { ChevronUp, ListPlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
+import { useLiveQuote } from '@/hooks/use-live-prices';
+import { calculateLivePositionPnl, getLivePositionMark } from '@/lib/trade-live-metrics';
 import { cn, formatDateTime, formatNumber, formatUsdt } from '@/lib/utils';
-import { MarketQuote } from '@/types/market-data';
 import { OrderRecord, PositionRecord } from '@/types/trading';
 
 export type TradeBottomTab = 'open' | 'pending' | 'closed' | 'history';
@@ -20,7 +22,6 @@ interface TradeActivityPanelProps {
   activeTab: TradeBottomTab;
   bottomTabMeta: Record<TradeBottomTab, TradeBottomTabMeta>;
   rows: Array<PositionRecord | OrderRecord>;
-  quotes: Record<string, MarketQuote>;
   symbolDigitsMap: Record<string, number>;
   positionsHeight: number;
   closingPositionId: string | null;
@@ -32,27 +33,15 @@ interface TradeActivityPanelProps {
   onMobileExpandedChange: (expanded: boolean) => void;
 }
 
-function currentPositionMark(position: PositionRecord, quote?: MarketQuote) {
-  if (typeof position.currentPrice === 'number' && position.currentPrice > 0) {
-    return position.currentPrice;
-  }
-
-  if (!quote) {
-    return null;
-  }
-
-  return position.side === 'BUY' ? quote.bid : quote.ask;
-}
-
-function positionPnl(position: PositionRecord) {
-  return position.unrealizedPnl ?? position.pnl;
-}
-
 function formatTarget(
   value: number | null | undefined,
   digits: number,
 ) {
   return typeof value === 'number' ? formatNumber(value, digits) : '--';
+}
+
+function settledPositionPnl(position: PositionRecord) {
+  return position.unrealizedPnl ?? position.pnl;
 }
 
 function sideBadge(side: 'BUY' | 'SELL') {
@@ -75,12 +64,12 @@ function statusBadge(status: OrderRecord['status']) {
 }
 
 const desktopHeadCellClass =
-  'border-b border-[var(--terminal-border)]/70 px-4 py-3 text-left text-[11px] font-medium tracking-[0.02em] text-[var(--terminal-text-secondary)]';
+  'border-b border-[var(--terminal-border)] px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--terminal-text-muted)]';
 
 const desktopRowClass =
-  'text-[13px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[rgba(255,255,255,0.02)]';
+  'text-[12px] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[rgba(19,32,53,0.42)]';
 
-const desktopCellClass = 'px-4 py-3.5 align-middle';
+const desktopCellClass = 'px-3 py-2.5 align-middle whitespace-nowrap';
 
 function EmptyState({
   title,
@@ -94,12 +83,12 @@ function EmptyState({
       data-testid="terminal-empty-state"
       className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
     >
-      <div className="terminal-panel-soft flex h-12 w-12 items-center justify-center text-[var(--terminal-text-secondary)]">
+      <div className="terminal-panel-soft flex h-10 w-10 items-center justify-center text-[var(--terminal-text-secondary)]">
         <ListPlus className="h-5 w-5" />
       </div>
       <div>
         <p className="text-sm font-semibold text-[var(--terminal-text-primary)]">{title}</p>
-        <p className="mt-2 text-sm text-[var(--terminal-text-secondary)]">
+        <p className="mt-2 text-[12px] text-[var(--terminal-text-secondary)]">
           {description}
         </p>
       </div>
@@ -111,7 +100,6 @@ export function TradeActivityPanel({
   activeTab,
   bottomTabMeta,
   rows,
-  quotes,
   symbolDigitsMap,
   positionsHeight,
   closingPositionId,
@@ -139,8 +127,8 @@ export function TradeActivityPanel({
 
     if (isOrderTab) {
       return (
-        <table className="min-w-full border-separate border-spacing-0">
-          <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+        <table className="min-w-[920px] w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10 bg-[rgba(7,12,20,0.98)] backdrop-blur">
             <tr>
               {['Symbol', 'Side', 'Type', 'Volume', 'Price', 'Status', 'Updated'].map((label) => (
                 <th key={label} className={desktopHeadCellClass}>
@@ -200,8 +188,8 @@ export function TradeActivityPanel({
 
     if (isClosedPositionsTab) {
       return (
-        <table className="min-w-full border-separate border-spacing-0">
-          <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+        <table className="min-w-[1040px] w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10 bg-[rgba(7,12,20,0.98)] backdrop-blur">
             <tr>
               {[
                 'Symbol',
@@ -250,12 +238,12 @@ export function TradeActivityPanel({
                   className={cn(
                     desktopCellClass,
                     'font-semibold',
-                    positionPnl(row) >= 0
+                    settledPositionPnl(row) >= 0
                       ? 'text-[var(--terminal-green)]'
                       : 'text-[var(--terminal-red)]',
                   )}
                 >
-                  {formatUsdt(positionPnl(row))}
+                  {formatUsdt(settledPositionPnl(row))}
                 </td>
                 <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
                   {formatDateTime(row.openedAt)}
@@ -271,8 +259,8 @@ export function TradeActivityPanel({
     }
 
     return (
-      <table className="min-w-full border-separate border-spacing-0">
-        <thead className="sticky top-0 z-10 bg-[rgba(8,12,22,0.98)] backdrop-blur">
+      <table className="min-w-[1040px] w-full border-separate border-spacing-0">
+        <thead className="sticky top-0 z-10 bg-[rgba(7,12,20,0.98)] backdrop-blur">
           <tr>
             {[
               'Symbol',
@@ -292,65 +280,16 @@ export function TradeActivityPanel({
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--terminal-border)]/60">
-          {positionRows.map((row) => {
-            const digits = symbolDigitsMap[row.symbol] ?? 2;
-            const currentMark = currentPositionMark(row, quotes[row.symbol]);
-
-            return (
-              <tr key={row.id} className={desktopRowClass}>
-                <td className={cn(desktopCellClass, 'font-medium')}>
-                  {row.symbol}
-                </td>
-                <td className={desktopCellClass}>
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
-                      sideBadge(row.side),
-                    )}
-                  >
-                    {row.side}
-                  </span>
-                </td>
-                <td className={desktopCellClass}>
-                  {formatNumber(row.volume, 2)}
-                </td>
-                <td className={desktopCellClass}>
-                  {formatNumber(row.entryPrice, digits)}
-                </td>
-                <td className={desktopCellClass}>
-                  {typeof currentMark === 'number' ? formatNumber(currentMark, digits) : '--'}
-                </td>
-                <td
-                  className={cn(
-                    desktopCellClass,
-                    'font-semibold',
-                    positionPnl(row) >= 0
-                      ? 'text-[var(--terminal-green)]'
-                      : 'text-[var(--terminal-red)]',
-                    flashedPnlIds[row.id] ? 'terminal-pnl-flash' : '',
-                  )}
-                >
-                  {formatUsdt(positionPnl(row))}
-                </td>
-                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
-                  {formatTarget(row.stopLoss, digits)}
-                </td>
-                <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
-                  {formatTarget(row.takeProfit, digits)}
-                </td>
-                <td className={desktopCellClass}>
-                  <button
-                    type="button"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-sm font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
-                    onClick={() => onClosePosition(row.id)}
-                    disabled={closingPositionId === row.id}
-                  >
-                    {closingPositionId === row.id ? '...' : 'X'}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+          {positionRows.map((row) => (
+            <OpenPositionDesktopRow
+              key={row.id}
+              row={row}
+              digits={symbolDigitsMap[row.symbol] ?? 2}
+              closingPositionId={closingPositionId}
+              flashed={Boolean(flashedPnlIds[row.id])}
+              onClosePosition={onClosePosition}
+            />
+          ))}
         </tbody>
       </table>
     );
@@ -420,65 +359,14 @@ export function TradeActivityPanel({
     return (
       <div className="space-y-3">
         {positionRows.slice(0, 12).map((row) => {
-          const digits = symbolDigitsMap[row.symbol] ?? 2;
-          const currentMark = currentPositionMark(row, quotes[row.symbol]);
-
           return (
-            <div
+            <MobilePositionCard
               key={row.id}
-              className="terminal-panel-soft p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-[var(--terminal-text-primary)]">{row.symbol}</p>
-                  <span
-                    className={cn(
-                      'inline-flex rounded-full px-2 py-1 text-[10px] font-semibold',
-                      sideBadge(row.side),
-                    )}
-                  >
-                    {row.side}
-                  </span>
-                </div>
-                <span
-                  className={cn(
-                    'font-semibold',
-                    positionPnl(row) >= 0
-                      ? 'text-[var(--terminal-green)]'
-                      : 'text-[var(--terminal-red)]',
-                  )}
-                >
-                  {formatUsdt(positionPnl(row))}
-                </span>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-[var(--terminal-text-secondary)]">
-                <span>Volume {formatNumber(row.volume, 2)}</span>
-                <span>Open {formatNumber(row.entryPrice, digits)}</span>
-                <span>
-                  {activeTab === 'closed' ? 'Close' : 'Current'}{' '}
-                  {activeTab === 'closed'
-                    ? row.exitPrice != null
-                      ? formatNumber(row.exitPrice, digits)
-                      : '--'
-                    : typeof currentMark === 'number'
-                      ? formatNumber(currentMark, digits)
-                      : '--'}
-                </span>
-                <span>{formatDateTime(row.closedAt ?? row.openedAt ?? row.updatedAt)}</span>
-              </div>
-
-              {row.status === 'OPEN' ? (
-                <button
-                  type="button"
-                  className="mt-3 inline-flex h-9 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 px-3 text-[11px] font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
-                  onClick={() => onClosePosition(row.id)}
-                  disabled={closingPositionId === row.id}
-                >
-                  {closingPositionId === row.id ? 'Closing...' : 'Close Position'}
-                </button>
-              ) : null}
-            </div>
+              row={row}
+              digits={symbolDigitsMap[row.symbol] ?? 2}
+              closingPositionId={closingPositionId}
+              onClosePosition={onClosePosition}
+            />
           );
         })}
       </div>
@@ -493,15 +381,15 @@ export function TradeActivityPanel({
       >
         <button
           type="button"
-          className="flex h-5 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[rgba(255,255,255,0.02)]"
+          className="flex h-3 w-full cursor-row-resize items-center justify-center border-b border-[var(--terminal-border)] bg-[rgba(9,16,26,0.9)]"
           onMouseDown={(event) => onResizeStart(event.clientY)}
         >
-          <span className="h-[3px] w-14 rounded-full bg-[var(--terminal-text-muted)]" />
+          <span className="h-px w-12 bg-[var(--terminal-text-muted)]" />
         </button>
 
-        <div className="flex h-[calc(100%-20px)] min-h-0 flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--terminal-border)] px-4 py-3">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex h-[calc(100%-12px)] min-h-0 flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
               {(Object.entries(bottomTabMeta) as Array<[TradeBottomTab, TradeBottomTabMeta]>).map(
                 ([value, meta]) => (
                   <button
@@ -509,10 +397,10 @@ export function TradeActivityPanel({
                     type="button"
                     onClick={() => onSetTab(value)}
                     className={cn(
-                      'inline-flex h-9 items-center rounded-full border px-3 text-[12px] font-semibold transition duration-150',
+                      'inline-flex h-7 items-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150',
                       activeTab === value
-                        ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
-                        : 'border-[var(--terminal-border)] bg-[rgba(255,255,255,0.02)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
+                        ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
+                        : 'border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
                     )}
                   >
                     {meta.label}
@@ -520,8 +408,8 @@ export function TradeActivityPanel({
                 ),
               )}
             </div>
-            <span className="text-xs text-[var(--terminal-text-secondary)]">
-              {rows.length} {rows.length === 1 ? 'item' : 'items'}
+            <span className="text-[11px] text-[var(--terminal-text-secondary)]">
+              {rows.length} {rows.length === 1 ? 'row' : 'rows'}
             </span>
           </div>
 
@@ -543,14 +431,14 @@ export function TradeActivityPanel({
         }}
         animate={{ height: mobileExpanded ? '60vh' : 88 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
-        className="fixed inset-x-0 bottom-0 z-20 overflow-hidden rounded-t-[24px] border-t border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] shadow-[0_-20px_50px_rgba(2,6,23,0.45)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 overflow-hidden rounded-t-[12px] border-t border-[var(--terminal-border)] bg-[var(--terminal-bg-surface)] shadow-[0_-20px_50px_rgba(2,6,23,0.45)] md:hidden"
       >
         <button
           type="button"
           className="flex w-full flex-col items-center border-b border-[var(--terminal-border)] px-4 py-3"
           onClick={() => onMobileExpandedChange(!mobileExpanded)}
         >
-          <span className="h-[3px] w-14 rounded-full bg-[var(--terminal-text-muted)]" />
+          <span className="h-[3px] w-12 rounded-full bg-[var(--terminal-text-muted)]" />
           <div className="mt-3 flex w-full items-center justify-between">
             <p className="text-sm font-semibold text-[var(--terminal-text-primary)]">
               {bottomTabMeta[activeTab].label}
@@ -591,5 +479,166 @@ export function TradeActivityPanel({
         </div>
       </motion.div>
     </>
+  );
+}
+
+function OpenPositionDesktopRow({
+  row,
+  digits,
+  closingPositionId,
+  flashed,
+  onClosePosition,
+}: {
+  row: PositionRecord;
+  digits: number;
+  closingPositionId: string | null;
+  flashed: boolean;
+  onClosePosition: (positionId: string) => void;
+}) {
+  const quote = useLiveQuote(row.symbol);
+  const currentMark = getLivePositionMark(row, quote);
+  const pnl = calculateLivePositionPnl(row, quote);
+
+  return (
+    <tr className={desktopRowClass}>
+      <td className={cn(desktopCellClass, 'font-medium')}>
+        {row.symbol}
+      </td>
+      <td className={desktopCellClass}>
+        <span
+          className={cn(
+            'inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold',
+            sideBadge(row.side),
+          )}
+        >
+          {row.side}
+        </span>
+      </td>
+      <td className={desktopCellClass}>
+        {formatNumber(row.volume, 2)}
+      </td>
+      <td className={desktopCellClass}>
+        {formatNumber(row.entryPrice, digits)}
+      </td>
+      <td className={desktopCellClass}>
+        {typeof currentMark === 'number' ? formatNumber(currentMark, digits) : '--'}
+      </td>
+      <td
+        className={cn(
+          desktopCellClass,
+          'font-semibold',
+          pnl >= 0
+            ? 'text-[var(--terminal-green)]'
+            : 'text-[var(--terminal-red)]',
+          flashed ? 'terminal-pnl-flash' : '',
+        )}
+      >
+        {formatUsdt(pnl)}
+      </td>
+      <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
+        {formatTarget(row.stopLoss, digits)}
+      </td>
+      <td className={cn(desktopCellClass, 'text-[var(--terminal-text-secondary)]')}>
+        {formatTarget(row.takeProfit, digits)}
+      </td>
+      <td className={desktopCellClass}>
+        <button
+          type="button"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-sm font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
+          onClick={() => onClosePosition(row.id)}
+          disabled={closingPositionId === row.id}
+        >
+          {closingPositionId === row.id ? '...' : 'X'}
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function MobilePositionCard({
+  row,
+  digits,
+  closingPositionId,
+  onClosePosition,
+}: {
+  row: PositionRecord;
+  digits: number;
+  closingPositionId: string | null;
+  onClosePosition: (positionId: string) => void;
+}) {
+  const quote = useLiveQuote(row.symbol);
+  const currentMark = getLivePositionMark(row, quote);
+  const pnl = row.status === 'OPEN'
+    ? calculateLivePositionPnl(row, quote)
+    : settledPositionPnl(row);
+  const [flash, setFlash] = useState(false);
+  const previousPnlRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const previous = previousPnlRef.current;
+
+    if (previous != null && previous !== pnl) {
+      setFlash(true);
+      const timeoutId = window.setTimeout(() => setFlash(false), 220);
+      previousPnlRef.current = pnl;
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    previousPnlRef.current = pnl;
+  }, [pnl]);
+
+  return (
+    <div className={cn('terminal-panel-soft p-4', flash ? 'terminal-pnl-flash' : '')}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-[var(--terminal-text-primary)]">{row.symbol}</p>
+          <span
+            className={cn(
+              'inline-flex rounded-full px-2 py-1 text-[10px] font-semibold',
+              sideBadge(row.side),
+            )}
+          >
+            {row.side}
+          </span>
+        </div>
+        <span
+          className={cn(
+            'font-semibold',
+            pnl >= 0
+              ? 'text-[var(--terminal-green)]'
+              : 'text-[var(--terminal-red)]',
+          )}
+        >
+          {formatUsdt(pnl)}
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-[var(--terminal-text-secondary)]">
+        <span>Volume {formatNumber(row.volume, 2)}</span>
+        <span>Open {formatNumber(row.entryPrice, digits)}</span>
+        <span>
+          {row.status === 'CLOSED' ? 'Close' : 'Current'}{' '}
+          {row.status === 'CLOSED'
+            ? row.exitPrice != null
+              ? formatNumber(row.exitPrice, digits)
+              : '--'
+            : typeof currentMark === 'number'
+              ? formatNumber(currentMark, digits)
+              : '--'}
+        </span>
+        <span>{formatDateTime(row.closedAt ?? row.openedAt ?? row.updatedAt)}</span>
+      </div>
+
+      {row.status === 'OPEN' ? (
+        <button
+          type="button"
+          className="mt-3 inline-flex h-9 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 px-3 text-[11px] font-semibold text-red-300 transition duration-150 hover:bg-red-500/20 disabled:opacity-50"
+          onClick={() => onClosePosition(row.id)}
+          disabled={closingPositionId === row.id}
+        >
+          {closingPositionId === row.id ? 'Closing...' : 'Close Position'}
+        </button>
+      ) : null}
+    </div>
   );
 }

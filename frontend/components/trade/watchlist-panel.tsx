@@ -3,6 +3,7 @@
 import { ChevronLeft, Search, X } from 'lucide-react';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useLiveQuote } from '@/hooks/use-live-prices';
 import { cn, formatNumber } from '@/lib/utils';
 import { MarketQuote, SymbolInfo } from '@/types/market-data';
 
@@ -11,7 +12,6 @@ type WatchlistCategory = 'ALL' | SymbolInfo['category'];
 interface WatchlistPanelProps {
   symbols: SymbolInfo[];
   watchlist: string[];
-  quotes: Record<string, MarketQuote>;
   selectedSymbol: string;
   loading?: boolean;
   onSelect: (symbol: string) => void;
@@ -43,14 +43,35 @@ const categoryLabelMap: Record<WatchlistCategory, string> = {
   ETFS: 'ETFs',
 };
 
-function getMonogram(symbol: string) {
-  return symbol.replace(/[^A-Z]/gi, '').slice(0, 2).toUpperCase() || symbol.slice(0, 2);
+function formatChangePct(value: number | null | undefined) {
+  if (typeof value !== 'number') {
+    return '--';
+  }
+
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${formatNumber(value, 2)}%`;
+}
+
+function resolveRowHint(item: SymbolInfo, quote?: MarketQuote) {
+  const marketStatus =
+    !item.enabled
+      ? 'DISABLED'
+      : quote?.marketStatus && quote.marketStatus !== 'LIVE'
+        ? quote.marketStatus
+        : quote?.marketState && quote.marketState !== 'LIVE'
+          ? quote.marketState
+          : null;
+
+  if (!marketStatus) {
+    return item.displayName || item.description || item.category;
+  }
+
+  return `${item.displayName || item.description || item.category} • ${marketStatus}`;
 }
 
 export function WatchlistPanel({
   symbols,
   watchlist,
-  quotes,
   selectedSymbol,
   loading = false,
   onSelect,
@@ -61,19 +82,31 @@ export function WatchlistPanel({
 }: WatchlistPanelProps) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<WatchlistCategory>('ALL');
-  const [flashes, setFlashes] = useState<Record<string, 'up' | 'down'>>({});
   const deferredSearch = useDeferredValue(search);
-  const previousPricesRef = useRef<Record<string, number>>({});
 
-  // Show all available symbols (sorted by category order, then alphabetically)
   const universe = useMemo(() => {
     const categoryRank = new Map(categoryOrder.map((cat, i) => [cat, i]));
+    const watchlistRank = new Map(watchlist.map((symbol, index) => [symbol, index]));
+
     return [...symbols].sort((a, b) => {
-      const rankDiff = (categoryRank.get(a.category) ?? 99) - (categoryRank.get(b.category) ?? 99);
-      if (rankDiff !== 0) return rankDiff;
+      const leftRank = watchlistRank.get(a.symbol);
+      const rightRank = watchlistRank.get(b.symbol);
+
+      if (leftRank != null || rightRank != null) {
+        if (leftRank == null) return 1;
+        if (rightRank == null) return -1;
+        if (leftRank !== rightRank) return leftRank - rightRank;
+      }
+
+      const rankDiff =
+        (categoryRank.get(a.category) ?? 99) - (categoryRank.get(b.category) ?? 99);
+      if (rankDiff !== 0) {
+        return rankDiff;
+      }
+
       return a.symbol.localeCompare(b.symbol);
     });
-  }, [symbols]);
+  }, [symbols, watchlist]);
 
   const categoryOptions = useMemo(
     () => [
@@ -113,44 +146,6 @@ export function WatchlistPanel({
     }
   }, [category, categoryOptions]);
 
-  useEffect(() => {
-    const nextFlashes: Record<string, 'up' | 'down'> = {};
-
-    for (const symbol of watchlist) {
-      const quote = quotes[symbol];
-
-      if (!quote) {
-        continue;
-      }
-
-      const previous = previousPricesRef.current[symbol];
-      if (typeof previous === 'number' && previous !== quote.lastPrice) {
-        nextFlashes[symbol] = quote.lastPrice > previous ? 'up' : 'down';
-      }
-
-      previousPricesRef.current[symbol] = quote.lastPrice;
-    }
-
-    if (Object.keys(nextFlashes).length === 0) {
-      return;
-    }
-
-    setFlashes((current) => ({ ...current, ...nextFlashes }));
-    const timeoutId = window.setTimeout(() => {
-      setFlashes((current) => {
-        const next = { ...current };
-
-        for (const symbol of Object.keys(nextFlashes)) {
-          delete next[symbol];
-        }
-
-        return next;
-      });
-    }, 350);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [quotes, watchlist]);
-
   return (
     <section
       className={cn(
@@ -158,22 +153,22 @@ export function WatchlistPanel({
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--terminal-border)] px-4 py-4">
-        <div>
-          <p className="text-[15px] font-semibold text-[var(--terminal-text-primary)]">Watchlist</p>
-          <p className="mt-1 text-xs text-[var(--terminal-text-secondary)]">
-            Search and monitor live markets
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2">
+        <div className="min-w-0">
+          <p className="terminal-label">Market Explorer</p>
+          <p className="truncate text-sm font-semibold text-[var(--terminal-text-primary)]">
+            Watchlist
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {selectedSymbol && onClearSelection ? (
             <button
               type="button"
-              className="terminal-panel-soft inline-flex h-8 items-center gap-1 px-3 text-[11px] font-semibold text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]"
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]"
               onClick={onClearSelection}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
               Clear
             </button>
           ) : null}
@@ -181,39 +176,39 @@ export function WatchlistPanel({
           {onToggleCollapse ? (
             <button
               type="button"
-              className="terminal-panel-soft inline-flex h-8 w-8 items-center justify-center text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]"
               onClick={onToggleCollapse}
             >
               <ChevronLeft
-                className={cn('h-4 w-4 transition-transform', collapsed ? 'rotate-180' : '')}
+                className={cn('h-3.5 w-3.5 transition-transform', collapsed ? 'rotate-180' : '')}
               />
             </button>
           ) : null}
         </div>
       </div>
 
-      <div className="space-y-3 border-b border-[var(--terminal-border)] px-4 py-4">
+      <div className="space-y-2 border-b border-[var(--terminal-border)] px-3 py-2">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--terminal-text-muted)]" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--terminal-text-muted)]" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search symbols"
-            className="h-11 w-full rounded-2xl border border-[var(--terminal-border)] bg-[rgba(15,23,42,0.65)] pl-9 pr-3 text-sm text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-accent)]"
+            placeholder="Search symbol"
+            className="h-8 w-full rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] pl-8 pr-3 text-[12px] text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-border-strong)]"
           />
         </div>
 
-        <div className="terminal-scrollbar flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="terminal-scrollbar flex gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {categoryOptions.map((item) => (
             <button
               key={item.value}
               type="button"
               onClick={() => setCategory(item.value)}
               className={cn(
-                'inline-flex h-8 shrink-0 items-center rounded-full border px-3 text-[11px] font-semibold transition duration-150',
+                'inline-flex h-7 shrink-0 items-center rounded-md border px-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150',
                 item.value === category
-                  ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
-                  : 'border-[var(--terminal-border)] bg-[rgba(255,255,255,0.02)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
+                  ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
+                  : 'border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
               )}
             >
               {item.label}
@@ -222,126 +217,146 @@ export function WatchlistPanel({
         </div>
       </div>
 
-      <div className="terminal-scrollbar flex-1 overflow-y-auto px-3 py-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_68px_68px_54px] items-center gap-2 border-b border-[var(--terminal-border)] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--terminal-text-muted)]">
+        <span>Symbol</span>
+        <span className="text-right">Bid</span>
+        <span className="text-right">Ask</span>
+        <span className="text-right">Chg</span>
+      </div>
+
+      <div className="terminal-scrollbar flex-1 overflow-y-auto">
         {loading ? (
-          <div className="space-y-2 py-1">
-            {Array.from({ length: 8 }).map((_, index) => (
+          <div className="divide-y divide-[var(--terminal-border)]">
+            {Array.from({ length: 10 }).map((_, index) => (
               <div
                 key={index}
-                className="terminal-panel-soft flex min-h-[64px] items-center gap-3 px-3 py-3"
+                className="grid grid-cols-[minmax(0,1fr)_68px_68px_54px] items-center gap-2 px-3 py-2.5"
               >
-                <div className="h-10 w-10 animate-pulse rounded-2xl bg-[var(--terminal-bg-elevated)]" />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="h-3 w-24 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
-                  <div className="h-3 w-36 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
+                <div className="space-y-1">
+                  <div className="h-3 w-20 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
+                  <div className="h-2.5 w-28 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
                 </div>
-                <div className="space-y-2">
-                  <div className="h-3 w-16 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
-                  <div className="h-3 w-10 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
-                </div>
+                <div className="h-3 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
+                <div className="h-3 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
+                <div className="h-3 animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="terminal-panel-soft mt-2 px-4 py-8 text-center">
+          <div className="px-4 py-8 text-center">
             <p className="text-sm font-semibold text-[var(--terminal-text-primary)]">
               No symbols match this filter
             </p>
-            <p className="mt-2 text-sm text-[var(--terminal-text-secondary)]">
+            <p className="mt-2 text-[12px] text-[var(--terminal-text-secondary)]">
               Adjust the asset filter or search term to view another instrument.
             </p>
           </div>
         ) : (
           filtered.map((item) => {
-            const quote = quotes[item.symbol];
-            const spread = quote ? formatNumber(quote.ask - quote.bid, item.digits) : '--';
-            const lastPrice = quote
-              ? formatNumber(quote.lastPrice ?? quote.bid, item.digits)
-              : '--';
-            const marketStatus =
-              !item.enabled
-                ? 'DISABLED'
-                : quote?.marketStatus && quote.marketStatus !== 'LIVE'
-                  ? quote.marketStatus
-                  : quote?.marketState && quote.marketState !== 'LIVE'
-                    ? quote.marketState
-                    : null;
-            const isDelayed = quote?.delayed || marketStatus === 'DELAYED';
-            const isStale = marketStatus === 'STALE';
-            const isDegraded = marketStatus === 'DEGRADED';
-
             return (
-              <button
+              <WatchlistRow
                 key={item.symbol}
-                type="button"
-                onClick={() => onSelect(item.symbol)}
-                className={cn(
-                  'relative mb-2 grid min-h-[72px] w-full grid-cols-[minmax(0,1fr)_104px] items-center gap-3 rounded-2xl border px-4 py-3 text-left transition duration-150',
-                  selectedSymbol === item.symbol
-                    ? 'border-[var(--terminal-accent)]/25 bg-[rgba(245,166,35,0.08)] shadow-[inset_0_0_0_1px_rgba(245,166,35,0.08)]'
-                    : 'border-[rgba(148,163,184,0.08)] bg-[rgba(9,14,26,0.72)] hover:border-[rgba(148,163,184,0.14)] hover:bg-[var(--terminal-bg-hover)]/55',
-                  flashes[item.symbol] === 'up' ? 'terminal-price-up' : '',
-                  flashes[item.symbol] === 'down' ? 'terminal-price-down' : '',
-                )}
-              >
-                {selectedSymbol === item.symbol ? (
-                  <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--terminal-accent)]" />
-                ) : null}
-
-                <div className="min-w-0">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.03)] text-xs font-semibold text-[var(--terminal-text-primary)]">
-                      {getMonogram(item.symbol)}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[var(--terminal-text-primary)]">
-                        {item.symbol}
-                      </p>
-                      <p className="truncate text-xs text-[var(--terminal-text-secondary)]">
-                        {item.displayName || item.description || item.category}
-                      </p>
-                    </div>
-                    {isDelayed ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-300">
-                        <span className="h-2 w-2 rounded-full bg-amber-300" />
-                        Delay
-                      </span>
-                    ) : isStale ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-semibold text-red-300">
-                        <span className="h-2 w-2 rounded-full bg-red-300" />
-                        Stale
-                      </span>
-                    ) : isDegraded ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-300">
-                        <span className="h-2 w-2 rounded-full bg-amber-300" />
-                        Feed
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-2 text-[11px] text-[var(--terminal-text-muted)]">
-                    {marketStatus &&
-                    marketStatus !== 'DEGRADED' &&
-                    marketStatus !== 'DELAYED' &&
-                    marketStatus !== 'STALE'
-                      ? marketStatus
-                      : `${item.category}  •  Spread ${spread}`}
-                  </p>
-                </div>
-
-                <div className="w-[104px] shrink-0 text-right">
-                  <p className="price-display whitespace-nowrap text-[15px] font-semibold text-[var(--terminal-text-primary)]">
-                    {lastPrice}
-                  </p>
-                  <p className="price-display mt-1 whitespace-nowrap text-[11px] text-[var(--terminal-text-secondary)]">
-                    B {quote ? formatNumber(quote.bid, item.digits) : '--'} / A{' '}
-                    {quote ? formatNumber(quote.ask, item.digits) : '--'}
-                  </p>
-                </div>
-              </button>
+                item={item}
+                isSelected={selectedSymbol === item.symbol}
+                onSelect={onSelect}
+              />
             );
           })
         )}
       </div>
     </section>
+  );
+}
+
+function WatchlistRow({
+  item,
+  isSelected,
+  onSelect,
+}: {
+  item: SymbolInfo;
+  isSelected: boolean;
+  onSelect: (symbol: string) => void;
+}) {
+  const quote = useLiveQuote(item.symbol);
+  const [flash, setFlash] = useState<'up' | 'down' | null>(null);
+  const previousPriceRef = useRef<number | null>(null);
+  const bid = quote ? formatNumber(quote.bid, item.digits) : '--';
+  const ask = quote ? formatNumber(quote.ask, item.digits) : '--';
+  const changePct = quote?.changePct ?? null;
+  const changeText = formatChangePct(changePct);
+  const rowHint = resolveRowHint(item, quote);
+
+  useEffect(() => {
+    if (!quote) {
+      return;
+    }
+
+    const previousPrice = previousPriceRef.current;
+
+    if (previousPrice != null && previousPrice !== quote.lastPrice) {
+      setFlash(quote.lastPrice > previousPrice ? 'up' : 'down');
+      const timeoutId = window.setTimeout(() => setFlash(null), 220);
+      previousPriceRef.current = quote.lastPrice;
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    previousPriceRef.current = quote.lastPrice;
+  }, [quote]);
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item.symbol)}
+      className={cn(
+        'grid w-full grid-cols-[minmax(0,1fr)_68px_68px_54px] items-center gap-2 border-b border-[var(--terminal-border)] px-3 py-2.5 text-left transition duration-150',
+        isSelected
+          ? 'bg-[rgba(128,148,184,0.12)] shadow-[inset_2px_0_0_0_rgba(128,148,184,0.8)]'
+          : 'hover:bg-[rgba(19,32,53,0.5)]',
+        flash === 'up' ? 'terminal-price-up' : '',
+        flash === 'down' ? 'terminal-price-down' : '',
+      )}
+    >
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={cn(
+              'h-1.5 w-1.5 shrink-0 rounded-full',
+              !item.enabled
+                ? 'bg-red-400'
+                : quote?.marketStatus === 'DELAYED'
+                  ? 'bg-amber-300'
+                  : quote?.marketStatus === 'STALE'
+                    ? 'bg-red-300'
+                    : 'bg-emerald-400',
+            )}
+          />
+          <p className="truncate text-[12px] font-semibold text-[var(--terminal-text-primary)]">
+            {item.symbol}
+          </p>
+        </div>
+        <p className="mt-1 truncate text-[10px] text-[var(--terminal-text-secondary)]">
+          {rowHint}
+        </p>
+      </div>
+
+      <span className="price-display text-right text-[12px] text-[var(--terminal-text-primary)]">
+        {bid}
+      </span>
+      <span className="price-display text-right text-[12px] text-[var(--terminal-text-primary)]">
+        {ask}
+      </span>
+      <span
+        className={cn(
+          'price-display text-right text-[11px] font-semibold',
+          typeof changePct === 'number'
+            ? changePct >= 0
+              ? 'text-[var(--terminal-green)]'
+              : 'text-[var(--terminal-red)]'
+            : 'text-[var(--terminal-text-secondary)]',
+        )}
+      >
+        {changeText}
+      </span>
+    </button>
   );
 }

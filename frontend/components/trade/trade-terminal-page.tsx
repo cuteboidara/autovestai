@@ -2,7 +2,7 @@
 
 import { ChevronRight, X, Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { OrderTicket } from '@/components/trade/order-ticket';
 import {
@@ -15,7 +15,8 @@ import { TradeTopBar } from '@/components/trade/trade-top-bar';
 import { TradingViewPanel } from '@/components/trade/trading-view-panel';
 import { WatchlistPanel } from '@/components/trade/watchlist-panel';
 import { useAccountContext } from '@/context/account-context';
-import { useLivePrices } from '@/hooks/use-live-prices';
+import { useLivePriceSubscription, useLiveQuote } from '@/hooks/use-live-prices';
+import { calculateLivePositionPnl } from '@/lib/trade-live-metrics';
 import { getActiveAccountLabel, getTradingAvailability } from '@/lib/trading-access';
 import { cn, formatNumber, formatUsdt } from '@/lib/utils';
 import { marketDataApi } from '@/services/api/market-data';
@@ -158,6 +159,51 @@ function resolutionMatches(
   );
 }
 
+function positionPnlSignatureValue(value: number) {
+  return Number.isFinite(value) ? value.toFixed(8) : '0.00000000';
+}
+
+function MobileSymbolSearchRow({
+  symbol,
+  isSelected,
+  onSelect,
+}: {
+  symbol: SymbolInfo;
+  isSelected: boolean;
+  onSelect: (symbol: string) => void;
+}) {
+  const quote = useLiveQuote(symbol.symbol);
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex w-full items-center justify-between border-b border-[var(--terminal-border)]/40 px-4 py-3 text-left transition duration-150',
+        isSelected
+          ? 'bg-[var(--terminal-accent)]/10'
+          : 'hover:bg-[var(--terminal-bg-hover)]',
+      )}
+      onClick={() => onSelect(symbol.symbol)}
+    >
+      <div>
+        <span className={cn('block text-sm font-semibold', isSelected ? 'text-[var(--terminal-accent)]' : 'text-[var(--terminal-text-primary)]')}>
+          {symbol.symbol}
+        </span>
+        {symbol.description ? (
+          <span className="block text-[11px] text-[var(--terminal-text-secondary)]">{symbol.description}</span>
+        ) : null}
+      </div>
+      {quote ? (
+        <div className="text-right">
+          <span className="price-display block text-sm font-semibold text-[var(--terminal-green)]">
+            {formatNumber(quote.bid, symbol.digits)}
+          </span>
+        </div>
+      ) : null}
+    </button>
+  );
+}
+
 export function TradeTerminalPage() {
   const pathname = usePathname();
   const router = useRouter();
@@ -168,7 +214,6 @@ export function TradeTerminalPage() {
   const selectedSymbol = useMarketDataStore((state) => state.selectedSymbol);
   const selectedResolution = useMarketDataStore((state) => state.selectedResolution);
   const watchlist = useMarketDataStore((state) => state.watchlist);
-  const quotes = useMarketDataStore((state) => state.quotes);
   const setSelectedSymbol = useMarketDataStore((state) => state.setSelectedSymbol);
   const setSelectedResolution = useMarketDataStore((state) => state.setSelectedResolution);
   const setWatchlist = useMarketDataStore((state) => state.setWatchlist);
@@ -200,25 +245,15 @@ export function TradeTerminalPage() {
   const [flashedPnlIds, setFlashedPnlIds] = useState<Record<string, true>>({});
   const resizeStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const previousPnlRef = useRef<Record<string, number>>({});
-  // Subscribe to all loaded symbols so the watchlist panel shows live prices for every instrument
-  const allSymbolKeys = useMemo(() => symbols.map((s) => s.symbol), [symbols]);
-  const liveQuotes = useLivePrices([...allSymbolKeys, selectedSymbol]);
   const watchlistStorageKey = useMemo(() => getWatchlistStorageKey(user?.id), [user?.id]);
 
   const activeBottomTab = mapSearchTab(searchParams.get('tab'));
   const activeSymbol = selectedSymbol.trim();
-  const terminalQuotes = useMemo(
-    () => ({
-      ...quotes,
-      ...liveQuotes,
-    }),
-    [liveQuotes, quotes],
-  );
   const selectedSymbolInfo = useMemo(
     () => symbols.find((symbol) => symbol.symbol === activeSymbol),
     [activeSymbol, symbols],
   );
-  const selectedQuote = activeSymbol ? terminalQuotes[activeSymbol] : undefined;
+  const selectedQuote = useLiveQuote(activeSymbol);
   const selectedSymbolHealth = activeSymbol
     ? platformStatus?.symbolHealth[activeSymbol]
     : undefined;
@@ -249,6 +284,17 @@ export function TradeTerminalPage() {
         ),
     [activeAccountId, positions],
   );
+  const allSymbolKeys = useMemo(() => symbols.map((symbol) => symbol.symbol), [symbols]);
+  const liveSubscriptionSymbols = useMemo(
+    () =>
+      [...new Set([
+        ...allSymbolKeys,
+        ...openPositions.map((position) => position.symbol),
+        activeSymbol,
+      ])].filter(Boolean),
+    [activeSymbol, allSymbolKeys, openPositions],
+  );
+  useLivePriceSubscription(liveSubscriptionSymbols);
   const closedPositions = useMemo(
     () =>
       positions
@@ -285,6 +331,22 @@ export function TradeTerminalPage() {
         )
         .sort((left, right) => dateValue(right.updatedAt) - dateValue(left.updatedAt)),
     [activeAccountId, orders],
+  );
+  const liveFloatingPnl = useMarketDataStore((state) =>
+    openPositions.reduce(
+      (total, position) => total + calculateLivePositionPnl(position, state.quotes[position.symbol]),
+      0,
+    ),
+  );
+  const liveOpenPositionPnlSignature = useMarketDataStore((state) =>
+    openPositions
+      .map(
+        (position) =>
+          `${position.id}:${positionPnlSignatureValue(
+            calculateLivePositionPnl(position, state.quotes[position.symbol]),
+          )}`,
+      )
+      .join('|'),
   );
 
   async function refreshTerminalData() {
@@ -407,12 +469,16 @@ export function TradeTerminalPage() {
   }, [resolvedTimeframes, selectedResolution, setSelectedResolution]);
 
   useEffect(() => {
+    if (websocketConnected) {
+      return;
+    }
+
     const intervalId = window.setInterval(() => {
       void refreshTerminalData().catch(() => undefined);
     }, 15_000);
 
     return () => window.clearInterval(intervalId);
-  }, [activeAccountId]);
+  }, [activeAccountId, websocketConnected]);
 
   useEffect(() => {
     if (!activeSymbol || (websocketConnected && selectedSymbolHealth?.status !== 'stale')) {
@@ -448,17 +514,32 @@ export function TradeTerminalPage() {
   ]);
 
   useEffect(() => {
+    if (!liveOpenPositionPnlSignature) {
+      return;
+    }
+
     const nextFlashes: Record<string, true> = {};
 
-    for (const position of openPositions) {
-      const nextPnl = position.unrealizedPnl ?? position.pnl;
-      const previous = previousPnlRef.current[position.id];
-
-      if (typeof previous === 'number' && previous !== nextPnl) {
-        nextFlashes[position.id] = true;
+    for (const entry of liveOpenPositionPnlSignature.split('|')) {
+      if (!entry) {
+        continue;
       }
 
-      previousPnlRef.current[position.id] = nextPnl;
+      const separatorIndex = entry.indexOf(':');
+
+      if (separatorIndex === -1) {
+        continue;
+      }
+
+      const positionId = entry.slice(0, separatorIndex);
+      const nextPnl = Number(entry.slice(separatorIndex + 1));
+      const previous = previousPnlRef.current[positionId];
+
+      if (typeof previous === 'number' && previous !== nextPnl) {
+        nextFlashes[positionId] = true;
+      }
+
+      previousPnlRef.current[positionId] = nextPnl;
     }
 
     if (Object.keys(nextFlashes).length === 0) {
@@ -466,7 +547,20 @@ export function TradeTerminalPage() {
     }
 
     setFlashedPnlIds((current) => ({ ...current, ...nextFlashes }));
-  }, [openPositions]);
+    const timeoutId = window.setTimeout(() => {
+      setFlashedPnlIds((current) => {
+        const next = { ...current };
+
+        for (const positionId of Object.keys(nextFlashes)) {
+          delete next[positionId];
+        }
+
+        return next;
+      });
+    }, 420);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [liveOpenPositionPnlSignature]);
 
   useEffect(() => {
     function handleMouseMove(event: MouseEvent) {
@@ -495,13 +589,24 @@ export function TradeTerminalPage() {
     };
   }, []);
 
-  const floatingPnl =
-    typeof wallet?.unrealizedPnl === 'number'
-      ? wallet.unrealizedPnl
-      : openPositions.reduce(
-          (total, position) => total + (position.unrealizedPnl ?? position.pnl),
-          0,
-        );
+  const floatingPnl = liveFloatingPnl;
+  const usedMargin =
+    wallet?.usedMargin ??
+    openPositions.reduce((total, position) => total + position.marginUsed, 0);
+  const derivedEquity =
+    typeof wallet?.balance === 'number'
+      ? wallet.balance + floatingPnl
+      : wallet?.equity ?? null;
+  const derivedFreeMargin =
+    derivedEquity != null
+      ? derivedEquity - usedMargin
+      : wallet?.freeMargin ?? null;
+  const derivedMarginLevel =
+    derivedEquity != null && usedMargin > 0
+      ? (derivedEquity / usedMargin) * 100
+      : usedMargin > 0
+        ? wallet?.marginLevel ?? null
+        : null;
   const tradingAvailability = getTradingAvailability(user, wallet);
   const demoAccount = activeAccount?.type === 'DEMO' ? activeAccount : null;
   const hasLiveAccount = accounts.some(
@@ -509,14 +614,14 @@ export function TradeTerminalPage() {
   );
   const summaryMetrics = [
     { label: 'Balance', value: wallet ? formatUsdt(wallet.balance) : '--' },
-    { label: 'Equity', value: wallet ? formatUsdt(wallet.equity) : '--' },
-    { label: 'Free Margin', value: wallet ? formatUsdt(wallet.freeMargin) : '--' },
-    { label: 'Margin Used', value: wallet ? formatUsdt(wallet.usedMargin) : '--' },
+    { label: 'Equity', value: derivedEquity != null ? formatUsdt(derivedEquity) : '--' },
+    { label: 'Free Margin', value: derivedFreeMargin != null ? formatUsdt(derivedFreeMargin) : '--' },
+    { label: 'Margin Used', value: wallet ? formatUsdt(usedMargin) : '--' },
     {
       label: 'Margin Level',
       value:
-        wallet?.marginLevel != null
-          ? `${formatNumber(wallet.marginLevel, 2)}%`
+        derivedMarginLevel != null
+          ? `${formatNumber(derivedMarginLevel, 2)}%`
           : '--',
     },
     {
@@ -550,6 +655,14 @@ export function TradeTerminalPage() {
           )
         : symbols,
     [symbols, symbolSearch],
+  );
+  const terminalLayoutStyle = useMemo(
+    () =>
+      ({
+        '--trade-watchlist-width': watchlistCollapsed ? '48px' : '284px',
+        '--trade-ticket-width': '320px',
+      }) as CSSProperties,
+    [watchlistCollapsed],
   );
   const marketStatus =
     selectedSymbolHealth?.status === 'disabled'
@@ -587,17 +700,16 @@ export function TradeTerminalPage() {
         />
 
         {demoAccount ? (
-          <div className="border-b border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] px-4 py-2.5 text-sm text-amber-100 lg:px-5 xl:px-6">
-            <div className="flex flex-col gap-3 rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-              <p className="font-semibold text-amber-100">
-                DEMO ACCOUNT {demoAccount.accountNo} • Virtual Balance{' '}
-                {formatUsdt(demoAccount.balance)}
+          <div className="border-b border-[var(--terminal-border)] bg-[rgba(7,12,20,0.92)] px-3 py-2 text-[11px] text-amber-100 lg:px-4">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+              <p className="font-medium text-amber-100/92">
+                Demo account {demoAccount.accountNo} active. Virtual balance {formatUsdt(demoAccount.balance)}.
               </p>
 
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="inline-flex min-h-[38px] items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 px-4 text-xs font-semibold text-amber-200 transition duration-150 hover:bg-amber-500/20"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-amber-500/25 bg-amber-500/8 px-3 text-[11px] font-semibold text-amber-200 transition duration-150 hover:bg-amber-500/12"
                   onClick={() => {
                     void resetDemoAccount(demoAccount.id)
                       .then(() => refreshTerminalData())
@@ -618,12 +730,12 @@ export function TradeTerminalPage() {
                       });
                   }}
                 >
-                  Reset Balance
+                  Reset
                 </button>
 
                 <button
                   type="button"
-                  className="inline-flex min-h-[38px] items-center justify-center rounded-full border border-amber-500/30 bg-amber-500 px-4 text-xs font-semibold text-[#0A0E1A] transition duration-150 hover:opacity-90"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-[var(--terminal-border-strong)] bg-[var(--terminal-bg-hover)] px-3 text-[11px] font-semibold text-[var(--terminal-text-primary)] transition duration-150 hover:border-[var(--terminal-accent)] hover:text-[var(--terminal-accent)]"
                   onClick={() => {
                     if (
                       typeof window !== 'undefined' &&
@@ -644,131 +756,94 @@ export function TradeTerminalPage() {
         ) : null}
 
         <div className="flex min-h-0 flex-1 bg-[var(--terminal-bg-primary)]">
-          <div className="flex min-h-0 w-full flex-1 gap-3 px-3 py-3 lg:gap-4 lg:px-4 lg:py-4 xl:px-5 xl:py-5">
-            <div
-              className="hidden min-h-0 shrink-0 md:block"
-              style={{ width: watchlistCollapsed ? 60 : 280 }}
-            >
-              {watchlistCollapsed ? (
-                <button
-                  type="button"
-                  className="terminal-panel flex h-full w-full items-center justify-center text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--terminal-accent)]/40"
-                  onClick={() => setWatchlistCollapsed(false)}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              ) : (
-                <WatchlistPanel
-                  symbols={symbols}
-                  watchlist={watchlist}
-                  quotes={terminalQuotes}
-                  selectedSymbol={selectedSymbol}
-                  loading={loading}
-                  onSelect={setSelectedSymbol}
-                  onClearSelection={() => setSelectedSymbol('')}
-                  onToggleCollapse={() => setWatchlistCollapsed(true)}
-                  className="h-full"
-                />
-              )}
-            </div>
-
+          <div className="flex min-h-0 w-full flex-1 flex-col px-2 py-2 lg:px-3 lg:py-3">
             <div
               data-testid="trade-terminal-scroll-region"
-              className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:overflow-hidden md:pb-0 lg:min-h-0 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch lg:gap-4 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_336px]"
+              style={terminalLayoutStyle}
+              className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-0 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)_auto] lg:overflow-hidden"
             >
-              {/* Mobile: symbol selector bar */}
               <button
                 type="button"
-                className="terminal-panel flex shrink-0 items-center justify-between px-4 py-3 text-left md:hidden xl:col-span-2"
+                className="terminal-panel-soft flex shrink-0 items-center justify-between px-3 py-2 text-left lg:hidden"
                 onClick={() => {
                   setSymbolSearch('');
                   setMobileSymbolModalOpen(true);
                 }}
               >
                 <div className="min-w-0">
-                  <span className="block text-sm font-semibold text-[var(--terminal-text-primary)]">
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--terminal-text-muted)]">
+                    Active Market
+                  </span>
+                  <span className="mt-1 block text-sm font-semibold text-[var(--terminal-text-primary)]">
                     {activeSymbol || 'Select Symbol'}
                   </span>
                   {selectedQuote && selectedSymbolInfo ? (
-                    <span className="price-display block text-[10px] text-[var(--terminal-text-secondary)]">
-                      <span className="text-[var(--terminal-green)]">
+                    <span className="price-display mt-1 block text-[11px] text-[var(--terminal-text-secondary)]">
+                      <span className="text-[var(--terminal-red)]">
                         {formatNumber(selectedQuote.bid, selectedSymbolInfo.digits)}
                       </span>
                       {' / '}
-                      <span className="text-[var(--terminal-red)]">
+                      <span className="text-[var(--terminal-green)]">
                         {formatNumber(selectedQuote.ask, selectedSymbolInfo.digits)}
                       </span>
-                      {' · '}spread {spreadDisplay}
+                      {' · '}Spread {spreadDisplay}
                     </span>
                   ) : (
-                    <span className="block text-[10px] text-[var(--terminal-text-secondary)]">
-                      Tap to search symbols
+                    <span className="mt-1 block text-[11px] text-[var(--terminal-text-secondary)]">
+                      Open symbol explorer
                     </span>
                   )}
                 </div>
                 <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--terminal-text-secondary)]" />
               </button>
 
-              <div className="min-w-0 flex flex-col gap-3 lg:min-h-0 lg:grid lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4">
-                <div className="terminal-panel flex min-h-[320px] min-w-0 flex-col overflow-hidden lg:min-h-0">
-                  {/* Desktop: instrument header with timeframes */}
-                  <div className="hidden md:block">
-                    <TradeInstrumentHeader
-                      symbol={activeSymbol}
-                      symbolInfo={selectedSymbolInfo}
-                      quote={selectedQuote}
-                      spreadDisplay={spreadDisplay}
-                      marketStatus={marketStatus}
-                      timeframes={resolvedTimeframes}
-                      selectedTimeframe={selectedResolution}
-                      onSelectTimeframe={setSelectedResolution}
-                    />
-                  </div>
+              <div className="hidden min-h-0 lg:block">
+                {watchlistCollapsed ? (
+                  <button
+                    type="button"
+                    className="terminal-panel flex h-full w-full items-center justify-center text-[var(--terminal-text-secondary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--terminal-accent)]/40"
+                    onClick={() => setWatchlistCollapsed(false)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <WatchlistPanel
+                    symbols={symbols}
+                    watchlist={watchlist}
+                    selectedSymbol={selectedSymbol}
+                    loading={loading}
+                    onSelect={setSelectedSymbol}
+                    onClearSelection={() => setSelectedSymbol('')}
+                    onToggleCollapse={() => setWatchlistCollapsed(true)}
+                    collapsed={watchlistCollapsed}
+                    className="h-full"
+                  />
+                )}
+              </div>
 
-                  {/* Chart – fixed height on mobile, flex-1 on desktop */}
-                  <div className="h-[44vh] min-h-[320px] shrink-0 md:h-auto md:min-h-0 md:flex-1">
-                    <TradingViewPanel
-                      symbol={activeSymbol}
-                      resolution={selectedResolution}
-                      className="h-full"
-                    />
-                  </div>
-                </div>
+              <div className="terminal-panel flex min-h-[320px] min-w-0 flex-col overflow-hidden lg:min-h-0">
+                <TradeInstrumentHeader
+                  symbol={activeSymbol}
+                  symbolInfo={selectedSymbolInfo}
+                  quote={selectedQuote}
+                  spreadDisplay={spreadDisplay}
+                  marketStatus={marketStatus}
+                  timeframes={resolvedTimeframes}
+                  selectedTimeframe={selectedResolution}
+                  onSelectTimeframe={setSelectedResolution}
+                  onPreferredSideChange={setPreferredSide}
+                />
 
-                <div className="min-w-0 lg:min-h-0">
-                  <TradeActivityPanel
-                    activeTab={activeBottomTab}
-                    bottomTabMeta={bottomTabMeta}
-                    rows={rows}
-                    quotes={terminalQuotes}
-                    symbolDigitsMap={symbolDigitsMap}
-                    positionsHeight={positionsHeight}
-                    closingPositionId={closingPositionId}
-                    flashedPnlIds={flashedPnlIds}
-                    mobileExpanded={mobilePositionsExpanded}
-                    onSetTab={(tab) => {
-                      const params = new URLSearchParams(searchParams.toString());
-                      params.set('tab', mapBottomTabToSearch(tab));
-                      router.replace(`${pathname}?${params.toString()}`);
-                    }}
-                    onClosePosition={(positionId) => {
-                      setClosingPositionId(positionId);
-                      void positionsApi
-                        .close(positionId)
-                        .then(() => refreshTerminalData())
-                        .finally(() => setClosingPositionId(null));
-                    }}
-                    onResizeStart={(clientY) => {
-                      resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
-                      document.body.style.cursor = 'row-resize';
-                      document.body.style.userSelect = 'none';
-                    }}
-                    onMobileExpandedChange={setMobilePositionsExpanded}
+                <div className="h-[46vh] min-h-[320px] shrink-0 md:h-[52vh] lg:h-auto lg:min-h-0 lg:flex-1">
+                  <TradingViewPanel
+                    symbol={activeSymbol}
+                    resolution={selectedResolution}
+                    className="h-full"
                   />
                 </div>
               </div>
 
-              <div className="min-w-0 shrink-0 lg:min-h-0">
+              <div className="min-w-0 lg:min-h-0">
                 <OrderTicket
                   accountId={activeAccountId}
                   selectedSymbol={activeSymbol}
@@ -780,6 +855,37 @@ export function TradeTerminalPage() {
                   accountDisabledReason={tradingAvailability.message}
                   isMobileLayout={false}
                   className="h-auto lg:h-full"
+                />
+              </div>
+
+              <div className="min-w-0 lg:col-span-3">
+                <TradeActivityPanel
+                  activeTab={activeBottomTab}
+                  bottomTabMeta={bottomTabMeta}
+                  rows={rows}
+                  symbolDigitsMap={symbolDigitsMap}
+                  positionsHeight={positionsHeight}
+                  closingPositionId={closingPositionId}
+                  flashedPnlIds={flashedPnlIds}
+                  mobileExpanded={mobilePositionsExpanded}
+                  onSetTab={(tab) => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set('tab', mapBottomTabToSearch(tab));
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                  onClosePosition={(positionId) => {
+                    setClosingPositionId(positionId);
+                    void positionsApi
+                      .close(positionId)
+                      .then(() => refreshTerminalData())
+                      .finally(() => setClosingPositionId(null));
+                  }}
+                  onResizeStart={(clientY) => {
+                    resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
+                    document.body.style.cursor = 'row-resize';
+                    document.body.style.userSelect = 'none';
+                  }}
+                  onMobileExpandedChange={setMobilePositionsExpanded}
                 />
               </div>
             </div>
@@ -813,39 +919,17 @@ export function TradeTerminalPage() {
                 <p className="px-4 py-6 text-center text-sm text-[var(--terminal-text-secondary)]">No symbols found</p>
               ) : (
                 filteredSymbols.map((sym) => {
-                  const quote = terminalQuotes[sym.symbol];
                   const isSelected = sym.symbol === activeSymbol;
                   return (
-                    <button
+                    <MobileSymbolSearchRow
                       key={sym.symbol}
-                      type="button"
-                      className={cn(
-                        'flex w-full items-center justify-between border-b border-[var(--terminal-border)]/40 px-4 py-3 text-left transition duration-150',
-                        isSelected
-                          ? 'bg-[var(--terminal-accent)]/10'
-                          : 'hover:bg-[var(--terminal-bg-hover)]',
-                      )}
-                      onClick={() => {
-                        setSelectedSymbol(sym.symbol);
+                      symbol={sym}
+                      isSelected={isSelected}
+                      onSelect={(symbol) => {
+                        setSelectedSymbol(symbol);
                         setMobileSymbolModalOpen(false);
                       }}
-                    >
-                      <div>
-                        <span className={cn('block text-sm font-semibold', isSelected ? 'text-[var(--terminal-accent)]' : 'text-[var(--terminal-text-primary)]')}>
-                          {sym.symbol}
-                        </span>
-                        {sym.description ? (
-                          <span className="block text-[11px] text-[var(--terminal-text-secondary)]">{sym.description}</span>
-                        ) : null}
-                      </div>
-                      {quote ? (
-                        <div className="text-right">
-                          <span className="price-display block text-sm font-semibold text-[var(--terminal-green)]">
-                            {formatNumber(quote.bid, sym.digits)}
-                          </span>
-                        </div>
-                      ) : null}
-                    </button>
+                    />
                   );
                 })
               )}
@@ -855,7 +939,10 @@ export function TradeTerminalPage() {
       </div>
 
       {loading ? (
-        <div className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/78 p-4 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-4 lg:grid-cols-[280px_minmax(0,1fr)_300px] xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        <div
+          style={terminalLayoutStyle}
+          className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/82 px-2 py-2 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)_260px] lg:gap-2 lg:px-3 lg:py-3"
+        >
           <div className="terminal-panel space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="flex items-center gap-3 rounded-xl px-1 py-2">
@@ -874,7 +961,7 @@ export function TradeTerminalPage() {
           <div className="terminal-panel p-4">
             <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
           </div>
-          <div className="terminal-panel hidden space-y-4 p-4 lg:block">
+          <div className="terminal-panel space-y-4 p-4">
             <div className="h-10 w-full animate-pulse rounded bg-[var(--terminal-bg-elevated)]" />
             <div className="grid gap-3">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -884,6 +971,9 @@ export function TradeTerminalPage() {
                 />
               ))}
             </div>
+          </div>
+          <div className="terminal-panel col-span-full hidden p-4 lg:block">
+            <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
           </div>
         </div>
       ) : null}

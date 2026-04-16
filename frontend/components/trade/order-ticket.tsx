@@ -42,9 +42,9 @@ const defaultState = {
 };
 
 const inputClass =
-  'h-11 w-full rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] px-3 text-sm text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-accent)]';
+  'h-9 w-full rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] px-3 text-[12px] text-[var(--terminal-text-primary)] outline-none transition duration-150 placeholder:text-[var(--terminal-text-muted)] focus:border-[var(--terminal-border-strong)]';
 
-const sectionCardClass = 'terminal-panel-soft p-4';
+const sectionCardClass = 'rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] p-3';
 
 function clampValue(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -375,38 +375,38 @@ export function OrderTicket({
   return (
     <aside
       className={cn(
-        'terminal-panel flex h-full min-h-0 flex-col overflow-hidden',
+        'terminal-panel flex min-h-0 flex-col overflow-hidden',
         className,
       )}
     >
-      <div className="border-b border-[var(--terminal-border)] px-5 py-5">
+      <div className="border-b border-[var(--terminal-border)] px-3 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="terminal-label">
               Order Ticket
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <p className="truncate text-[28px] font-semibold tracking-[-0.03em] text-[var(--terminal-text-primary)]">
+              <p className="truncate text-lg font-semibold tracking-[0.01em] text-[var(--terminal-text-primary)]">
                 {selectedSymbol || 'Select Symbol'}
               </p>
               {currentAssetClass ? (
                 <span className="terminal-chip">{currentAssetClass}</span>
               ) : null}
             </div>
-            <p className="mt-2 text-sm leading-6 text-[var(--terminal-text-secondary)]">
+            <p className="mt-1 text-[12px] leading-5 text-[var(--terminal-text-secondary)]">
               {selectedSymbolInfo
                 ? selectedSymbolInfo.displayName || selectedSymbolInfo.assetClass
                 : 'Select an instrument from the watchlist to enable order entry'}
             </p>
           </div>
 
-          <div className="min-w-[108px] text-right">
+          <div className="min-w-[96px] text-right">
             <p className="terminal-label">
               {form.type === 'LIMIT' ? 'Pending price' : 'Execution'}
             </p>
             <p
               className={cn(
-                'price-display text-2xl font-semibold text-[var(--terminal-text-primary)]',
+                'price-display text-lg font-semibold text-[var(--terminal-text-primary)]',
                 priceFlash.execution === 'up' ? 'terminal-price-up' : '',
                 priceFlash.execution === 'down' ? 'terminal-price-down' : '',
               )}
@@ -422,8 +422,8 @@ export function OrderTicket({
         </div>
       </div>
 
-      <div className="terminal-scrollbar flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-        <div className="space-y-5">
+      <div className="terminal-scrollbar flex-1 overflow-y-auto px-3 py-3">
+        <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {(['SELL', 'BUY'] as OrderSide[]).map((side) => {
               const active = form.side === side;
@@ -443,7 +443,7 @@ export function OrderTicket({
                   disabled={controlsDisabled}
                   onClick={() => updateForm({ side })}
                   className={cn(
-                    'rounded-2xl border px-4 py-4 text-left transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    'rounded-md border px-3 py-3 text-left transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                     side === 'SELL'
                       ? active
                         ? 'border-[var(--terminal-red)] bg-[var(--terminal-red-bg)] text-white'
@@ -481,9 +481,9 @@ export function OrderTicket({
                   disabled={!item.enabled || controlsDisabled}
                   onClick={() => item.enabled && updateForm({ type: item.value })}
                   className={cn(
-                    'inline-flex min-h-[40px] items-center justify-center rounded-2xl border px-3 text-[11px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    'inline-flex min-h-[34px] items-center justify-center rounded-md border px-3 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                     form.type === item.value
-                      ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
+                      ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
                       : item.enabled
                         ? 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]'
                         : 'border-[var(--terminal-border)] bg-[rgba(6,11,19,0.5)] text-[var(--terminal-text-muted)]',
@@ -532,7 +532,7 @@ export function OrderTicket({
               <div className="mt-3 flex items-center gap-2">
                 <button
                   type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
                   disabled={controlsDisabled}
                   onClick={() => adjustVolume('down')}
                 >
@@ -552,7 +552,7 @@ export function OrderTicket({
 
                 <button
                   type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--terminal-border)] bg-[rgba(6,11,19,0.72)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--terminal-border)] bg-[rgba(9,16,26,0.88)] text-[var(--terminal-text-primary)] transition duration-150 hover:bg-[var(--terminal-bg-hover)] disabled:cursor-not-allowed disabled:opacity-45"
                   disabled={controlsDisabled}
                   onClick={() => adjustVolume('up')}
                 >
@@ -619,9 +619,9 @@ export function OrderTicket({
                     }
                   }}
                   className={cn(
-                    'inline-flex h-8 items-center rounded-full border px-3 text-[11px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                    'inline-flex h-7 items-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                     field.enabled
-                      ? 'border-[var(--terminal-accent)] bg-[var(--terminal-accent)] text-[#0A0E1A]'
+                      ? 'border-[var(--terminal-border-strong)] bg-[rgba(128,148,184,0.14)] text-[var(--terminal-text-primary)]'
                       : 'border-[var(--terminal-border)] bg-transparent text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
                   )}
                 >
@@ -638,7 +638,7 @@ export function OrderTicket({
                         type="button"
                         disabled={controlsDisabled}
                         className={cn(
-                          'inline-flex h-8 items-center rounded-full border px-3 text-[10px] font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
+                          'inline-flex h-7 items-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition duration-150 disabled:cursor-not-allowed disabled:opacity-45',
                           field.mode === mode
                             ? 'border-[var(--terminal-border)] bg-[var(--terminal-bg-elevated)] text-[var(--terminal-text-primary)]'
                             : 'border-[var(--terminal-border)] bg-transparent text-[var(--terminal-text-secondary)] hover:bg-[var(--terminal-bg-hover)] hover:text-[var(--terminal-text-primary)]',
@@ -692,13 +692,13 @@ export function OrderTicket({
           </div>
 
           {staleQuoteWarning && !submissionBlockedReason ? (
-            <div className="rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            <div className="rounded-md border border-amber-500/18 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-200">
               {staleQuoteWarning}
             </div>
           ) : null}
 
           {submissionBlockedReason ? (
-            <div className="rounded-2xl border border-amber-500/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            <div className="rounded-md border border-amber-500/18 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-200">
               {submissionBlockedReason}
             </div>
           ) : null}
@@ -707,13 +707,13 @@ export function OrderTicket({
         </div>
       </div>
 
-      <div className="border-t border-[var(--terminal-border)] px-4 py-4 sm:px-5">
+      <div className="border-t border-[var(--terminal-border)] px-3 py-3">
         <button
           type="button"
           onClick={() => void handleSubmit()}
           disabled={submitting || Boolean(submissionBlockedReason)}
           className={cn(
-            'flex min-h-[54px] w-full items-center justify-center rounded-2xl border text-base font-semibold text-white transition duration-150 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex min-h-[42px] w-full items-center justify-center rounded-md border text-sm font-semibold text-white transition duration-150 disabled:cursor-not-allowed disabled:opacity-50',
             form.side === 'BUY'
               ? 'border-[var(--terminal-green)] bg-[var(--terminal-green)] hover:opacity-90'
               : 'border-[var(--terminal-red)] bg-[var(--terminal-red)] hover:opacity-90',

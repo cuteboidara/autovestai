@@ -11,8 +11,6 @@ export class TradingEventsService {
     this.tradingGateway.server
       ?.to(this.tradingGateway.buildPriceRoom(snapshot.symbol))
       .emit('price_update', snapshot);
-    this.tradingGateway.server?.emit('price_update', snapshot);
-    this.tradingGateway.server?.emit('price.update', snapshot);
   }
 
   broadcastCandleUpdate(payload: {
@@ -23,7 +21,6 @@ export class TradingEventsService {
     this.tradingGateway.server
       ?.to(this.tradingGateway.buildCandleRoom(payload.symbol, payload.resolution))
       .emit('candle_update', payload);
-    this.tradingGateway.server?.emit('candle_update', payload);
   }
 
   emitWalletUpdate(userId: string, payload: unknown): void {

@@ -9,8 +9,8 @@ type EventHandler = (payload: unknown) => void;
 class SocketManager {
   private socket: Socket | null = null;
   private handlers = new Map<string, Set<EventHandler>>();
-  private priceSubscriptions = new Set<string>();
-  private candleSubscriptions = new Set<string>();
+  private priceSubscriptions = new Map<string, number>();
+  private candleSubscriptions = new Map<string, number>();
 
   connect(token: string | null) {
     if (this.socket) {
@@ -78,23 +78,47 @@ class SocketManager {
   }
 
   subscribePrice(symbol: string) {
-    this.priceSubscriptions.add(symbol);
-    this.emit('subscribe_price', { symbol });
+    const nextCount = (this.priceSubscriptions.get(symbol) ?? 0) + 1;
+    this.priceSubscriptions.set(symbol, nextCount);
+
+    if (nextCount === 1) {
+      this.emit('subscribe_price', { symbol });
+    }
   }
 
   unsubscribePrice(symbol: string) {
-    this.priceSubscriptions.delete(symbol);
-    this.emit('unsubscribe_price', { symbol });
+    const currentCount = this.priceSubscriptions.get(symbol) ?? 0;
+
+    if (currentCount <= 1) {
+      this.priceSubscriptions.delete(symbol);
+      this.emit('unsubscribe_price', { symbol });
+      return;
+    }
+
+    this.priceSubscriptions.set(symbol, currentCount - 1);
   }
 
   subscribeCandles(symbol: string, resolution: string) {
-    this.candleSubscriptions.add(this.buildCandleSubscriptionKey(symbol, resolution));
-    this.emit('subscribe_candles', { symbol, resolution });
+    const key = this.buildCandleSubscriptionKey(symbol, resolution);
+    const nextCount = (this.candleSubscriptions.get(key) ?? 0) + 1;
+    this.candleSubscriptions.set(key, nextCount);
+
+    if (nextCount === 1) {
+      this.emit('subscribe_candles', { symbol, resolution });
+    }
   }
 
   unsubscribeCandles(symbol: string, resolution: string) {
-    this.candleSubscriptions.delete(this.buildCandleSubscriptionKey(symbol, resolution));
-    this.emit('unsubscribe_candles', { symbol, resolution });
+    const key = this.buildCandleSubscriptionKey(symbol, resolution);
+    const currentCount = this.candleSubscriptions.get(key) ?? 0;
+
+    if (currentCount <= 1) {
+      this.candleSubscriptions.delete(key);
+      this.emit('unsubscribe_candles', { symbol, resolution });
+      return;
+    }
+
+    this.candleSubscriptions.set(key, currentCount - 1);
   }
 
   isConnected() {
@@ -102,11 +126,11 @@ class SocketManager {
   }
 
   private replaySubscriptions() {
-    for (const symbol of this.priceSubscriptions) {
+    for (const symbol of this.priceSubscriptions.keys()) {
       this.emit('subscribe_price', { symbol });
     }
 
-    for (const key of this.candleSubscriptions) {
+    for (const key of this.candleSubscriptions.keys()) {
       const [symbol, resolution] = key.split('::');
       this.emit('subscribe_candles', { symbol, resolution });
     }
