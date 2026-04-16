@@ -1,9 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import TradePage from '@/app/(client)/trade/page';
-import { useAdminStore } from '@/store/admin-store';
 import { useMarketDataStore } from '@/store/market-data-store';
 import { useOrdersStore } from '@/store/orders-store';
 import { usePositionsStore } from '@/store/positions-store';
@@ -12,6 +11,8 @@ import { useWalletStore } from '@/store/wallet-store';
 const {
   listSymbolsMock,
   getPriceMock,
+  getPricesMock,
+  getPlatformStatusMock,
   getWalletMock,
   ordersListMock,
   positionsListMock,
@@ -21,6 +22,8 @@ const {
 } = vi.hoisted(() => ({
   listSymbolsMock: vi.fn(),
   getPriceMock: vi.fn(),
+  getPricesMock: vi.fn(),
+  getPlatformStatusMock: vi.fn(),
   getWalletMock: vi.fn(),
   ordersListMock: vi.fn(),
   positionsListMock: vi.fn(),
@@ -105,12 +108,19 @@ vi.mock('@/services/api/market-data', () => ({
   marketDataApi: {
     listSymbols: listSymbolsMock,
     getPrice: getPriceMock,
+    getPrices: getPricesMock,
   },
 }));
 
 vi.mock('@/services/api/wallet', () => ({
   walletApi: {
     getWallet: getWalletMock,
+  },
+}));
+
+vi.mock('@/services/api/platform', () => ({
+  platformApi: {
+    getStatus: getPlatformStatusMock,
   },
 }));
 
@@ -165,13 +175,13 @@ describe('TradePage', () => {
       watchlist: ['BTCUSD'],
       selectedSymbol: 'BTCUSD',
       selectedResolution: '1',
+      connectionStatus: 'connected',
       quotes: {},
       candles: {},
     });
     useWalletStore.setState({ wallet: null, transactions: [] });
     useOrdersStore.setState({ orders: [] });
     usePositionsStore.setState({ positions: [] });
-    useAdminStore.setState({ websocketConnected: true });
 
     listSymbolsMock.mockResolvedValue([
       {
@@ -219,6 +229,7 @@ describe('TradePage', () => {
       symbol: 'BTCUSD',
       rawPrice: 62000,
       lastPrice: 62000,
+      last: 62000,
       bid: 61990,
       ask: 62010,
       spread: 20,
@@ -227,7 +238,56 @@ describe('TradePage', () => {
       lastUpdated: new Date().toISOString(),
       marketState: 'LIVE',
       marketStatus: 'LIVE',
+      healthStatus: 'ok',
+      healthReason: 'quote healthy',
+      ageMs: 0,
       tradingAvailable: true,
+    });
+    getPricesMock.mockImplementation(async (symbols: string[]) =>
+      symbols.map((symbol) => ({
+        symbol,
+        rawPrice: 62000,
+        lastPrice: 62000,
+        last: 62000,
+        bid: 61990,
+        ask: 62010,
+        spread: 20,
+        markup: 10,
+        timestamp: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        marketState: 'LIVE',
+        marketStatus: 'LIVE',
+        healthStatus: 'ok',
+        healthReason: 'quote healthy',
+        ageMs: 0,
+        tradingAvailable: true,
+      })),
+    );
+    getPlatformStatusMock.mockResolvedValue({
+      maintenanceModeEnabled: false,
+      maintenanceMessage: '',
+      features: {
+        tradingEnabled: true,
+        registrationsEnabled: true,
+        withdrawalsEnabled: true,
+        copyTradingEnabled: true,
+        affiliateProgramEnabled: true,
+        affiliatePayoutsEnabled: true,
+      },
+      symbolHealth: {
+        BTCUSD: {
+          symbol: 'BTCUSD',
+          healthy: true,
+          status: 'ok',
+          reason: 'quote healthy',
+          source: 'binance',
+          timestamp: new Date().toISOString(),
+          ageMs: 0,
+          tradingAvailable: true,
+          marketState: 'LIVE',
+        },
+      },
+      timestamp: new Date().toISOString(),
     });
     ordersListMock.mockResolvedValue([]);
     positionsListMock.mockResolvedValue([]);
@@ -351,5 +411,41 @@ describe('TradePage', () => {
     expect(await screen.findByTestId('trading-view-panel')).toBeInTheDocument();
     expect(screen.queryByText('Pending Orders')).not.toBeInTheDocument();
     expect(screen.queryByTestId('terminal-empty-state')).not.toBeInTheDocument();
+  });
+
+  it('falls back to a quote refresh when the live socket is disconnected', async () => {
+    vi.useFakeTimers();
+    try {
+      useMarketDataStore.setState({ connectionStatus: 'disconnected' });
+      getWalletMock.mockResolvedValue({
+        wallet: {
+          id: 'wallet-12345678',
+          userId: 'user-12345678',
+          balance: 1250,
+          balanceAsset: 'USDT',
+          lockedMargin: 0,
+          usedMargin: 0,
+          unrealizedPnl: 0,
+          equity: 1250,
+          freeMargin: 1250,
+          marginLevel: null,
+        },
+        transactions: [],
+      });
+
+      render(<TradePage />);
+      expect(screen.getByTestId('trade-page-layout')).toBeInTheDocument();
+
+      expect(getPriceMock).not.toHaveBeenCalled();
+
+      await act(async () => {
+        vi.advanceTimersByTime(3_000);
+        await Promise.resolve();
+      });
+      expect(getPriceMock).toHaveBeenCalledWith('BTCUSD');
+      expect(getPlatformStatusMock).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

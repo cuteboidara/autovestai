@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeft, Search, X } from 'lucide-react';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLiveQuote } from '@/hooks/use-live-prices';
 import { cn, formatNumber } from '@/lib/utils';
@@ -69,7 +69,7 @@ function resolveRowHint(item: SymbolInfo, quote?: MarketQuote) {
   return `${item.displayName || item.description || item.category} • ${marketStatus}`;
 }
 
-export function WatchlistPanel({
+export const WatchlistPanel = memo(function WatchlistPanel({
   symbols,
   watchlist,
   selectedSymbol,
@@ -266,7 +266,7 @@ export function WatchlistPanel({
       </div>
     </section>
   );
-}
+});
 
 function WatchlistRow({
   item,

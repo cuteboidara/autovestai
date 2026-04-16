@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 import { cn, formatNumber } from '@/lib/utils';
 import { MarketQuote, SymbolInfo } from '@/types/market-data';
@@ -59,7 +59,7 @@ function formatChangePct(value: number | null | undefined) {
   return `${value > 0 ? '+' : ''}${formatNumber(value, 2)}%`;
 }
 
-export function TradeInstrumentHeader({
+export const TradeInstrumentHeader = memo(function TradeInstrumentHeader({
   symbol,
   symbolInfo,
   quote,
@@ -284,4 +284,4 @@ export function TradeInstrumentHeader({
       </div>
     </div>
   );
-}
+});

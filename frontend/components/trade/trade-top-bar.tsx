@@ -9,9 +9,10 @@ import {
   ShieldAlert,
   UserCircle2,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
+import { LiveConnectionStatus } from '@/types/market-data';
 
 interface SummaryMetric {
   label: string;
@@ -29,7 +30,7 @@ interface TradeTopBarProps {
   accountNumber?: string | null;
   accountType?: 'LIVE' | 'DEMO' | null;
   balanceLabel: string;
-  websocketConnected: boolean;
+  connectionStatus: LiveConnectionStatus;
   userEmail?: string | null;
   summaryMetrics: SummaryMetric[];
   tradingBlockedMessage?: string | null;
@@ -39,12 +40,12 @@ interface TradeTopBarProps {
 
 const workspaceTabs = ['Chart', 'Positions', 'Watchlist', 'Portfolio', 'Tools'];
 
-export function TradeTopBar({
+export const TradeTopBar = memo(function TradeTopBar({
   accountLabel,
   accountNumber = null,
   accountType = 'LIVE',
   balanceLabel,
-  websocketConnected,
+  connectionStatus,
   userEmail,
   summaryMetrics,
   tradingBlockedMessage,
@@ -146,18 +147,34 @@ export function TradeTopBar({
             <div
               className={cn(
                 'hidden h-8 items-center gap-2 rounded-md border px-2.5 text-[11px] font-medium lg:inline-flex',
-                websocketConnected
+                connectionStatus === 'connected'
                   ? 'border-emerald-500/18 bg-emerald-500/8 text-emerald-300'
-                  : 'border-amber-500/18 bg-amber-500/8 text-amber-300',
+                  : connectionStatus === 'stale'
+                    ? 'border-red-500/18 bg-red-500/8 text-red-300'
+                    : connectionStatus === 'reconnecting'
+                      ? 'border-amber-500/18 bg-amber-500/8 text-amber-300'
+                      : 'border-red-500/18 bg-red-500/8 text-red-300',
               )}
             >
               <span
                 className={cn(
                   'h-1.5 w-1.5 rounded-full',
-                  websocketConnected ? 'bg-emerald-400 terminal-pulse' : 'bg-amber-300',
+                  connectionStatus === 'connected'
+                    ? 'bg-emerald-400 terminal-pulse'
+                    : connectionStatus === 'stale'
+                      ? 'bg-red-300'
+                      : connectionStatus === 'reconnecting'
+                        ? 'bg-amber-300'
+                        : 'bg-red-300',
                 )}
               />
-              {websocketConnected ? 'Connected' : 'Reconnecting'}
+              {connectionStatus === 'connected'
+                ? 'Connected'
+                : connectionStatus === 'stale'
+                  ? 'Stale Feed'
+                  : connectionStatus === 'reconnecting'
+                    ? 'Reconnecting'
+                    : 'Offline'}
             </div>
 
             <div className="hidden items-center gap-1 xl:flex">
@@ -311,4 +328,4 @@ export function TradeTopBar({
       ) : null}
     </div>
   );
-}
+});

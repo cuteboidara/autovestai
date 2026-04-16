@@ -137,6 +137,33 @@ describe('OrderTicket', () => {
     expect(screen.getByText('124.02 USDT')).toBeInTheDocument();
   });
 
+  it('updates execution and spread immediately when the live quote changes', async () => {
+    const { rerender } = render(<OrderTicket {...baseProps} />);
+
+    expect(screen.getAllByText('62,010').length).toBeGreaterThan(0);
+    expect(screen.getByText((_, node) => node?.textContent === 'Spread 20')).toBeInTheDocument();
+
+    rerender(
+      <OrderTicket
+        {...baseProps}
+        quote={{
+          ...baseProps.quote,
+          rawPrice: 62040,
+          last: 62040,
+          lastPrice: 62040,
+          bid: 62030,
+          ask: 62050,
+          spread: 20,
+          timestamp: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText('62,050').length).toBeGreaterThan(0);
+    expect(screen.getByText((_, node) => node?.textContent === 'Spread 20')).toBeInTheDocument();
+  });
+
   it('warns on stale quotes without disabling order entry when trading remains available', () => {
     usePlatformStore.setState({
       status: {

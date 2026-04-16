@@ -12,6 +12,7 @@ import {
 } from './symbols.config';
 import { getSymbolMasterRecord } from '../symbols/symbol-master';
 import { TRADINGVIEW_EXCHANGE_NAME } from '../symbols/symbol.constants';
+import { createMarketQuotePayload } from './market-quote.presenter';
 
 @Injectable()
 export class MarketDataService {
@@ -88,30 +89,24 @@ export class MarketDataService {
     const quote = await this.pricingService.getLatestQuote(instrument.symbol);
     const health = this.pricingService.getSymbolHealth(instrument.symbol);
 
-    return {
-      symbol: instrument.symbol,
-      displayName: getSymbolMasterRecord(instrument.symbol)?.displayName ?? instrument.description,
-      assetClass: instrument.category,
-      enabled: instrument.isActive,
+    return createMarketQuotePayload({
+      instrument,
+      snapshot: quote,
+      health,
       tradingViewSymbol: this.symbolsService.getTradingViewSymbol(instrument),
-      quoteSource: instrument.quoteSource,
-      bid: quote.bid,
-      ask: quote.ask,
-      spread: quote.spread,
-      markup: quote.markup,
-      changePct: quote.changePct ?? null,
-      dayHigh: quote.dayHigh ?? null,
-      dayLow: quote.dayLow ?? null,
-      delayed: health.status === 'delayed' || (quote.delayed ?? false),
-      rawPrice: quote.rawPrice,
-      lastPrice: quote.lastPrice,
-      source: quote.source,
-      marketState: quote.marketState,
-      marketStatus: this.getMarketStatus(instrument.symbol),
-      tradingAvailable: health.tradingAvailable,
-      timestamp: quote.timestamp,
-      lastUpdated: quote.lastUpdated,
-    };
+    });
+  }
+
+  async getCurrentPrices(symbols: string[]) {
+    const normalizedSymbols = [...new Set(symbols.map((symbol) => symbol.trim()).filter(Boolean))];
+
+    if (normalizedSymbols.length === 0) {
+      return [];
+    }
+
+    return Promise.all(
+      normalizedSymbols.map((symbol) => this.getCurrentPrice(symbol)),
+    );
   }
 
   async getHistory(params: {

@@ -116,7 +116,6 @@ export function TradeActivityPage({ kind }: { kind: ActivityPageKind }) {
   const searchParams = useSearchParams();
   const pushNotification = useNotificationStore((state) => state.push);
   const upsertQuote = useMarketDataStore((state) => state.upsertQuote);
-  const quotes = useMarketDataStore((state) => state.quotes);
   const orders = useOrdersStore((state) => state.orders);
   const setOrders = useOrdersStore((state) => state.setOrders);
   const positions = usePositionsStore((state) => state.positions);
@@ -182,19 +181,13 @@ export function TradeActivityPage({ kind }: { kind: ActivityPageKind }) {
           return;
         }
 
-        const quoteResults = await Promise.allSettled(
-          openSymbols.map((symbol) => marketDataApi.getPrice(symbol)),
-        );
+        const quoteResults = await marketDataApi.getPrices(openSymbols).catch(() => []);
 
         if (!active) {
           return;
         }
 
-        quoteResults.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            upsertQuote(result.value);
-          }
-        });
+        quoteResults.forEach((quote) => upsertQuote(quote));
       } catch (error) {
         if (active) {
           pushNotification({
@@ -276,25 +269,21 @@ export function TradeActivityPage({ kind }: { kind: ActivityPageKind }) {
 
   useLivePriceSubscription(kind === 'positions' ? liveSubscriptionSymbols : []);
 
-  const liveFloatingPnl = useMemo(
-    () =>
-      openPositions.reduce(
-        (total, position) => total + calculateLivePositionPnl(position, quotes[position.symbol]),
-        0,
-      ),
-    [openPositions, quotes],
+  const liveFloatingPnl = useMarketDataStore((state) =>
+    openPositions.reduce(
+      (total, position) => total + calculateLivePositionPnl(position, state.quotes[position.symbol]),
+      0,
+    ),
   );
-  const liveOpenPositionPnlSignature = useMemo(
-    () =>
-      openPositions
-        .map(
-          (position) =>
-            `${position.id}:${positionPnlSignatureValue(
-              calculateLivePositionPnl(position, quotes[position.symbol]),
-            )}`,
-        )
-        .join('|'),
-    [openPositions, quotes],
+  const liveOpenPositionPnlSignature = useMarketDataStore((state) =>
+    openPositions
+      .map(
+        (position) =>
+          `${position.id}:${positionPnlSignatureValue(
+            calculateLivePositionPnl(position, state.quotes[position.symbol]),
+          )}`,
+      )
+      .join('|'),
   );
 
   useEffect(() => {

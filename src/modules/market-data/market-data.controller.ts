@@ -30,6 +30,17 @@ export class MarketDataController {
     return this.marketDataService.getHistory(query);
   }
 
+  @Get('prices')
+  getCurrentPrices(@Query('symbols') rawSymbols?: string | string[]) {
+    const symbols = Array.isArray(rawSymbols)
+      ? rawSymbols
+      : typeof rawSymbols === 'string'
+        ? rawSymbols.split(',')
+        : [];
+
+    return this.marketDataService.getCurrentPrices(symbols);
+  }
+
   @Get('price/:symbol')
   getCurrentPrice(@Param('symbol') symbol: string) {
     return this.marketDataService.getCurrentPrice(symbol);

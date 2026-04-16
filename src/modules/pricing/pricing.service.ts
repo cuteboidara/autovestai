@@ -14,8 +14,8 @@ import { OrderQueueService } from '../../common/queue/order-queue.service';
 import { isRecoverableQueueError } from '../../common/queue/queue-recovery.util';
 import { RedisService } from '../../common/redis/redis.service';
 import { toNumber } from '../../common/utils/decimal';
-import { serializePriceSnapshot } from '../../common/utils/serializers';
 import { BrokerSettingsService } from '../admin/broker-settings.service';
+import { createMarketQuotePayload } from '../market-data/market-quote.presenter';
 import {
   deriveBootstrapPrice,
 } from '../symbols/symbol.constants';
@@ -67,6 +67,7 @@ interface UpsertPriceOptions {
 }
 
 type ProviderPollKey = 'forex' | 'stooq';
+type QuoteSourceTransport = 'streaming' | 'polling' | 'bootstrap';
 
 @Injectable()
 export class PricingService implements OnModuleInit, OnModuleDestroy {
@@ -109,6 +110,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
   private stooqTimer?: NodeJS.Timeout;
   private yahooTimer?: NodeJS.Timeout;
   private forexTimer?: NodeJS.Timeout;
+  private quoteFreshnessTimer?: NodeJS.Timeout;
   private reconnectAttempt = 0;
 
   constructor(
@@ -140,7 +142,10 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     await this.symbolsService.reload();
     // Run in background — don't block app startup
     this.bootstrapQuotes()
-      .then(() => this.startFreePricingProviders())
+      .then(async () => {
+        await this.startFreePricingProviders();
+        this.startQuoteFreshnessMonitor();
+      })
       .catch((err: Error) =>
         this.logger.error(`Background pricing init failed: ${err.message}`),
       );
@@ -151,6 +156,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     this.clearTimer(this.stooqTimer);
     this.clearTimer(this.yahooTimer);
     this.clearTimer(this.forexTimer);
+    this.clearTimer(this.quoteFreshnessTimer);
 
     if (this.binanceSocket) {
       this.binanceSocket.removeAllListeners();
@@ -161,6 +167,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     this.coinGeckoProvider.stop();
     this.forexProvider.stop();
     this.yahooProvider.stop();
+    this.twelveDataAdapter.close();
   }
 
   async getLatestQuote(symbol: string): Promise<PriceSnapshot> {
@@ -247,6 +254,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     return {
       coingecko: this.coinGeckoProvider.getStatus(),
       binance: this.binanceProvider.getStatus(),
+      twelveData: this.twelveDataAdapter.getStatus(),
       forexApi: this.forexProvider.getStatus(),
       yahooFinance: this.yahooProvider.getStatus(),
     };
@@ -315,6 +323,8 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       ),
     ];
 
+    this.connectTwelveDataFeed();
+
     // CoinGecko — primary crypto provider (no geo-block, no API key)
     this.coinGeckoProvider
       .start(coinGeckoInstruments, (source, update) =>
@@ -346,7 +356,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       );
 
     this.logger.log(
-      `Free pricing providers initialized: CoinGecko ${coinGeckoInstruments.length}, Binance ${coinGeckoInstruments.length} (secondary), Forex ${forexInstruments.length}, Yahoo ${yahooWithMetals.length}`,
+      `Free pricing providers initialized: CoinGecko ${coinGeckoInstruments.length}, Binance ${coinGeckoInstruments.length} (secondary), TwelveData ${this.twelveDataRealtimeSymbols.size}, Forex ${forexInstruments.length}, Yahoo ${yahooWithMetals.length}`,
     );
   }
 
@@ -717,38 +727,36 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     source: string,
     options?: UpsertPriceOptions,
   ): Promise<void> {
-    const instrument = this.symbolsService.getSymbolOrThrow(symbol);
-    const snapshot = this.buildQuote(instrument, price, source, options);
+    const normalizedSymbol = this.assertSupportedSymbol(symbol);
+    const instrument = this.symbolsService.getSymbolOrThrow(normalizedSymbol);
+    const current = this.prices.get(normalizedSymbol);
 
-    this.prices.set(symbol, snapshot);
-    this.tradingEventsService.broadcastPriceUpdate(serializePriceSnapshot(snapshot));
-
-    if (snapshot.marketState === 'LIVE') {
-      this.maybeEnqueueLimitSweep(symbol);
+    if (this.shouldSkipIncomingQuote(current, source)) {
+      return;
     }
 
-    const redisPromise = this.redisService
-      .getClient()
-      .set(this.buildCacheKey(symbol), JSON.stringify(snapshot));
-    const candlePromise =
-      snapshot.marketState === 'LIVE'
-        ? this.candleService.handlePriceUpdate(snapshot)
-        : Promise.resolve();
+    const snapshot = this.applyQuoteAgeState(
+      this.buildQuote(instrument, price, source, options),
+    );
+    const currentSnapshot = current ? this.applyQuoteAgeState(current) : null;
+    const shouldBroadcast =
+      !currentSnapshot || this.hasMeaningfulQuoteChange(currentSnapshot, snapshot);
 
-    const persistenceResults = await Promise.allSettled([redisPromise, candlePromise]);
-    const [redisResult, candleResult] = persistenceResults;
+    this.prices.set(normalizedSymbol, snapshot);
 
-    if (redisResult.status === 'rejected') {
-      this.logger.warn(
-        `Failed to cache quote for ${symbol}: ${redisResult.reason instanceof Error ? redisResult.reason.message : String(redisResult.reason)}`,
+    if (shouldBroadcast) {
+      this.tradingEventsService.broadcastPriceUpdate(
+        this.buildClientQuotePayload(instrument, snapshot),
       );
     }
 
-    if (candleResult.status === 'rejected') {
-      this.logger.warn(
-        `Failed to update candles for ${symbol}: ${candleResult.reason instanceof Error ? candleResult.reason.message : String(candleResult.reason)}`,
-      );
+    if (shouldBroadcast && snapshot.marketState === 'LIVE') {
+      this.maybeEnqueueLimitSweep(normalizedSymbol);
     }
+
+    await this.persistQuoteSnapshot(normalizedSymbol, snapshot, {
+      updateCandles: shouldBroadcast && snapshot.marketState === 'LIVE',
+    });
   }
 
   private buildQuote(
@@ -814,6 +822,136 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       marketState,
       delayed: marketState === 'LIVE' ? snapshot.delayed || ageMarkedDelayed : false,
     };
+  }
+
+  private startQuoteFreshnessMonitor(): void {
+    this.clearTimer(this.quoteFreshnessTimer);
+    const intervalMs = Math.max(Math.min(Math.floor(this.quoteStaleMs / 3), 5_000), 2_000);
+
+    this.quoteFreshnessTimer = setInterval(() => {
+      void this.sweepAgedQuotes();
+    }, intervalMs);
+  }
+
+  private async sweepAgedQuotes(): Promise<void> {
+    const updates = Array.from(this.prices.entries())
+      .map(([symbol, snapshot]) => {
+        const nextSnapshot = this.applyQuoteAgeState(snapshot);
+
+        return this.hasMeaningfulQuoteChange(snapshot, nextSnapshot)
+          ? ([symbol, nextSnapshot] as const)
+          : null;
+      })
+      .filter((entry): entry is readonly [string, PriceSnapshot] => entry !== null);
+
+    if (updates.length === 0) {
+      return;
+    }
+
+    await Promise.all(
+      updates.map(async ([symbol, snapshot]) => {
+        const instrument = this.symbolsService.getSymbolOrThrow(symbol);
+        this.prices.set(symbol, snapshot);
+        this.logThrottledWarning(
+          `quote-state:${symbol}:${snapshot.marketState}:${snapshot.delayed ? 'delayed' : 'fresh'}`,
+          `Quote state transition detected for ${symbol}: marketState=${snapshot.marketState} delayed=${snapshot.delayed ? 'yes' : 'no'} source=${snapshot.source}`,
+        );
+        this.tradingEventsService.broadcastPriceUpdate(
+          this.buildClientQuotePayload(instrument, snapshot),
+        );
+        await this.persistQuoteSnapshot(symbol, snapshot, { updateCandles: false });
+      }),
+    );
+  }
+
+  private shouldSkipIncomingQuote(
+    current: PriceSnapshot | undefined,
+    source: string,
+  ): boolean {
+    if (!current || this.getSourceTransport(source) !== 'polling') {
+      return false;
+    }
+
+    const currentSnapshot = this.applyQuoteAgeState(current);
+    return (
+      this.getSourceTransport(currentSnapshot.source) === 'streaming' &&
+      currentSnapshot.marketState === 'LIVE' &&
+      !currentSnapshot.delayed
+    );
+  }
+
+  private getSourceTransport(source: string): QuoteSourceTransport {
+    switch (source) {
+      case 'binance':
+      case 'twelve-data':
+        return 'streaming';
+      case 'bootstrap':
+        return 'bootstrap';
+      default:
+        return 'polling';
+    }
+  }
+
+  private hasMeaningfulQuoteChange(
+    current: PriceSnapshot,
+    next: PriceSnapshot,
+  ): boolean {
+    return (
+      current.rawPrice !== next.rawPrice ||
+      current.lastPrice !== next.lastPrice ||
+      current.bid !== next.bid ||
+      current.ask !== next.ask ||
+      current.spread !== next.spread ||
+      current.markup !== next.markup ||
+      current.source !== next.source ||
+      current.marketState !== next.marketState ||
+      Boolean(current.delayed) !== Boolean(next.delayed) ||
+      current.changePct !== next.changePct ||
+      current.dayHigh !== next.dayHigh ||
+      current.dayLow !== next.dayLow
+    );
+  }
+
+  private buildClientQuotePayload(
+    instrument: TradingSymbol,
+    snapshot: PriceSnapshot,
+  ) {
+    return createMarketQuotePayload({
+      instrument,
+      snapshot,
+      health: this.getQuoteHealth(instrument.symbol, snapshot),
+      tradingViewSymbol: this.symbolsService.getTradingViewSymbol(instrument),
+    });
+  }
+
+  private async persistQuoteSnapshot(
+    symbol: string,
+    snapshot: PriceSnapshot,
+    options: {
+      updateCandles: boolean;
+    },
+  ): Promise<void> {
+    const redisPromise = this.redisService
+      .getClient()
+      .set(this.buildCacheKey(symbol), JSON.stringify(snapshot));
+    const candlePromise = options.updateCandles
+      ? this.candleService.handlePriceUpdate(snapshot)
+      : Promise.resolve();
+
+    const persistenceResults = await Promise.allSettled([redisPromise, candlePromise]);
+    const [redisResult, candleResult] = persistenceResults;
+
+    if (redisResult.status === 'rejected') {
+      this.logger.warn(
+        `Failed to cache quote for ${symbol}: ${redisResult.reason instanceof Error ? redisResult.reason.message : String(redisResult.reason)}`,
+      );
+    }
+
+    if (candleResult.status === 'rejected') {
+      this.logger.warn(
+        `Failed to update candles for ${symbol}: ${candleResult.reason instanceof Error ? candleResult.reason.message : String(candleResult.reason)}`,
+      );
+    }
   }
 
   private maybeEnqueueLimitSweep(symbol: string): void {

@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Symbol as TradingSymbol, SymbolCategory } from '@prisma/client';
 import WebSocket = require('ws');
 
+import { PricingProviderStatus } from './providers/pricing-provider.types';
+
 export interface TwelveDataQuoteTick {
   symbol: string;
   rawPrice: number;
@@ -48,6 +50,14 @@ export class TwelveDataAdapter implements OnModuleDestroy {
   private reconnectTimer?: NodeJS.Timeout;
   private reconnectAttempt = 0;
   private tickHandler?: TickHandler;
+  private status: PricingProviderStatus = {
+    provider: 'twelve-data',
+    transport: 'streaming',
+    status: 'disconnected',
+    symbolCount: 0,
+    lastUpdateAt: null,
+    lastError: null,
+  };
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('pricing.twelveDataApiKey')?.trim() ?? '';
@@ -115,7 +125,22 @@ export class TwelveDataAdapter implements OnModuleDestroy {
       );
     }
 
+    this.status = {
+      ...this.status,
+      symbolCount: this.providerSymbolsByInternalSymbol.size,
+      lastError: null,
+      status:
+        this.providerSymbolsByInternalSymbol.size > 0 && this.apiKey
+          ? 'connecting'
+          : 'disconnected',
+    };
+
     if (!this.apiKey) {
+      this.status = {
+        ...this.status,
+        status: 'disconnected',
+        lastError: 'TWELVE_DATA_API_KEY not configured',
+      };
       this.logger.log(
         'TWELVE_DATA_API_KEY not configured, using polling fallback for non-crypto prices',
       );
@@ -123,6 +148,11 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     }
 
     if (this.providerSymbolsByInternalSymbol.size === 0) {
+      this.status = {
+        ...this.status,
+        status: 'disconnected',
+        lastError: null,
+      };
       this.logger.log(
         'No Twelve Data realtime symbols configured, using polling fallback for non-crypto prices',
       );
@@ -143,6 +173,15 @@ export class TwelveDataAdapter implements OnModuleDestroy {
       this.socket.close();
       this.socket = undefined;
     }
+
+    this.status = {
+      ...this.status,
+      status: 'disconnected',
+    };
+  }
+
+  getStatus() {
+    return { ...this.status };
   }
 
   getProviderSymbol(
@@ -184,10 +223,20 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     this.logger.log(
       `Connecting Twelve Data WebSocket for ${this.providerSymbolsByInternalSymbol.size} symbols`,
     );
+    this.status = {
+      ...this.status,
+      status: 'connecting',
+      lastError: null,
+    };
     this.socket = new WebSocket(wsUrl);
 
     this.socket.on('open', () => {
       this.reconnectAttempt = 0;
+      this.status = {
+        ...this.status,
+        status: 'connected',
+        lastError: null,
+      };
       this.logger.log('Twelve Data WebSocket connected');
       this.sendSubscription();
     });
@@ -197,6 +246,11 @@ export class TwelveDataAdapter implements OnModuleDestroy {
     });
 
     this.socket.on('error', (error) => {
+      this.status = {
+        ...this.status,
+        status: 'degraded',
+        lastError: error.message,
+      };
       this.logger.error(`Twelve Data WebSocket error: ${error.message}`);
     });
 
@@ -209,6 +263,11 @@ export class TwelveDataAdapter implements OnModuleDestroy {
           ? `Twelve Data WebSocket disconnected (${code}): ${closeReason}`
           : `Twelve Data WebSocket disconnected (${code})`,
       );
+      this.status = {
+        ...this.status,
+        status: 'disconnected',
+        lastError: closeReason || this.status.lastError,
+      };
 
       if (this.providerSymbolsByInternalSymbol.size === 0) {
         return;
@@ -273,10 +332,18 @@ export class TwelveDataAdapter implements OnModuleDestroy {
         return;
       }
 
+      const timestamp = this.toIsoTimestamp(payload.timestamp);
+      this.status = {
+        ...this.status,
+        status: 'connected',
+        lastUpdateAt: timestamp,
+        lastError: null,
+      };
+
       void this.tickHandler?.({
         symbol,
         rawPrice,
-        timestamp: this.toIsoTimestamp(payload.timestamp),
+        timestamp,
         providerSymbol,
       });
     } catch (error) {

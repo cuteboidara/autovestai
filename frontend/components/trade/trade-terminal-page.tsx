@@ -2,7 +2,7 @@
 
 import { ChevronRight, X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 
 import { OrderTicket } from '@/components/trade/order-ticket';
 import { TradeInstrumentHeader } from '@/components/trade/trade-instrument-header';
@@ -10,7 +10,11 @@ import { TradeTopBar } from '@/components/trade/trade-top-bar';
 import { TradingViewPanel } from '@/components/trade/trading-view-panel';
 import { WatchlistPanel } from '@/components/trade/watchlist-panel';
 import { useAccountContext } from '@/context/account-context';
-import { useLivePriceSubscription, useLiveQuote } from '@/hooks/use-live-prices';
+import {
+  useLiveConnectionStatus,
+  useLivePriceSubscription,
+  useLiveQuote,
+} from '@/hooks/use-live-prices';
 import { calculateLivePositionPnl } from '@/lib/trade-live-metrics';
 import { getActiveAccountLabel, getTradingAvailability } from '@/lib/trading-access';
 import { cn, formatNumber, formatUsdt } from '@/lib/utils';
@@ -19,7 +23,6 @@ import { ordersApi } from '@/services/api/orders';
 import { platformApi } from '@/services/api/platform';
 import { positionsApi } from '@/services/api/positions';
 import { walletApi } from '@/services/api/wallet';
-import { useAdminStore } from '@/store/admin-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useMarketDataStore } from '@/store/market-data-store';
 import { useNotificationStore } from '@/store/notification-store';
@@ -154,7 +157,7 @@ export function TradeTerminalPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const pushNotification = useNotificationStore((state) => state.push);
-  const websocketConnected = useAdminStore((state) => state.websocketConnected);
+  const socketConnectionStatus = useLiveConnectionStatus();
   const selectedSymbol = useMarketDataStore((state) => state.selectedSymbol);
   const selectedResolution = useMarketDataStore((state) => state.selectedResolution);
   const watchlist = useMarketDataStore((state) => state.watchlist);
@@ -193,6 +196,7 @@ export function TradeTerminalPage() {
   const selectedSymbolHealth = activeSymbol
     ? platformStatus?.symbolHealth[activeSymbol]
     : undefined;
+  const selectedHealthStatus = selectedSymbolHealth?.status ?? selectedQuote?.healthStatus;
   const resolvedTimeframes = useMemo(
     () =>
       timeframeButtons.map((timeframe) => ({
@@ -216,15 +220,26 @@ export function TradeTerminalPage() {
         ),
     [activeAccountId, positions],
   );
-  const allSymbolKeys = useMemo(() => symbols.map((symbol) => symbol.symbol), [symbols]);
+  const filteredSymbols = useMemo(
+    () =>
+      symbolSearch.trim()
+        ? symbols.filter(
+            (s) =>
+              s.symbol.toLowerCase().includes(symbolSearch.toLowerCase()) ||
+              (s.description ?? '').toLowerCase().includes(symbolSearch.toLowerCase()),
+          )
+        : symbols,
+    [symbolSearch, symbols],
+  );
   const liveSubscriptionSymbols = useMemo(
     () =>
       [...new Set([
-        ...allSymbolKeys,
+        ...watchlist,
         ...openPositions.map((position) => position.symbol),
         activeSymbol,
+        ...(mobileSymbolModalOpen ? filteredSymbols.map((symbol) => symbol.symbol) : []),
       ])].filter(Boolean),
-    [activeSymbol, allSymbolKeys, openPositions],
+    [activeSymbol, filteredSymbols, mobileSymbolModalOpen, openPositions, watchlist],
   );
   useLivePriceSubscription(liveSubscriptionSymbols);
   const liveFloatingPnl = useMarketDataStore((state) =>
@@ -234,7 +249,7 @@ export function TradeTerminalPage() {
     ),
   );
 
-  async function refreshTerminalData() {
+  const refreshTerminalData = useCallback(async () => {
     const accountQuery = activeAccountId
       ? `accountId=${encodeURIComponent(activeAccountId)}`
       : undefined;
@@ -247,7 +262,7 @@ export function TradeTerminalPage() {
     setSnapshot(walletSnapshot);
     setOrders(orderItems);
     setPositions(positionItems);
-  }
+  }, [activeAccountId, setOrders, setPositions, setSnapshot]);
 
   useEffect(() => {
     let active = true;
@@ -287,9 +302,7 @@ export function TradeTerminalPage() {
               ? activeSymbol
               : resolvedWatchlist[0] ?? '';
         const universe = [...new Set([...resolvedWatchlist, nextActiveSymbol])].filter(Boolean);
-        const quoteResults = await Promise.allSettled(
-          universe.map((symbol) => marketDataApi.getPrice(symbol)),
-        );
+        const quoteResults = await marketDataApi.getPrices(universe).catch(() => []);
 
         if (!active) {
           return;
@@ -304,11 +317,7 @@ export function TradeTerminalPage() {
           setSelectedSymbol(nextActiveSymbol);
         }
 
-        quoteResults.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            upsertQuote(result.value);
-          }
-        });
+        quoteResults.forEach((quote) => upsertQuote(quote));
       } finally {
         if (active) {
           setLoading(false);
@@ -322,8 +331,8 @@ export function TradeTerminalPage() {
       active = false;
     };
   }, [
-    activeAccountId,
     activeSymbol,
+    refreshTerminalData,
     setSelectedSymbol,
     setWatchlist,
     upsertQuote,
@@ -354,7 +363,7 @@ export function TradeTerminalPage() {
   }, [resolvedTimeframes, selectedResolution, setSelectedResolution]);
 
   useEffect(() => {
-    if (websocketConnected) {
+    if (socketConnectionStatus === 'connected') {
       return;
     }
 
@@ -363,10 +372,10 @@ export function TradeTerminalPage() {
     }, 15_000);
 
     return () => window.clearInterval(intervalId);
-  }, [activeAccountId, websocketConnected]);
+  }, [refreshTerminalData, socketConnectionStatus]);
 
   useEffect(() => {
-    if (!activeSymbol || (websocketConnected && selectedSymbolHealth?.status !== 'stale')) {
+    if (!activeSymbol || (socketConnectionStatus === 'connected' && selectedHealthStatus !== 'stale')) {
       return;
     }
 
@@ -392,10 +401,10 @@ export function TradeTerminalPage() {
     };
   }, [
     activeSymbol,
-    selectedSymbolHealth?.status,
+    selectedHealthStatus,
     setPlatformStatus,
     upsertQuote,
-    websocketConnected,
+    socketConnectionStatus,
   ]);
 
   const floatingPnl = liveFloatingPnl;
@@ -421,42 +430,37 @@ export function TradeTerminalPage() {
   const hasLiveAccount = accounts.some(
     (account) => account.type === 'LIVE' && account.status === 'ACTIVE',
   );
-  const summaryMetrics = [
-    { label: 'Balance', value: wallet ? formatUsdt(wallet.balance) : '--' },
-    { label: 'Equity', value: derivedEquity != null ? formatUsdt(derivedEquity) : '--' },
-    { label: 'Free Margin', value: derivedFreeMargin != null ? formatUsdt(derivedFreeMargin) : '--' },
-    { label: 'Margin Used', value: wallet ? formatUsdt(usedMargin) : '--' },
-    {
-      label: 'Margin Level',
-      value:
-        derivedMarginLevel != null
-          ? `${formatNumber(derivedMarginLevel, 2)}%`
-          : '--',
-    },
-    {
-      label: 'Floating PnL',
-      value: formatUsdt(floatingPnl),
-      tone:
-        floatingPnl >= 0
-          ? 'text-[var(--terminal-green)]'
-          : 'text-[var(--terminal-red)]',
-    },
-  ];
+  const summaryMetrics = useMemo(
+    () => [
+      { label: 'Balance', value: wallet ? formatUsdt(wallet.balance) : '--' },
+      { label: 'Equity', value: derivedEquity != null ? formatUsdt(derivedEquity) : '--' },
+      {
+        label: 'Free Margin',
+        value: derivedFreeMargin != null ? formatUsdt(derivedFreeMargin) : '--',
+      },
+      { label: 'Margin Used', value: wallet ? formatUsdt(usedMargin) : '--' },
+      {
+        label: 'Margin Level',
+        value:
+          derivedMarginLevel != null
+            ? `${formatNumber(derivedMarginLevel, 2)}%`
+            : '--',
+      },
+      {
+        label: 'Floating PnL',
+        value: formatUsdt(floatingPnl),
+        tone:
+          floatingPnl >= 0
+            ? 'text-[var(--terminal-green)]'
+            : 'text-[var(--terminal-red)]',
+      },
+    ],
+    [derivedEquity, derivedFreeMargin, derivedMarginLevel, floatingPnl, usedMargin, wallet],
+  );
   const spreadDisplay =
     selectedQuote && selectedSymbolInfo
       ? formatNumber(selectedQuote.ask - selectedQuote.bid, selectedSymbolInfo.digits)
       : '--';
-  const filteredSymbols = useMemo(
-    () =>
-      symbolSearch.trim()
-        ? symbols.filter(
-            (s) =>
-              s.symbol.toLowerCase().includes(symbolSearch.toLowerCase()) ||
-              (s.description ?? '').toLowerCase().includes(symbolSearch.toLowerCase()),
-          )
-        : symbols,
-    [symbols, symbolSearch],
-  );
   const terminalLayoutStyle = useMemo(
     () =>
       ({
@@ -466,16 +470,16 @@ export function TradeTerminalPage() {
     [watchlistCollapsed],
   );
   const marketStatus =
-    selectedSymbolHealth?.status === 'disabled'
+    selectedHealthStatus === 'disabled'
       ? 'DISABLED'
-      : selectedSymbolHealth?.status === 'closed'
+      : selectedHealthStatus === 'closed'
         ? 'CLOSED'
-        : selectedSymbolHealth?.status === 'delayed'
+        : selectedHealthStatus === 'delayed'
           ? 'DELAYED'
-          : selectedSymbolHealth?.status === 'stale'
+          : selectedHealthStatus === 'stale'
             ? 'STALE'
-            : selectedSymbolHealth?.status === 'degraded' ||
-                selectedSymbolHealth?.status === 'down'
+            : selectedHealthStatus === 'degraded' ||
+                selectedHealthStatus === 'down'
               ? 'DEGRADED'
               : selectedQuote?.marketStatus ??
                 (selectedQuote?.delayed
@@ -483,6 +487,27 @@ export function TradeTerminalPage() {
                   : selectedQuote?.marketState && selectedQuote.marketState !== 'LIVE'
                     ? selectedQuote.marketState
                     : 'LIVE');
+  const topBarConnectionStatus =
+    socketConnectionStatus === 'connected' && marketStatus === 'STALE'
+      ? 'stale'
+      : socketConnectionStatus;
+  const openAccountSwitcher = useCallback(() => {
+    setSwitcherOpen(true);
+  }, [setSwitcherOpen]);
+  const clearSelectedSymbol = useCallback(() => {
+    setSelectedSymbol('');
+  }, [setSelectedSymbol]);
+  const collapseWatchlist = useCallback(() => {
+    setWatchlistCollapsed(true);
+  }, []);
+  const handleOrderSubmitted = useCallback(() => refreshTerminalData(), [refreshTerminalData]);
+  const handleMobileSymbolSelect = useCallback(
+    (symbol: string) => {
+      setSelectedSymbol(symbol);
+      setMobileSymbolModalOpen(false);
+    },
+    [setSelectedSymbol],
+  );
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[var(--terminal-bg-primary)] text-[var(--terminal-text-primary)]">
@@ -492,12 +517,12 @@ export function TradeTerminalPage() {
           accountNumber={activeAccount?.accountNo}
           accountType={wallet?.type ?? activeAccount?.type}
           balanceLabel={wallet ? formatUsdt(wallet.balance) : 'Loading balance...'}
-          websocketConnected={websocketConnected}
+          connectionStatus={topBarConnectionStatus}
           userEmail={user?.email}
           summaryMetrics={summaryMetrics}
           tradingBlockedMessage={tradingAvailability.message}
           tradingBlockedActions={tradingAvailability.actions}
-          onOpenAccountSwitcher={() => setSwitcherOpen(true)}
+          onOpenAccountSwitcher={openAccountSwitcher}
         />
 
         {demoAccount ? (
@@ -614,8 +639,8 @@ export function TradeTerminalPage() {
                     selectedSymbol={selectedSymbol}
                     loading={loading}
                     onSelect={setSelectedSymbol}
-                    onClearSelection={() => setSelectedSymbol('')}
-                    onToggleCollapse={() => setWatchlistCollapsed(true)}
+                    onClearSelection={clearSelectedSymbol}
+                    onToggleCollapse={collapseWatchlist}
                     collapsed={watchlistCollapsed}
                     className="h-full"
                   />
@@ -651,7 +676,7 @@ export function TradeTerminalPage() {
                   symbols={symbols}
                   quote={selectedQuote}
                   onSymbolChange={setSelectedSymbol}
-                  onSubmitted={refreshTerminalData}
+                  onSubmitted={handleOrderSubmitted}
                   preferredSide={preferredSide}
                   accountDisabledReason={tradingAvailability.message}
                   isMobileLayout={false}
@@ -695,10 +720,7 @@ export function TradeTerminalPage() {
                       key={sym.symbol}
                       symbol={sym}
                       isSelected={isSelected}
-                      onSelect={(symbol) => {
-                        setSelectedSymbol(symbol);
-                        setMobileSymbolModalOpen(false);
-                      }}
+                      onSelect={handleMobileSymbolSelect}
                     />
                   );
                 })

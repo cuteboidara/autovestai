@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -104,7 +104,7 @@ function ChartFallback({ message }: { message?: string }) {
   );
 }
 
-export function TradingViewPanel({
+export const TradingViewPanel = memo(function TradingViewPanel({
   symbol,
   resolution,
   className,
@@ -227,4 +227,4 @@ export function TradingViewPanel({
       />
     </div>
   );
-}
+});

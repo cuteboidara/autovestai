@@ -2,7 +2,11 @@
 
 import { create } from 'zustand';
 
-import { CandleUpdatePayload, MarketQuote } from '@/types/market-data';
+import {
+  CandleUpdatePayload,
+  LiveConnectionStatus,
+  MarketQuote,
+} from '@/types/market-data';
 
 export const DEFAULT_WATCHLIST_SYMBOLS = [
   // Forex majors
@@ -45,19 +49,30 @@ interface MarketDataState {
   watchlist: string[];
   selectedSymbol: string;
   selectedResolution: string;
+  connectionStatus: LiveConnectionStatus;
   quotes: Record<string, MarketQuote>;
   candles: Record<string, CandleUpdatePayload['candle'][]>;
   setSelectedSymbol: (symbol: string) => void;
   setSelectedResolution: (resolution: string) => void;
   setWatchlist: (symbols: string[]) => void;
+  setConnectionStatus: (status: LiveConnectionStatus) => void;
   upsertQuote: (quote: MarketQuote) => void;
   upsertCandle: (payload: CandleUpdatePayload) => void;
+}
+
+function hasQuotePatchChanges(current: MarketQuote | undefined, next: MarketQuote) {
+  if (!current) {
+    return true;
+  }
+
+  return Object.entries(next).some(([key, value]) => current[key as keyof MarketQuote] !== value);
 }
 
 export const useMarketDataStore = create<MarketDataState>((set) => ({
   watchlist: [...DEFAULT_WATCHLIST_SYMBOLS],
   selectedSymbol: 'EURUSD',
   selectedResolution: '1',
+  connectionStatus: 'disconnected',
   quotes: {},
   candles: {},
   setSelectedSymbol(symbol) {
@@ -69,13 +84,25 @@ export const useMarketDataStore = create<MarketDataState>((set) => ({
   setWatchlist(symbols) {
     set({ watchlist: symbols });
   },
+  setConnectionStatus(connectionStatus) {
+    set((state) => (state.connectionStatus === connectionStatus ? state : { connectionStatus }));
+  },
   upsertQuote(quote) {
-    set((state) => ({
-      quotes: {
-        ...state.quotes,
-        [quote.symbol]: quote,
-      },
-    }));
+    set((state) => {
+      if (!hasQuotePatchChanges(state.quotes[quote.symbol], quote)) {
+        return state;
+      }
+
+      return {
+        quotes: {
+          ...state.quotes,
+          [quote.symbol]: {
+            ...state.quotes[quote.symbol],
+            ...quote,
+          },
+        },
+      };
+    });
   },
   upsertCandle(payload) {
     const key = `${payload.symbol}:${payload.resolution}`;

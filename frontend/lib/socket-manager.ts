@@ -2,6 +2,8 @@
 
 import { io, Socket } from 'socket.io-client';
 
+import { LiveConnectionStatus } from '@/types/market-data';
+
 import { env } from './env';
 
 type EventHandler = (payload: unknown) => void;
@@ -11,28 +13,35 @@ class SocketManager {
   private handlers = new Map<string, Set<EventHandler>>();
   private priceSubscriptions = new Map<string, number>();
   private candleSubscriptions = new Map<string, number>();
+  private connectionStatus: Exclude<LiveConnectionStatus, 'stale'> = 'disconnected';
+  private manualDisconnect = false;
 
   connect(token: string | null) {
     if (this.socket) {
       this.socket.auth = token ? { token: `Bearer ${token}` } : {};
+      this.manualDisconnect = false;
 
       if (!this.socket.connected && !this.socket.active) {
+        this.setConnectionStatus('reconnecting');
         this.socket.connect();
       }
 
       return this.socket;
     }
 
+    this.manualDisconnect = false;
     this.socket = io(`${env.wsUrl}/realtime`, {
       transports: ['websocket'],
       auth: token ? { token: `Bearer ${token}` } : undefined,
       autoConnect: true,
       reconnection: true,
     });
+    this.setConnectionStatus('reconnecting');
 
     for (const event of [
       'connect',
       'disconnect',
+      'connect_error',
       'price_update',
       'candle_update',
       'order_update',
@@ -44,7 +53,12 @@ class SocketManager {
     ]) {
       this.socket.on(event, (payload) => {
         if (event === 'connect') {
+          this.setConnectionStatus('connected');
           this.replaySubscriptions();
+        } else if (event === 'disconnect') {
+          this.setConnectionStatus(this.manualDisconnect ? 'disconnected' : 'reconnecting');
+        } else if (event === 'connect_error') {
+          this.setConnectionStatus('reconnecting');
         }
 
         this.handlers.get(event)?.forEach((handler) => handler(payload));
@@ -55,6 +69,8 @@ class SocketManager {
   }
 
   disconnect() {
+    this.manualDisconnect = true;
+    this.setConnectionStatus('disconnected');
     this.socket?.disconnect();
     this.socket = null;
   }
@@ -78,43 +94,69 @@ class SocketManager {
   }
 
   subscribePrice(symbol: string) {
-    const nextCount = (this.priceSubscriptions.get(symbol) ?? 0) + 1;
-    this.priceSubscriptions.set(symbol, nextCount);
+    const normalizedSymbol = this.normalizeSymbol(symbol);
+    if (!normalizedSymbol) {
+      return;
+    }
+
+    const nextCount = (this.priceSubscriptions.get(normalizedSymbol) ?? 0) + 1;
+    this.priceSubscriptions.set(normalizedSymbol, nextCount);
 
     if (nextCount === 1) {
-      this.emit('subscribe_price', { symbol });
+      this.emitWhenConnected('subscribe_price', { symbol: normalizedSymbol });
     }
   }
 
   unsubscribePrice(symbol: string) {
-    const currentCount = this.priceSubscriptions.get(symbol) ?? 0;
-
-    if (currentCount <= 1) {
-      this.priceSubscriptions.delete(symbol);
-      this.emit('unsubscribe_price', { symbol });
+    const normalizedSymbol = this.normalizeSymbol(symbol);
+    if (!normalizedSymbol) {
       return;
     }
 
-    this.priceSubscriptions.set(symbol, currentCount - 1);
+    const currentCount = this.priceSubscriptions.get(normalizedSymbol) ?? 0;
+
+    if (currentCount <= 1) {
+      this.priceSubscriptions.delete(normalizedSymbol);
+      this.emitWhenConnected('unsubscribe_price', { symbol: normalizedSymbol });
+      return;
+    }
+
+    this.priceSubscriptions.set(normalizedSymbol, currentCount - 1);
   }
 
   subscribeCandles(symbol: string, resolution: string) {
-    const key = this.buildCandleSubscriptionKey(symbol, resolution);
+    const normalizedSymbol = this.normalizeSymbol(symbol);
+    if (!normalizedSymbol) {
+      return;
+    }
+
+    const key = this.buildCandleSubscriptionKey(normalizedSymbol, resolution);
     const nextCount = (this.candleSubscriptions.get(key) ?? 0) + 1;
     this.candleSubscriptions.set(key, nextCount);
 
     if (nextCount === 1) {
-      this.emit('subscribe_candles', { symbol, resolution });
+      this.emitWhenConnected('subscribe_candles', {
+        symbol: normalizedSymbol,
+        resolution,
+      });
     }
   }
 
   unsubscribeCandles(symbol: string, resolution: string) {
-    const key = this.buildCandleSubscriptionKey(symbol, resolution);
+    const normalizedSymbol = this.normalizeSymbol(symbol);
+    if (!normalizedSymbol) {
+      return;
+    }
+
+    const key = this.buildCandleSubscriptionKey(normalizedSymbol, resolution);
     const currentCount = this.candleSubscriptions.get(key) ?? 0;
 
     if (currentCount <= 1) {
       this.candleSubscriptions.delete(key);
-      this.emit('unsubscribe_candles', { symbol, resolution });
+      this.emitWhenConnected('unsubscribe_candles', {
+        symbol: normalizedSymbol,
+        resolution,
+      });
       return;
     }
 
@@ -123,6 +165,10 @@ class SocketManager {
 
   isConnected() {
     return Boolean(this.socket?.connected);
+  }
+
+  getConnectionStatus() {
+    return this.connectionStatus;
   }
 
   private replaySubscriptions() {
@@ -138,6 +184,23 @@ class SocketManager {
 
   private buildCandleSubscriptionKey(symbol: string, resolution: string) {
     return `${symbol}::${resolution}`;
+  }
+
+  private emitWhenConnected(event: string, payload: Record<string, unknown>) {
+    if (!this.socket?.connected) {
+      return;
+    }
+
+    this.emit(event, payload);
+  }
+
+  private normalizeSymbol(symbol: string) {
+    return symbol.trim().toUpperCase();
+  }
+
+  private setConnectionStatus(status: Exclude<LiveConnectionStatus, 'stale'>) {
+    this.connectionStatus = status;
+    this.handlers.get('connection_state')?.forEach((handler) => handler(status));
   }
 }
 

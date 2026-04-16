@@ -1,3 +1,5 @@
+export type LiveConnectionStatus = 'connected' | 'reconnecting' | 'disconnected' | 'stale';
+
 export interface MarketQuote {
   symbol: string;
   displayName?: string;
@@ -6,6 +8,7 @@ export interface MarketQuote {
   tradingViewSymbol?: string;
   quoteSource?: string;
   rawPrice: number;
+  last?: number;
   lastPrice: number;
   bid: number;
   ask: number;
@@ -26,6 +29,9 @@ export interface MarketQuote {
     | 'STALE'
     | 'BOOTSTRAP'
     | 'DELAYED';
+  healthStatus?: 'ok' | 'delayed' | 'stale' | 'degraded' | 'down' | 'closed' | 'disabled';
+  healthReason?: string;
+  ageMs?: number | null;
   tradingAvailable?: boolean;
   lastUpdated?: string;
 }

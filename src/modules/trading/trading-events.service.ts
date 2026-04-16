@@ -1,16 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
-import { PriceSnapshot } from '../../common/interfaces/price-snapshot.interface';
+import { MarketQuotePayload } from '../market-data/market-quote.presenter';
 import { TradingGateway } from './trading.gateway';
 
 @Injectable()
 export class TradingEventsService {
+  private readonly logger = new Logger(TradingEventsService.name);
+  private priceEmissionCount = 0;
+  private lastPriceEmissionLogAt = 0;
+  private readonly priceEmissionLogWindowMs = 60_000;
+
   constructor(private readonly tradingGateway: TradingGateway) {}
 
-  broadcastPriceUpdate(snapshot: PriceSnapshot): void {
-    this.tradingGateway.server
-      ?.to(this.tradingGateway.buildPriceRoom(snapshot.symbol))
-      .emit('price_update', snapshot);
+  broadcastPriceUpdate(snapshot: MarketQuotePayload): void {
+    const room = this.tradingGateway.buildPriceRoom(snapshot.symbol);
+    const roomClients = this.tradingGateway.getRoomClientCount(room);
+
+    this.tradingGateway.server?.to(room).emit('price_update', snapshot);
+    this.recordPriceEmission(snapshot.symbol, roomClients);
   }
 
   broadcastCandleUpdate(payload: {
@@ -66,5 +73,20 @@ export class TradingEventsService {
     this.tradingGateway.server
       ?.to(this.tradingGateway.buildAdminRoom())
       .emit('hedge_action_created', payload);
+  }
+
+  private recordPriceEmission(symbol: string, roomClients: number): void {
+    this.priceEmissionCount += 1;
+    const now = Date.now();
+
+    if (now - this.lastPriceEmissionLogAt < this.priceEmissionLogWindowMs) {
+      return;
+    }
+
+    this.lastPriceEmissionLogAt = now;
+    this.logger.debug(
+      `Realtime price emission volume: emitted=${this.priceEmissionCount} latestSymbol=${symbol} latestRoomClients=${roomClients}`,
+    );
+    this.priceEmissionCount = 0;
   }
 }

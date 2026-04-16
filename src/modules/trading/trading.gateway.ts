@@ -56,6 +56,8 @@ export class TradingGateway
     const token = this.extractToken(client);
 
     if (!token) {
+      this.logger.warn(`Rejected realtime connection without token (client ${client.id})`);
+      client.disconnect(true);
       return;
     }
 
@@ -68,6 +70,10 @@ export class TradingGateway
       if (client.data.userRole === 'ADMIN') {
         client.join(this.buildAdminRoom());
       }
+
+      this.logger.log(
+        `Realtime client connected: client=${client.id} user=${payload.sub} role=${client.data.userRole} totalClients=${this.getConnectedClientCount()}`,
+      );
     } catch (error) {
       this.logger.warn(`Rejected realtime connection: ${(error as Error).message}`);
       client.disconnect(true);
@@ -84,6 +90,13 @@ export class TradingGateway
     if (client.data.userRole === 'ADMIN') {
       client.leave(this.buildAdminRoom());
     }
+
+    this.logger.log(
+      `Realtime client disconnected: client=${client.id} user=${userId ?? 'anonymous'} totalClients=${Math.max(
+        this.getConnectedClientCount() - 1,
+        0,
+      )}`,
+    );
   }
 
   buildUserRoom(userId: string): string {
@@ -104,6 +117,10 @@ export class TradingGateway
 
   getConnectedClientCount(): number {
     return this.server?.sockets?.sockets?.size ?? 0;
+  }
+
+  getRoomClientCount(room: string): number {
+    return this.server?.sockets?.adapter?.rooms?.get(room)?.size ?? 0;
   }
 
   @SubscribeMessage('message')
@@ -186,7 +203,13 @@ export class TradingGateway
 
   private subscribePrice(client: Socket, symbol: string) {
     const normalizedSymbol = this.assertSupportedSymbol(symbol);
-    client.join(this.buildPriceRoom(normalizedSymbol));
+    const room = this.buildPriceRoom(normalizedSymbol);
+    client.join(room);
+    this.logger.debug(
+      `Realtime subscribe price: client=${client.id} user=${String(
+        client.data.userId ?? 'anonymous',
+      )} symbol=${normalizedSymbol} roomClients=${this.getRoomClientCount(room)}`,
+    );
 
     return {
       status: 'subscribed',
@@ -197,7 +220,16 @@ export class TradingGateway
 
   private unsubscribePrice(client: Socket, symbol: string) {
     const normalizedSymbol = this.assertSupportedSymbol(symbol);
-    client.leave(this.buildPriceRoom(normalizedSymbol));
+    const room = this.buildPriceRoom(normalizedSymbol);
+    client.leave(room);
+    this.logger.debug(
+      `Realtime unsubscribe price: client=${client.id} user=${String(
+        client.data.userId ?? 'anonymous',
+      )} symbol=${normalizedSymbol} roomClients=${Math.max(
+        this.getRoomClientCount(room) - 1,
+        0,
+      )}`,
+    );
 
     return {
       status: 'unsubscribed',
@@ -209,7 +241,13 @@ export class TradingGateway
   private subscribeCandles(client: Socket, symbol: string, resolution?: string) {
     const normalizedSymbol = this.assertSupportedSymbol(symbol);
     const normalizedResolution = this.normalizeResolution(resolution);
-    client.join(this.buildCandleRoom(normalizedSymbol, normalizedResolution));
+    const room = this.buildCandleRoom(normalizedSymbol, normalizedResolution);
+    client.join(room);
+    this.logger.debug(
+      `Realtime subscribe candles: client=${client.id} user=${String(
+        client.data.userId ?? 'anonymous',
+      )} symbol=${normalizedSymbol} resolution=${normalizedResolution} roomClients=${this.getRoomClientCount(room)}`,
+    );
 
     return {
       status: 'subscribed',
@@ -222,7 +260,16 @@ export class TradingGateway
   private unsubscribeCandles(client: Socket, symbol: string, resolution?: string) {
     const normalizedSymbol = this.assertSupportedSymbol(symbol);
     const normalizedResolution = this.normalizeResolution(resolution);
-    client.leave(this.buildCandleRoom(normalizedSymbol, normalizedResolution));
+    const room = this.buildCandleRoom(normalizedSymbol, normalizedResolution);
+    client.leave(room);
+    this.logger.debug(
+      `Realtime unsubscribe candles: client=${client.id} user=${String(
+        client.data.userId ?? 'anonymous',
+      )} symbol=${normalizedSymbol} resolution=${normalizedResolution} roomClients=${Math.max(
+        this.getRoomClientCount(room) - 1,
+        0,
+      )}`,
+    );
 
     return {
       status: 'unsubscribed',

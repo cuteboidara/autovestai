@@ -1,15 +1,22 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { socketManager } from '@/lib/socket-manager';
 import { useAuthStore } from '@/store/auth-store';
 import { useMarketDataStore } from '@/store/market-data-store';
+import { LiveConnectionStatus } from '@/types/market-data';
 
 function useNormalizedSymbols(symbols: string[]) {
   return useMemo(
     () =>
-      [...new Set(symbols.map((symbol) => symbol.trim()).filter(Boolean))].sort(),
+      [
+        ...new Set(
+          symbols
+            .map((symbol) => symbol.trim().toUpperCase())
+            .filter(Boolean),
+        ),
+      ].sort(),
     [symbols],
   );
 }
@@ -17,28 +24,42 @@ function useNormalizedSymbols(symbols: string[]) {
 export function useLivePriceSubscription(symbols: string[]) {
   const token = useAuthStore((state) => state.token);
   const normalizedSymbols = useNormalizedSymbols(symbols);
-  const subscriptionKey = normalizedSymbols.join('|');
+  const activeSymbolsRef = useRef<string[]>([]);
 
   useEffect(() => {
-    if (normalizedSymbols.length === 0) {
-      return;
-    }
-
     socketManager.connect(token);
-    normalizedSymbols.forEach((symbol) => socketManager.subscribePrice(symbol));
+    const previousSymbols = new Set(activeSymbolsRef.current);
+    const nextSymbols = new Set(normalizedSymbols);
 
-    return () => {
-      normalizedSymbols.forEach((symbol) => socketManager.unsubscribePrice(symbol));
-    };
-  }, [subscriptionKey, normalizedSymbols, token]);
+    normalizedSymbols
+      .filter((symbol) => !previousSymbols.has(symbol))
+      .forEach((symbol) => socketManager.subscribePrice(symbol));
+    activeSymbolsRef.current
+      .filter((symbol) => !nextSymbols.has(symbol))
+      .forEach((symbol) => socketManager.unsubscribePrice(symbol));
+
+    activeSymbolsRef.current = normalizedSymbols;
+  }, [normalizedSymbols, token]);
+
+  useEffect(
+    () => () => {
+      activeSymbolsRef.current.forEach((symbol) => socketManager.unsubscribePrice(symbol));
+      activeSymbolsRef.current = [];
+    },
+    [],
+  );
 }
 
 export function useLiveQuote(symbol: string) {
-  const normalizedSymbol = useMemo(() => symbol.trim(), [symbol]);
+  const normalizedSymbol = useMemo(() => symbol.trim().toUpperCase(), [symbol]);
 
   return useMarketDataStore((state) =>
     normalizedSymbol ? state.quotes[normalizedSymbol] : undefined,
   );
+}
+
+export function useLiveConnectionStatus(): LiveConnectionStatus {
+  return useMarketDataStore((state) => state.connectionStatus);
 }
 
 export function useLivePrices(symbols: string[]) {

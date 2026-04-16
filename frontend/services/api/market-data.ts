@@ -65,4 +65,18 @@ export const marketDataApi = {
       authMode: 'none',
     });
   },
+  getPrices(symbols: string[]) {
+    const normalizedSymbols = [...new Set(symbols.map((symbol) => symbol.trim()).filter(Boolean))];
+
+    if (normalizedSymbols.length === 0) {
+      return Promise.resolve<MarketQuote[]>([]);
+    }
+
+    const query = new URLSearchParams();
+    normalizedSymbols.forEach((symbol) => query.append('symbols', symbol));
+
+    return apiRequest<MarketQuote[]>(`/market-data/prices?${query.toString()}`, {
+      authMode: 'none',
+    });
+  },
 };

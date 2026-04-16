@@ -1,7 +1,7 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn, formatNumber, formatUsdt } from '@/lib/utils';
 import { ordersApi } from '@/services/api/orders';
@@ -50,7 +50,7 @@ function clampValue(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-export function OrderTicket({
+export const OrderTicket = memo(function OrderTicket({
   accountId = null,
   selectedSymbol,
   symbols,
@@ -101,17 +101,20 @@ export function OrderTicket({
   const maxLeverage = selectedSymbolInfo?.maxLeverage;
   const typeSupportsBackend = form.type === 'MARKET' || form.type === 'LIMIT';
   const selectedSymbolHealth = platformStatus?.symbolHealth[selectedSymbol];
+  const effectiveHealthStatus = selectedSymbolHealth?.status ?? quote?.healthStatus;
+  const effectiveHealthReason = selectedSymbolHealth?.reason ?? quote?.healthReason;
+  const effectiveTradingAvailable =
+    selectedSymbolHealth?.tradingAvailable ?? quote?.tradingAvailable ?? true;
   const currentMarketStatus =
-    selectedSymbolHealth?.status === 'disabled'
+    effectiveHealthStatus === 'disabled'
       ? 'DISABLED'
-      : selectedSymbolHealth?.status === 'closed'
+      : effectiveHealthStatus === 'closed'
         ? 'CLOSED'
-        : selectedSymbolHealth?.status === 'delayed'
+        : effectiveHealthStatus === 'delayed'
           ? 'DELAYED'
-          : selectedSymbolHealth?.status === 'stale'
+          : effectiveHealthStatus === 'stale'
             ? 'STALE'
-            : selectedSymbolHealth?.status === 'degraded' ||
-                selectedSymbolHealth?.status === 'down'
+            : effectiveHealthStatus === 'degraded' || effectiveHealthStatus === 'down'
               ? 'DEGRADED'
               : quote?.marketStatus ??
                 (quote?.delayed ? 'DELAYED' : quote?.marketState ?? 'LIVE');
@@ -122,8 +125,8 @@ export function OrderTicket({
   const platformBlockedReason =
     platformStatus && !platformStatus.features.tradingEnabled
       ? platformStatus.maintenanceMessage || 'Trading is temporarily disabled.'
-      : selectedSymbolHealth && !selectedSymbolHealth.tradingAvailable
-        ? selectedSymbolHealth.reason
+      : effectiveTradingAvailable === false
+        ? effectiveHealthReason ?? 'Trading is temporarily unavailable for this instrument.'
         : currentMarketStatus === 'CLOSED'
           ? 'Market closed for this instrument'
           : currentMarketStatus === 'DISABLED'
@@ -133,13 +136,13 @@ export function OrderTicket({
     symbolDisabledReason ?? accountDisabledReason ?? platformBlockedReason;
   const staleQuoteWarning =
     currentMarketStatus === 'DELAYED'
-      ? selectedSymbolHealth?.reason ?? 'Price may be up to 30s delayed'
+      ? effectiveHealthReason ?? 'Price may be up to 30s delayed'
       : currentMarketStatus === 'STALE' &&
-          (selectedSymbolHealth?.tradingAvailable ?? quote?.tradingAvailable ?? true)
-        ? selectedSymbolHealth?.reason ??
+          effectiveTradingAvailable
+        ? effectiveHealthReason ??
           'Quote feed is stale. Orders still route using the latest cached price.'
-        : currentMarketStatus === 'DEGRADED' && quote?.tradingAvailable !== false
-          ? selectedSymbolHealth?.reason ??
+        : currentMarketStatus === 'DEGRADED' && effectiveTradingAvailable
+          ? effectiveHealthReason ??
             'Live quote feed is degraded. Orders still route using the latest cached price.'
           : null;
   const currentAssetClass =
@@ -737,4 +740,4 @@ export function OrderTicket({
       </div>
     </aside>
   );
-}
+});

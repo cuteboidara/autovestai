@@ -8,6 +8,7 @@ import { useAdminStore } from '@/store/admin-store';
 import { useMarketDataStore } from '@/store/market-data-store';
 import { useNotificationStore } from '@/store/notification-store';
 import { useOrdersStore } from '@/store/orders-store';
+import { usePlatformStore } from '@/store/platform-store';
 import { usePositionsStore } from '@/store/positions-store';
 import { useWalletStore } from '@/store/wallet-store';
 import { MarketQuote, CandleUpdatePayload } from '@/types/market-data';
@@ -17,11 +18,13 @@ import { WalletSnapshotResponse } from '@/types/wallet';
 
 export function SocketBootstrap() {
   const token = useAuthStore((state) => state.token);
+  const setConnectionStatus = useMarketDataStore((state) => state.setConnectionStatus);
   const upsertQuote = useMarketDataStore((state) => state.upsertQuote);
   const upsertCandle = useMarketDataStore((state) => state.upsertCandle);
   const upsertOrder = useOrdersStore((state) => state.upsertOrder);
   const upsertPosition = usePositionsStore((state) => state.upsertPosition);
   const mergePositions = usePositionsStore((state) => state.mergePositions);
+  const upsertSymbolHealth = usePlatformStore((state) => state.upsertSymbolHealth);
   const setSnapshot = useWalletStore((state) => state.setSnapshot);
   const pushNotification = useNotificationStore((state) => state.push);
   const upsertExposure = useAdminStore((state) => state.upsertExposure);
@@ -30,11 +33,33 @@ export function SocketBootstrap() {
 
   useEffect(() => {
     socketManager.connect(token);
+    setConnectionStatus(socketManager.getConnectionStatus());
+    setConnected(socketManager.getConnectionStatus() === 'connected');
 
     const dispose = [
-      socketManager.on('connect', () => setConnected(true)),
-      socketManager.on('disconnect', () => setConnected(false)),
-      socketManager.on('price_update', (payload) => upsertQuote(payload as MarketQuote)),
+      socketManager.on('connection_state', (payload) => {
+        const nextStatus = payload as 'connected' | 'reconnecting' | 'disconnected';
+        setConnectionStatus(nextStatus);
+        setConnected(nextStatus === 'connected');
+      }),
+      socketManager.on('price_update', (payload) => {
+        const quote = payload as MarketQuote;
+        upsertQuote(quote);
+
+        if (quote.healthStatus) {
+          upsertSymbolHealth({
+            symbol: quote.symbol,
+            healthy: quote.healthStatus === 'ok',
+            status: quote.healthStatus,
+            reason: quote.healthReason ?? '',
+            source: quote.source ?? null,
+            timestamp: quote.lastUpdated ?? quote.timestamp,
+            ageMs: quote.ageMs ?? null,
+            tradingAvailable: quote.tradingAvailable ?? true,
+            marketState: quote.marketState,
+          });
+        }
+      }),
       socketManager.on('candle_update', (payload) =>
         upsertCandle(payload as CandleUpdatePayload),
       ),
@@ -93,11 +118,13 @@ export function SocketBootstrap() {
     };
   }, [
     token,
+    setConnectionStatus,
     upsertQuote,
     upsertCandle,
     upsertOrder,
     upsertPosition,
     mergePositions,
+    upsertSymbolHealth,
     setSnapshot,
     pushNotification,
     upsertExposure,
