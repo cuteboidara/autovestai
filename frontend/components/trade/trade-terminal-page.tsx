@@ -236,6 +236,8 @@ export function TradeTerminalPage() {
   const [symbols, setSymbols] = useState<SymbolInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [watchlistCollapsed, setWatchlistCollapsed] = useState(false);
+  // Keep the activity panel mount behind explicit state so it can be re-enabled later.
+  const [showActivity] = useState(false);
   const [positionsHeight, setPositionsHeight] = useState(280);
   const [mobilePositionsExpanded, setMobilePositionsExpanded] = useState(false);
   const [preferredSide, setPreferredSide] = useState<'BUY' | 'SELL' | null>(null);
@@ -760,7 +762,12 @@ export function TradeTerminalPage() {
             <div
               data-testid="trade-terminal-scroll-region"
               style={terminalLayoutStyle}
-              className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-0 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)_auto] lg:overflow-hidden"
+              className={cn(
+                'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto md:pb-0 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden',
+                showActivity
+                  ? 'pb-[calc(88px+env(safe-area-inset-bottom))]'
+                  : 'pb-[env(safe-area-inset-bottom)]',
+              )}
             >
               <button
                 type="button"
@@ -858,36 +865,38 @@ export function TradeTerminalPage() {
                 />
               </div>
 
-              <div className="min-w-0 lg:col-span-3">
-                <TradeActivityPanel
-                  activeTab={activeBottomTab}
-                  bottomTabMeta={bottomTabMeta}
-                  rows={rows}
-                  symbolDigitsMap={symbolDigitsMap}
-                  positionsHeight={positionsHeight}
-                  closingPositionId={closingPositionId}
-                  flashedPnlIds={flashedPnlIds}
-                  mobileExpanded={mobilePositionsExpanded}
-                  onSetTab={(tab) => {
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set('tab', mapBottomTabToSearch(tab));
-                    router.replace(`${pathname}?${params.toString()}`);
-                  }}
-                  onClosePosition={(positionId) => {
-                    setClosingPositionId(positionId);
-                    void positionsApi
-                      .close(positionId)
-                      .then(() => refreshTerminalData())
-                      .finally(() => setClosingPositionId(null));
-                  }}
-                  onResizeStart={(clientY) => {
-                    resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
-                    document.body.style.cursor = 'row-resize';
-                    document.body.style.userSelect = 'none';
-                  }}
-                  onMobileExpandedChange={setMobilePositionsExpanded}
-                />
-              </div>
+              {showActivity ? (
+                <div className="min-w-0 lg:col-span-3">
+                  <TradeActivityPanel
+                    activeTab={activeBottomTab}
+                    bottomTabMeta={bottomTabMeta}
+                    rows={rows}
+                    symbolDigitsMap={symbolDigitsMap}
+                    positionsHeight={positionsHeight}
+                    closingPositionId={closingPositionId}
+                    flashedPnlIds={flashedPnlIds}
+                    mobileExpanded={mobilePositionsExpanded}
+                    onSetTab={(tab) => {
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set('tab', mapBottomTabToSearch(tab));
+                      router.replace(`${pathname}?${params.toString()}`);
+                    }}
+                    onClosePosition={(positionId) => {
+                      setClosingPositionId(positionId);
+                      void positionsApi
+                        .close(positionId)
+                        .then(() => refreshTerminalData())
+                        .finally(() => setClosingPositionId(null));
+                    }}
+                    onResizeStart={(clientY) => {
+                      resizeStateRef.current = { startY: clientY, startHeight: positionsHeight };
+                      document.body.style.cursor = 'row-resize';
+                      document.body.style.userSelect = 'none';
+                    }}
+                    onMobileExpandedChange={setMobilePositionsExpanded}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -941,7 +950,12 @@ export function TradeTerminalPage() {
       {loading ? (
         <div
           style={terminalLayoutStyle}
-          className="pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/82 px-2 py-2 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:grid-rows-[minmax(0,1fr)_260px] lg:gap-2 lg:px-3 lg:py-3"
+          className={cn(
+            'pointer-events-none absolute inset-0 z-10 hidden bg-[var(--terminal-bg-primary)]/82 px-2 py-2 lg:grid lg:grid-cols-[var(--trade-watchlist-width)_minmax(0,1fr)_var(--trade-ticket-width)] lg:gap-2 lg:px-3 lg:py-3',
+            showActivity
+              ? 'lg:grid-rows-[minmax(0,1fr)_260px]'
+              : 'lg:grid-rows-[minmax(0,1fr)]',
+          )}
         >
           <div className="terminal-panel space-y-3 p-4">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -972,9 +986,11 @@ export function TradeTerminalPage() {
               ))}
             </div>
           </div>
-          <div className="terminal-panel col-span-full hidden p-4 lg:block">
-            <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
-          </div>
+          {showActivity ? (
+            <div className="terminal-panel col-span-full hidden p-4 lg:block">
+              <div className="h-full animate-pulse rounded-xl bg-[var(--terminal-bg-elevated)]" />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

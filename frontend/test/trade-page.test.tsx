@@ -257,12 +257,12 @@ describe('TradePage', () => {
 
     const summary = await screen.findByTestId('terminal-summary-strip');
     expect(summary).toHaveTextContent('1,250.00 USDT');
-    expect(summary).toHaveTextContent('1,290.00 USDT');
-    expect(summary).toHaveTextContent('40.00 USDT');
+    expect(summary).toHaveTextContent('930.00 USDT');
+    expect(summary).toHaveTextContent('0.00 USDT');
     expect(screen.getByTestId('order-ticket')).toHaveTextContent('enabled');
   });
 
-  it('keeps the trade route in a flex viewport layout and reserves space for the mobile drawer', async () => {
+  it('keeps the trade route in a single-row terminal layout when activity is hidden by default', async () => {
     getWalletMock.mockResolvedValue({
       wallet: {
         id: 'wallet-12345678',
@@ -290,9 +290,12 @@ describe('TradePage', () => {
     expect(layout.className).toContain('h-full');
     expect(layout.className).toContain('min-h-0');
     expect(layout.className).toContain('flex-col');
-    expect(scrollRegion.className).toContain(
+    expect(scrollRegion.className).toContain('lg:grid-rows-[minmax(0,1fr)]');
+    expect(scrollRegion.className).not.toContain('lg:grid-rows-[minmax(0,1fr)_auto]');
+    expect(scrollRegion.className).not.toContain(
       'pb-[calc(88px+env(safe-area-inset-bottom))]',
     );
+    expect(screen.queryByLabelText('Expand activity panel')).not.toBeInTheDocument();
   });
 
   it('renders the trading disabled banner and empty state for unfunded or unapproved accounts', async () => {
@@ -321,14 +324,11 @@ describe('TradePage', () => {
     expect(within(banner).getByRole('link', { name: 'Deposit' })).toBeInTheDocument();
     expect(within(banner).getByRole('link', { name: 'Complete KYC' })).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId('terminal-empty-state')[0]).toHaveTextContent(
-        'No open positions',
-      );
-    });
+    expect(await screen.findByTestId('order-ticket')).toBeInTheDocument();
+    expect(screen.queryByTestId('terminal-empty-state')).not.toBeInTheDocument();
   });
 
-  it('renders the pending orders empty state when the orders tab is active', async () => {
+  it('keeps pending activity content out of the render tree when the orders tab is active', async () => {
     searchParamsState.value = new URLSearchParams('tab=orders');
     getWalletMock.mockResolvedValue({
       wallet: {
@@ -348,10 +348,8 @@ describe('TradePage', () => {
 
     render(<TradePage />);
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId('terminal-empty-state')[0]).toHaveTextContent(
-        'No pending orders',
-      );
-    });
+    expect(await screen.findByTestId('trading-view-panel')).toBeInTheDocument();
+    expect(screen.queryByText('Pending Orders')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('terminal-empty-state')).not.toBeInTheDocument();
   });
 });
