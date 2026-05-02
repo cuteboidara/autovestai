@@ -19,6 +19,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { toDecimal } from '../../common/utils/decimal';
 import { AccountsService } from '../accounts/accounts.service';
 import { AdminChatService } from '../admin-chat/admin-chat.service';
+import { WebhookService } from '../webhooks/webhook.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
 import {
@@ -64,6 +65,7 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
     private readonly adminChatService: AdminChatService,
     private readonly crmService: CrmService,
     private readonly redisService: RedisService,
+    private readonly webhookService: WebhookService,
     configService: ConfigService,
   ) {
     this.tronApiUrl = configService.get<string>('wallet.tronApiUrl') ?? 'https://api.trongrid.io';
@@ -439,6 +441,16 @@ export class BlockchainMonitorService implements OnModuleInit, OnModuleDestroy {
         amount: detection.amount,
       },
     });
+
+    this.webhookService
+      .fireWebhook('deposit_confirmed', addressRecord.userId, {
+        txHash: detection.txHash,
+        network: detection.network,
+        amount: detection.amount,
+      })
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to fire deposit_confirmed webhook: ${err.message}`);
+      });
 
     await this.sendDepositPendingReviewEmail(
       addressRecord.userId,

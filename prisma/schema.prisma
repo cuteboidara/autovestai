@@ -204,6 +204,58 @@ enum EmailStatus {
   BOUNCED
 }
 
+enum AmlScreeningResult {
+  PASS
+  FAIL
+  MANUAL_REVIEW
+}
+
+enum ComplaintStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ComplaintDecision {
+  UPHELD
+  PARTIALLY_UPHELD
+  REJECTED
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  RISK_DISCLOSURE
+  LEVERAGE_WARNING
+  MARGIN_CALL_ACKNOWLEDGEMENT
+}
+
+enum LedgerEntryType {
+  DEPOSIT
+  WITHDRAWAL
+  WITHDRAWAL_FEE
+  TRADE_CLOSE_GAIN
+  TRADE_CLOSE_LOSS
+  BONUS
+  FEE
+  CORRECTION
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum RiskTier {
+  STARTER
+  INTERMEDIATE
+  PROFESSIONAL
+  INSTITUTIONAL
+}
+
 enum KycDocumentKind {
   DOCUMENT_FRONT
   DOCUMENT_BACK
@@ -280,6 +332,14 @@ model User {
   passwordResetTokens          PasswordResetToken[]
   isEmailVerified              Boolean                @default(false)
   emailVerificationTokens      EmailVerificationToken[]
+  complaints                   Complaint[]
+  amlScreenings                AmlScreening[]
+  consents                     UserConsent[]
+  ledgerEntries                BalanceLedger[]
+  notificationQueues           NotificationQueue[]
+  riskProfile                  UserRiskProfile?
+  withdrawalOtpTokens          WithdrawalOtpToken[]
+  webhooks                     WebhookEndpoint[]  @relation("UserWebhooks")
 }
 
 model AdminUser {
@@ -292,6 +352,8 @@ model AdminUser {
   permissions   String[]
   isActive           Boolean     @default(true)
   mustChangePassword Boolean     @default(false)
+  twoFaEnabled       Boolean     @default(false)
+  twoFaSecret        String?
   lastLoginAt        DateTime?
   createdById   String?
   createdAt     DateTime    @default(now())
@@ -336,6 +398,7 @@ model Account {
   withdrawalRequests WithdrawalRequest[]
   providers     SignalProvider[]
   copyRelations CopyRelation[]
+  ledgerEntries BalanceLedger[]
 
   @@index([userId])
   @@index([status])
@@ -1090,4 +1153,259 @@ model DepositWallet {
 
   @@unique([network, coin])
   @@index([isActive])
+}
+
+model UserConsent {
+  id          String      @id @default(cuid())
+  userId      String
+  type        ConsentType
+  version     String
+  ipAddress   String?
+  userAgent   String?
+  consentedAt DateTime    @default(now())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, consentedAt])
+}
+
+model BalanceLedger {
+  id            String          @id @default(cuid())
+  accountId     String
+  userId        String
+  type          LedgerEntryType
+  amountChange  Decimal         @db.Decimal(20, 8)
+  balanceAfter  Decimal         @db.Decimal(20, 8)
+  referenceId   String?
+  referenceType String?
+  description   String?
+  createdAt     DateTime        @default(now())
+  account       Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([userId, createdAt])
+  @@index([referenceId])
+}
+
+model NotificationQueue {
+  id            String                     @id @default(cuid())
+  userId        String
+  templateKey   String
+  payload       Json
+  status        NotificationDeliveryStatus @default(PENDING)
+  attempts      Int                        @default(0)
+  maxAttempts   Int                        @default(5)
+  nextAttemptAt DateTime                   @default(now())
+  lastError     String?
+  sentAt        DateTime?
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  user          User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([userId, createdAt])
+}
+
+model UserRiskProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  tier              RiskTier @default(STARTER)
+  maxLeverage       Int      @default(10)
+  maxNotional       Decimal  @db.Decimal(20, 8)
+  maxOpenPositions  Int      @default(5)
+  isPep             Boolean  @default(false)
+  isHighRiskCountry Boolean  @default(false)
+  countryCode       String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tier])
+}
+
+model WithdrawalOtpToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model AmlScreening {
+  id               String            @id @default(cuid())
+  userId           String
+  screeningType    String
+  resultStatus     AmlScreeningResult
+  matchedName      String?
+  matchedCountry   String?
+  riskScore        Int               @default(0)
+  screeningData    Json
+  screenedAt       DateTime          @default(now())
+  nextScreeningDue DateTime
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, screeningType])
+  @@index([resultStatus, nextScreeningDue])
+}
+
+model OfacSdn {
+  id            String   @id @default(cuid())
+  entityId      String   @unique
+  name          String
+  sdnType       String
+  program       String?
+  nameFragments String[]
+  createdAt     DateTime @default(now())
+
+  @@index([name])
+}
+
+model HighRiskCountry {
+  id          String @id @default(cuid())
+  countryCode String @unique
+  countryName String
+  riskLevel   String
+  reason      String
+
+  @@index([countryCode])
+}
+
+model WebhookEndpoint {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation("UserWebhooks", fields: [userId], references: [id], onDelete: Cascade)
+  url              String
+  events           String[]
+  active           Boolean           @default(true)
+  secret           String            @unique
+  lastSuccessAt    DateTime?
+  lastErrorAt      DateTime?
+  lastError        String?
+  deliveryRate     Decimal           @default(1.0) @db.Decimal(5, 4)
+  totalDeliveries  Int               @default(0)
+  failedDeliveries Int               @default(0)
+  rateLimit        Int               @default(100)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deliveries       WebhookDelivery[]
+
+  @@index([userId, active])
+}
+
+model WebhookDelivery {
+  id            String          @id @default(cuid())
+  webhookId     String
+  webhook       WebhookEndpoint @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event         String
+  eventId       String
+  payload       Json
+  status        String          @default("pending")
+  httpStatus    Int?
+  response      String?
+  error         String?
+  attempts      Int             @default(0)
+  maxAttempts   Int             @default(5)
+  nextRetryAt   DateTime?
+  lastAttemptAt DateTime?
+  deliveredAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([webhookId, eventId])
+  @@index([webhookId, status])
+  @@index([status, nextRetryAt])
+  @@index([event, createdAt])
+}
+
+model WebhookLog {
+  id           String   @id @default(cuid())
+  webhookId    String
+  event        String
+  success      Boolean
+  httpStatus   Int?
+  responseTime Int
+  createdAt    DateTime @default(now())
+
+  @@index([webhookId, createdAt])
+}
+
+model ApiPartner {
+  id               String              @id @default(cuid())
+  name             String
+  email            String              @unique
+  website          String?
+  status           String              @default("active")
+  apiKey           String              @unique
+  apiSecret        String
+  rateLimit        Int                 @default(1000)
+  allowedEndpoints String[]
+  ipWhitelist      String[]
+  webhookUrl       String?
+  lastApiCall      DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  apiCalls         ApiCall[]
+  subscriptions    SignalSubscription[]
+
+  @@index([apiKey])
+  @@index([status])
+}
+
+model ApiCall {
+  id           String     @id @default(cuid())
+  partnerId    String
+  partner      ApiPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int
+  ipAddress    String
+  createdAt    DateTime   @default(now())
+
+  @@index([partnerId, createdAt])
+  @@index([endpoint, createdAt])
+}
+
+model SignalSubscription {
+  id                String     @id @default(cuid())
+  partnerId         String
+  partner           ApiPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  signalType        String
+  active            Boolean    @default(true)
+  deliveryMethod    String
+  minimumConfidence Int        @default(50)
+  pairs             String[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([partnerId, signalType])
+}
+
+model Complaint {
+  id               String             @id @default(cuid())
+  userId           String
+  description      String
+  tradeId          String?
+  amount           Decimal?           @db.Decimal(20, 8)
+  status           ComplaintStatus    @default(OPEN)
+  decision              ComplaintDecision?
+  compensation          Decimal?           @db.Decimal(20, 8)
+  resolutionNote        String?
+  resolvedById          String?
+  resolvedAt            DateTime?
+  acknowledgedAt        DateTime?
+  acknowledgedDeadline  DateTime?
+  resolutionDeadline    DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
 }

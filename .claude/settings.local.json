@@ -29,7 +29,10 @@
       "Bash(wc:*)",
       "Bash(ls -la \"C:\\\\Users\\\\daram\\\\autovestai/frontend/app/\\(client\\)/wallet/\")",
       "Bash(find C:Usersdaramautovestai -name *deposit-address* -type f)",
-      "Bash(grep -r \"settings.manage\\\\|settings\\\\.manage\" C:/Users/daram/autovestai/src/ --include=*.ts -l)"
+      "Bash(grep -r \"settings.manage\\\\|settings\\\\.manage\" C:/Users/daram/autovestai/src/ --include=*.ts -l)",
+      "Bash(grep -E '\"\"csv-parser|\"\"csv-parse' package.json)",
+      "Bash(grep -E '\"\"otplib|\"\"csv-parser' package.json)",
+      "Bash(grep -E \"^axios$\")"
     ]
   }
 }

@@ -25,8 +25,10 @@ import {
 } from '../../common/utils/serializers';
 import { AccountsService } from '../accounts/accounts.service';
 import { AuditService } from '../audit/audit.service';
+import { BalanceLedgerService } from '../balance-ledger/balance-ledger.service';
 import { CopyTradingService } from '../copy-trading/copy-trading.service';
 import { DealingDeskService } from '../dealing-desk/dealing-desk.service';
+import { WebhookService } from '../webhooks/webhook.service';
 import { PricingService } from '../pricing/pricing.service';
 import { RiskService } from '../risk/risk.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
@@ -54,11 +56,13 @@ export class PositionsService {
     private readonly surveillanceService: SurveillanceService,
     private readonly tradingEventsService: TradingEventsService,
     private readonly responseCacheService: ResponseCacheService,
+    private readonly balanceLedgerService: BalanceLedgerService,
     @Inject(forwardRef(() => AccountsService))
     private readonly accountsService: AccountsService,
     @Inject(forwardRef(() => CopyTradingService))
     private readonly copyTradingService: CopyTradingService,
     private readonly dealingDeskService: DealingDeskService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async listUserPositions(
@@ -201,14 +205,47 @@ export class PositionsService {
         },
       });
 
+      const rawBalance = toNumber(account.balance) ?? 0;
+      const rawBalanceAfter = rawBalance + realizedPnl;
+      // Negative balance protection: client can never owe the broker money
+      const balanceAfter = Math.max(rawBalanceAfter, 0);
+      const forgivenAmount = rawBalanceAfter < 0 ? Math.abs(rawBalanceAfter) : 0;
+
       await tx.account.update({
         where: { id: account.id },
-        data: {
-          balance: {
-            increment: toDecimal(realizedPnl),
-          },
-        },
+        data: { balance: toDecimal(balanceAfter) },
       });
+
+      await this.balanceLedgerService.appendEntry(
+        {
+          accountId: account.id,
+          userId: livePosition.userId,
+          type: realizedPnl >= 0 ? 'TRADE_CLOSE_GAIN' : 'TRADE_CLOSE_LOSS',
+          amountChange: realizedPnl,
+          balanceAfter,
+          referenceId: livePosition.id,
+          referenceType: 'position',
+          description: `${reason} — ${livePosition.symbol} at ${closePrice}`,
+        },
+        tx,
+      );
+
+      if (forgivenAmount > 0) {
+        // Log the forgiven shortfall as a correction entry so ledger stays accurate
+        await this.balanceLedgerService.appendEntry(
+          {
+            accountId: account.id,
+            userId: livePosition.userId,
+            type: 'CORRECTION',
+            amountChange: forgivenAmount,
+            balanceAfter: 0,
+            referenceId: livePosition.id,
+            referenceType: 'negative_balance_protection',
+            description: `Negative balance forgiven: ${forgivenAmount.toFixed(8)} written off`,
+          },
+          tx,
+        );
+      }
 
       const execution = await tx.tradeExecution.create({
         data: {
@@ -253,11 +290,34 @@ export class PositionsService {
         position: closedPosition,
         execution,
         realizedPnl,
+        forgivenAmount,
       };
     });
 
     if (!result) {
       return null;
+    }
+
+    if (result.forgivenAmount > 0) {
+      this.logger.warn(
+        `Negative balance protection applied for ${position.userId}: forgiven ${result.forgivenAmount.toFixed(8)} on position ${position.id}`,
+      );
+      this.auditService
+        .log({
+          actorRole: 'system',
+          action: 'NEGATIVE_BALANCE_FORGIVEN',
+          entityType: 'position',
+          entityId: position.id,
+          targetUserId: position.userId,
+          metadataJson: {
+            forgivenAmount: result.forgivenAmount,
+            symbol: position.symbol,
+            reason,
+          },
+        })
+        .catch((err: Error) => {
+          this.logger.warn(`Failed to log negative balance audit entry: ${err.message}`);
+        });
     }
 
     this.logger.log(
@@ -322,6 +382,20 @@ export class PositionsService {
       this.copyTradingService.handlePositionClosed(result.position.id),
       this.dealingDeskService.updateExposureForSymbol(result.position.symbol),
     ]);
+
+    const webhookEvent = reason === 'LIQUIDATION' ? 'position_liquidated' : 'trade_closed';
+    this.webhookService
+      .fireWebhook(webhookEvent, position.userId, {
+        positionId: result.position.id,
+        symbol: result.position.symbol,
+        side: result.position.side,
+        closePrice,
+        realizedPnl: result.realizedPnl,
+        reason,
+      })
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to fire ${webhookEvent} webhook: ${err.message}`);
+      });
 
     return {
       position: positionPayload.position,

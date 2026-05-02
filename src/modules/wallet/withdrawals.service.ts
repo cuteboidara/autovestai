@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -23,6 +24,7 @@ import { BrokerSettingsService } from '../admin/broker-settings.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
 import { EmailService } from '../email/email.service';
+import { WebhookService } from '../webhooks/webhook.service';
 import { KycService } from '../kyc/kyc.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import {
@@ -33,6 +35,8 @@ import {
 
 @Injectable()
 export class WithdrawalsService {
+  private readonly logger = new Logger(WithdrawalsService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly accountsService: AccountsService,
@@ -44,6 +48,7 @@ export class WithdrawalsService {
     private readonly responseCacheService: ResponseCacheService,
     private readonly crmService: CrmService,
     private readonly emailService: EmailService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async listUserWithdrawals(userId: string, accountId?: string | null) {
@@ -200,7 +205,9 @@ export class WithdrawalsService {
 
     this.emailService
       .sendWithdrawalRequested(userId, params.amount.toFixed(2))
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send withdrawal requested email to ${userId}: ${err.message}`);
+      });
 
     await this.accountsService.syncLegacyWalletSnapshot(userId, account.id);
     await this.responseCacheService.invalidateUserResources(userId, [
@@ -311,7 +318,9 @@ export class WithdrawalsService {
         updated.userId,
         (toNumber(updated.amount) ?? 0).toFixed(2),
       )
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send withdrawal approved email to ${updated.userId}: ${err.message}`);
+      });
 
     await this.accountsService.syncLegacyWalletSnapshot(updated.userId, updated.accountId);
     await this.responseCacheService.invalidateUserResources(updated.userId, [
@@ -395,7 +404,9 @@ export class WithdrawalsService {
         (toNumber(updated.amount) ?? 0).toFixed(2),
         rejectionReason,
       )
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send withdrawal rejected email to ${updated.userId}: ${err.message}`);
+      });
 
     await this.accountsService.syncLegacyWalletSnapshot(updated.userId, updated.accountId);
     await this.responseCacheService.invalidateUserResources(updated.userId, [
@@ -460,6 +471,17 @@ export class WithdrawalsService {
         txHash: txHash.trim(),
       },
     });
+
+    this.webhookService
+      .fireWebhook('withdrawal_settled', updated.userId, {
+        withdrawalId: updated.id,
+        amount: updated.netAmount.toString(),
+        network: updated.network,
+        txHash: txHash.trim(),
+      })
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to fire withdrawal_settled webhook: ${err.message}`);
+      });
 
     await this.sendWithdrawalSentEmail(updated.userId, updated.network, updated.netAmount, txHash);
     await this.accountsService.syncLegacyWalletSnapshot(updated.userId, updated.accountId);

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { KycDocumentKind, KycStatus } from '@prisma/client';
@@ -11,6 +12,8 @@ import { AdminChatService } from '../admin-chat/admin-chat.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
 import { EmailService } from '../email/email.service';
+import { UserRiskProfileService } from '../user-risk-profile/user-risk-profile.service';
+import { WebhookService } from '../webhooks/webhook.service';
 import { SubmitKycDto } from './dto/submit-kyc.dto';
 import {
   KYC_APPROVAL_REQUIRED_MESSAGE,
@@ -19,15 +22,49 @@ import {
 
 @Injectable()
 export class KycService {
+  private readonly logger = new Logger(KycService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly auditService: AuditService,
     private readonly crmService: CrmService,
     private readonly emailService: EmailService,
     private readonly adminChatService: AdminChatService,
+    private readonly userRiskProfileService: UserRiskProfileService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async submit(userId: string, dto: SubmitKycDto) {
+    if (this.userRiskProfileService.isSanctionedCountry(dto.country)) {
+      throw new BadRequestException(
+        'We are unable to provide services in your country due to regulatory restrictions',
+      );
+    }
+
+    const nameScreen = this.userRiskProfileService.screenName(dto.fullName);
+    if (nameScreen.matched) {
+      // Log and block — do not reveal the specific reason to the submitter
+      this.logger.warn(
+        `KYC submission blocked: sanctions name match for user ${userId} — fragment: ${nameScreen.fragment}`,
+      );
+      this.auditService
+        .log({
+          actorUserId: userId,
+          actorRole: 'user',
+          action: 'KYC_BLOCKED_SANCTIONS_NAME',
+          entityType: 'kyc_submission',
+          entityId: userId,
+          targetUserId: userId,
+          metadataJson: { fragment: nameScreen.fragment } as import('@prisma/client').Prisma.InputJsonObject,
+        })
+        .catch((err: Error) => {
+          this.logger.warn(`Failed to log sanctions name audit: ${err.message}`);
+        });
+      throw new BadRequestException(
+        'We are unable to process your application at this time. Please contact support.',
+      );
+    }
+
     const existing = await this.prismaService.kycSubmission.findUnique({
       where: { userId },
     });
@@ -100,7 +137,9 @@ export class KycService {
       );
     }
 
-    this.emailService.sendKycSubmitted(userId).catch(() => {});
+    this.emailService.sendKycSubmitted(userId).catch((err: Error) => {
+      this.logger.warn(`Failed to send KYC submitted email to ${userId}: ${err.message}`);
+    });
 
     return submission;
   }
@@ -316,7 +355,29 @@ export class KycService {
       status: KycStatus.APPROVED,
     });
 
-    this.emailService.sendKycApproved(approved.userId).catch(() => {});
+    this.emailService.sendKycApproved(approved.userId).catch((err: Error) => {
+      this.logger.warn(`Failed to send KYC approved email to ${approved.userId}: ${err.message}`);
+    });
+
+    this.userRiskProfileService
+      .assignTierFromKyc({
+        userId: approved.userId,
+        countryCode: approved.country,
+      })
+      .catch((err: Error) => {
+        this.logger.warn(
+          `Failed to assign risk tier for user ${approved.userId}: ${err.message}`,
+        );
+      });
+
+    this.webhookService
+      .fireWebhook('kyc_approved', approved.userId, {
+        submissionId: approved.id,
+        country: approved.country,
+      })
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to fire kyc_approved webhook: ${err.message}`);
+      });
 
     return approved;
   }
@@ -384,7 +445,9 @@ export class KycService {
 
     this.emailService
       .sendKycRejected(rejected.userId, reason ?? 'Additional information required')
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send KYC rejected email to ${rejected.userId}: ${err.message}`);
+      });
 
     return rejected;
   }

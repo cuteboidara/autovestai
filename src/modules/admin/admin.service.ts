@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   Account,
@@ -36,6 +36,8 @@ import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly orderQueueService: OrderQueueService,
@@ -1013,9 +1015,13 @@ export class AdminService {
     });
 
     if (nextStatus === AccountStatus.SUSPENDED) {
-      this.emailService.sendAccountSuspended(user.id).catch(() => {});
+      this.emailService.sendAccountSuspended(user.id).catch((err: Error) => {
+        this.logger.warn(`Failed to send account suspended email to ${user.id}: ${err.message}`);
+      });
     } else if (nextStatus === AccountStatus.ACTIVE) {
-      this.emailService.sendAccountActivated(user.id).catch(() => {});
+      this.emailService.sendAccountActivated(user.id).catch((err: Error) => {
+        this.logger.warn(`Failed to send account activated email to ${user.id}: ${err.message}`);
+      });
     }
 
     const defaultAccount = user.accounts.find((account) => account.isDefault) ?? user.accounts[0];

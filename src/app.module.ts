@@ -44,6 +44,17 @@ import { TreasuryModule } from './modules/treasury/treasury.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { EmailModule } from './modules/email/email.module';
 import { AdminChatModule } from './modules/admin-chat/admin-chat.module';
+import { BalanceLedgerModule } from './modules/balance-ledger/balance-ledger.module';
+import { UserConsentModule } from './modules/user-consent/user-consent.module';
+import { UserRiskProfileModule } from './modules/user-risk-profile/user-risk-profile.module';
+import { WithdrawalOtpModule } from './modules/withdrawal-otp/withdrawal-otp.module';
+import { NotificationQueueModule } from './modules/notification-queue/notification-queue.module';
+import { DataIntegrityModule } from './modules/data-integrity/data-integrity.module';
+import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { AmlModule } from './modules/aml/aml.module';
+import { ReportingModule } from './modules/reporting/reporting.module';
+import { WebhookModule } from './modules/webhooks/webhook.module';
+import { PartnerApiModule } from './modules/partner-api/partner-api.module';
 
 @Module({
   imports: [
@@ -83,6 +94,17 @@ import { AdminChatModule } from './modules/admin-chat/admin-chat.module';
     CrmModule,
     EmailModule,
     AdminChatModule,
+    BalanceLedgerModule,
+    UserConsentModule,
+    UserRiskProfileModule,
+    WithdrawalOtpModule,
+    NotificationQueueModule,
+    DataIntegrityModule,
+    ComplaintsModule,
+    AmlModule,
+    ReportingModule,
+    WebhookModule,
+    PartnerApiModule,
     OrdersModule,
     PositionsModule,
     AdminModule,

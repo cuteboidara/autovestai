@@ -288,7 +288,9 @@ export class WalletService {
 
     this.emailService
       .sendDepositPending(userId, dto.amount.toFixed(2))
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send deposit pending email to ${userId}: ${err.message}`);
+      });
 
     return serializeTransaction(transaction);
   }
@@ -403,6 +405,7 @@ export class WalletService {
       },
       select: transactionSelect,
       orderBy: { createdAt: 'asc' },
+      take: 500,
     });
 
     return transactions.map(serializeTransaction);
@@ -685,7 +688,9 @@ export class WalletService {
             rejected.amount.toNumber().toFixed(2),
             reason ?? 'Rejected by admin',
           )
-          .catch(() => {});
+          .catch((err: Error) => {
+            this.logger.warn(`Failed to send deposit rejected email to ${rejected.userId}: ${err.message}`);
+          });
       }
 
       return serializeTransaction(rejected);
@@ -814,7 +819,9 @@ export class WalletService {
           updatedTransaction.userId,
           updatedTransaction.amount.toNumber().toFixed(2),
         )
-        .catch(() => {});
+        .catch((err: Error) => {
+          this.logger.warn(`Failed to send deposit approved email to ${updatedTransaction.userId}: ${err.message}`);
+        });
     }
 
     if (

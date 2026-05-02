@@ -58,7 +58,7 @@ export class CandleService implements OnModuleInit, OnModuleDestroy {
 
     // Run in background — don't block app startup
     this.loadAllCandles().catch((err: Error) =>
-      console.error(`[CandleService] Background candle load failed: ${err.message}`),
+      this.logger.error(`Background candle load failed: ${err.message}`),
     );
 
     // Start hourly retention sweep

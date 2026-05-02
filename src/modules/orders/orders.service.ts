@@ -44,6 +44,7 @@ import { EmailService } from '../email/email.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import { TradingEventsService } from '../trading/trading-events.service';
 import { KycService } from '../kyc/kyc.service';
+import { UserRiskProfileService } from '../user-risk-profile/user-risk-profile.service';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { PlaceOrderDto } from './dto/place-order.dto';
 
@@ -97,6 +98,7 @@ export class OrdersService {
     private readonly copyTradingService: CopyTradingService,
     private readonly dealingDeskService: DealingDeskService,
     private readonly emailService: EmailService,
+    private readonly userRiskProfileService: UserRiskProfileService,
   ) {}
 
   async placeOrder(userId: string, dto: PlaceOrderDto) {
@@ -518,7 +520,9 @@ export class OrdersService {
         if (priorTradeCount === 1) {
           this.emailService
             .sendFirstTrade(order.userId, order.symbol)
-            .catch(() => {});
+            .catch((err: Error) => {
+              this.logger.warn(`Failed to send first trade email to ${order.userId}: ${err.message}`);
+            });
         }
       }
 
@@ -641,18 +645,30 @@ export class OrdersService {
     const quote = await this.pricingService.getLatestQuote(instrument.symbol);
     this.pricingService.assertQuoteHealthy(instrument.symbol, quote);
 
+    const executionPrice =
+      dto.type === OrderType.LIMIT
+        ? dto.price ?? 0
+        : dto.side === OrderSide.BUY
+          ? quote.ask
+          : quote.bid;
+
     await this.riskService.assertOrderCanBeOpened({
       userId,
       accountId,
       symbol: instrument.symbol,
       volume: dto.volume,
-      price:
-        dto.type === OrderType.LIMIT
-          ? dto.price ?? 0
-          : dto.side === OrderSide.BUY
-            ? quote.ask
-            : quote.bid,
+      price: executionPrice,
       leverage: dto.leverage,
+    });
+
+    const openPositionCount = await this.prismaService.position.count({
+      where: { accountId, status: PositionStatus.OPEN },
+    });
+
+    await this.userRiskProfileService.enforceOrderLimits(userId, {
+      leverage: dto.leverage,
+      notional: dto.volume * executionPrice,
+      openPositionCount,
     });
   }
 

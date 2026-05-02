@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -22,11 +23,14 @@ import { SessionsService } from '../sessions/sessions.service';
 import { SurveillanceService } from '../surveillance/surveillance.service';
 import { UsersService } from '../users/users.service';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
+import { TotpService } from './totp.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly adminUsersService: AdminUsersService,
     private readonly usersService: UsersService,
@@ -41,6 +45,7 @@ export class AuthService {
     private readonly crmService: CrmService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly totpService: TotpService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -100,6 +105,24 @@ export class AuthService {
           },
         });
         throw new UnauthorizedException('Invalid credentials');
+      }
+
+      if (admin.twoFaEnabled) {
+        if (!dto.totpCode) {
+          throw new UnauthorizedException('Two-factor authentication code required');
+        }
+        if (!admin.twoFaSecret || !this.totpService.verify(admin.twoFaSecret, dto.totpCode)) {
+          await this.auditService.log({
+            actorUserId: admin.id,
+            actorRole: admin.role.toLowerCase(),
+            action: 'AUTH_TOTP_FAILED',
+            entityType: 'admin_user',
+            entityId: admin.id,
+            targetUserId: admin.id,
+            metadataJson: {},
+          });
+          throw new UnauthorizedException('Invalid two-factor authentication code');
+        }
       }
 
       const shadowUser = await this.usersService.findById(admin.id);
@@ -289,7 +312,9 @@ export class AuthService {
       });
     });
 
-    this.emailService.sendPasswordChanged(record.userId).catch(() => {});
+    this.emailService.sendPasswordChanged(record.userId).catch((err: Error) => {
+      this.logger.warn(`Failed to send password changed email to ${record.userId}: ${err.message}`);
+    });
   }
 
   async sendVerificationEmail(userId: string, email: string): Promise<void> {
@@ -355,7 +380,9 @@ export class AuthService {
       });
     });
 
-    this.emailService.sendEmailVerified(record.userId).catch(() => {});
+    this.emailService.sendEmailVerified(record.userId).catch((err: Error) => {
+      this.logger.warn(`Failed to send email verified notification to ${record.userId}: ${err.message}`);
+    });
   }
 
   async resendVerification(userId: string): Promise<void> {
@@ -365,7 +392,7 @@ export class AuthService {
       throw new BadRequestException('User not found');
     }
 
-    if ((user as unknown as { isEmailVerified?: boolean }).isEmailVerified) {
+    if (user.isEmailVerified) {
       throw new BadRequestException('Email is already verified');
     }
 

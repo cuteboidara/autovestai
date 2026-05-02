@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Patch, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
+import type { Response } from 'express';
 import { UserRole, WithdrawalStatus } from '@prisma/client';
 
 import { CacheResource } from '../../common/cache/cache-resource.decorator';
@@ -17,6 +18,9 @@ import { CreateDepositWalletDto, UpdateDepositWalletDto } from './dto/deposit-wa
 import { UpdateAdminSettingsDto } from './dto/update-admin-settings.dto';
 import { UpdateSymbolConfigDto } from './dto/update-symbol-config.dto';
 import { AdminService } from './admin.service';
+import { ComplaintsService } from '../complaints/complaints.service';
+import { ResolveComplaintDto } from '../complaints/dto/resolve-complaint.dto';
+import { RegulatoryReportingService } from '../reporting/regulatory-reporting.service';
 import { ListTransactionsQueryDto } from '../wallet/dto/list-transactions-query.dto';
 import { MarkWithdrawalSentDto } from '../wallet/dto/mark-withdrawal-sent.dto';
 import { ReviewWithdrawalDto } from '../wallet/dto/review-withdrawal.dto';
@@ -24,7 +28,11 @@ import { ReviewWithdrawalDto } from '../wallet/dto/review-withdrawal.dto';
 @Roles(UserRole.ADMIN)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly complaintsService: ComplaintsService,
+    private readonly reportingService: RegulatoryReportingService,
+  ) {}
 
   @Permissions('transactions.view')
   @Get('transactions/pending')
@@ -318,5 +326,69 @@ export class AdminController {
     @CurrentUser() admin: AuthenticatedUser,
   ) {
     return this.adminService.deleteDepositWallet(id, admin);
+  }
+
+  // --- Complaints ---
+
+  @Permissions('support.manage')
+  @Get('complaints')
+  listComplaints(@Query('status') status?: string) {
+    const { ComplaintStatus } = require('@prisma/client') as typeof import('@prisma/client');
+    return this.complaintsService.listAll({
+      status: status ? (ComplaintStatus[status as keyof typeof ComplaintStatus] ?? undefined) : undefined,
+    });
+  }
+
+  @Permissions('support.manage')
+  @Patch('complaints/:id/acknowledge')
+  acknowledgeComplaint(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    return this.complaintsService.acknowledge(id, admin.id);
+  }
+
+  @Permissions('support.manage')
+  @Post('complaints/:id/resolve')
+  resolveComplaint(
+    @Param('id') id: string,
+    @Body() dto: ResolveComplaintDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    const { ComplaintDecision } = require('@prisma/client') as typeof import('@prisma/client');
+    return this.complaintsService.resolve(id, admin.id, {
+      decision: ComplaintDecision[dto.decision as keyof typeof ComplaintDecision],
+      resolutionNote: dto.resolutionNote,
+      compensation: dto.compensation,
+    });
+  }
+
+  // --- Regulatory Reporting ---
+
+  @Permissions('reports.view')
+  @Get('reporting/quarterly')
+  async getQuarterlyReport(
+    @Query('year') year: string,
+    @Query('quarter') quarter: string,
+  ) {
+    const y = parseInt(year, 10) || new Date().getFullYear();
+    const q = (parseInt(quarter, 10) || Math.ceil((new Date().getMonth() + 1) / 3)) as 1 | 2 | 3 | 4;
+    return this.reportingService.generateQuarterlyReport(y, q);
+  }
+
+  @Permissions('reports.view')
+  @Get('reporting/quarterly/csv')
+  async downloadQuarterlyReportCsv(
+    @Query('year') year: string,
+    @Query('quarter') quarter: string,
+    @Res() res: Response,
+  ) {
+    const y = parseInt(year, 10) || new Date().getFullYear();
+    const q = (parseInt(quarter, 10) || Math.ceil((new Date().getMonth() + 1) / 3)) as 1 | 2 | 3 | 4;
+    const report = await this.reportingService.generateQuarterlyReport(y, q);
+    const csv = this.reportingService.exportAsCsv(report);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="quarterly-report-Q${q}-${y}.csv"`);
+    res.send(csv);
   }
 }

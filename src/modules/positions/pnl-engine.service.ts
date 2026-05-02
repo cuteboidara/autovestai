@@ -19,6 +19,7 @@ import { PricingService } from '../pricing/pricing.service';
 import { RiskService } from '../risk/risk.service';
 import { TradingEventsService } from '../trading/trading-events.service';
 import { PositionsService } from './positions.service';
+import { WebhookService } from '../webhooks/webhook.service';
 
 interface MarkedPosition {
   position: OpenPositionWithOrder;
@@ -50,6 +51,7 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
     private readonly auditService: AuditService,
     private readonly tradingEventsService: TradingEventsService,
     private readonly emailService: EmailService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   onModuleInit(): void {
@@ -243,7 +245,17 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
             this.marginCallSentAt.set(account.userId, Date.now());
             this.emailService
               .sendMarginCall(account.userId, marginLevel.toFixed(2))
-              .catch(() => {});
+              .catch((err: Error) => {
+                this.logger.warn(`Failed to send margin call email to ${account.userId}: ${err.message}`);
+              });
+            this.webhookService
+              .fireWebhook('margin_call', account.userId, {
+                marginLevel: Number(marginLevel.toFixed(2)),
+                accountId: account.id,
+              })
+              .catch((err: Error) => {
+                this.logger.warn(`Failed to fire margin_call webhook: ${err.message}`);
+              });
           }
         }
 
@@ -280,7 +292,9 @@ export class PnlEngineService implements OnModuleInit, OnModuleDestroy {
 
     this.emailService
       .sendStopOut(userId, metrics.marginLevel.toFixed(2))
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send stop out email to ${userId}: ${err.message}`);
+      });
 
     const liquidationQueue = [...userPositions].sort((left, right) => left.pnl - right.pnl);
     let currentUsedMargin = metrics.usedMargin;

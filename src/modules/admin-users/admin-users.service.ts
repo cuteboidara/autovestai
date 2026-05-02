@@ -14,6 +14,7 @@ import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.in
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CrmService } from '../crm/crm.service';
+import { TotpService } from '../auth/totp.service';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
@@ -33,6 +34,8 @@ type AdminUserRecord = {
   permissions: string[];
   isActive: boolean;
   mustChangePassword: boolean;
+  twoFaEnabled: boolean;
+  twoFaSecret: string | null;
   lastLoginAt: Date | null;
   createdById: string | null;
   createdAt: Date;
@@ -46,6 +49,7 @@ export class AdminUsersService {
     private readonly configService: ConfigService,
     private readonly auditService: AuditService,
     private readonly crmService: CrmService,
+    private readonly totpService: TotpService,
   ) {}
 
   async findByEmail(email: string) {
@@ -402,6 +406,69 @@ export class AdminUsersService {
         where: { id: adminId },
         data: { password: newHash },
       });
+    });
+
+    return { success: true };
+  }
+
+  async storePending2FaSecret(adminId: string, secret: string): Promise<void> {
+    await this.prismaService.adminUser.update({
+      where: { id: adminId },
+      data: { twoFaSecret: secret, twoFaEnabled: false },
+    });
+  }
+
+  async confirm2Fa(adminId: string, totpCode: string): Promise<{ success: true }> {
+    const admin = await this.getAdminUserOrThrow(adminId);
+
+    if (!admin.twoFaSecret) {
+      throw new BadRequestException('No pending 2FA setup found. Please call setup first.');
+    }
+
+    if (!this.totpService.verify(admin.twoFaSecret, totpCode)) {
+      throw new BadRequestException('Invalid authentication code');
+    }
+
+    await this.prismaService.adminUser.update({
+      where: { id: adminId },
+      data: { twoFaEnabled: true },
+    });
+
+    await this.auditService.log({
+      actorUserId: adminId,
+      actorRole: admin.role.toLowerCase(),
+      action: 'ADMIN_2FA_ENABLED',
+      entityType: 'admin_user',
+      entityId: adminId,
+      targetUserId: adminId,
+    });
+
+    return { success: true };
+  }
+
+  async disable2Fa(adminId: string, totpCode: string): Promise<{ success: true }> {
+    const admin = await this.getAdminUserOrThrow(adminId);
+
+    if (!admin.twoFaEnabled || !admin.twoFaSecret) {
+      throw new BadRequestException('Two-factor authentication is not enabled');
+    }
+
+    if (!this.totpService.verify(admin.twoFaSecret, totpCode)) {
+      throw new BadRequestException('Invalid authentication code');
+    }
+
+    await this.prismaService.adminUser.update({
+      where: { id: adminId },
+      data: { twoFaEnabled: false, twoFaSecret: null },
+    });
+
+    await this.auditService.log({
+      actorUserId: adminId,
+      actorRole: admin.role.toLowerCase(),
+      action: 'ADMIN_2FA_DISABLED',
+      entityType: 'admin_user',
+      entityId: adminId,
+      targetUserId: adminId,
     });
 
     return { success: true };

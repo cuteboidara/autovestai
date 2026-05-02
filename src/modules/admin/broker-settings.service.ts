@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { UpdateSymbolConfigDto } from './dto/update-symbol-config.dto';
 
 @Injectable()
 export class BrokerSettingsService implements OnModuleInit {
+  private readonly logger = new Logger(BrokerSettingsService.name);
   private readonly cache = new Map<string, Prisma.JsonValue>();
 
   constructor(
@@ -40,7 +42,7 @@ export class BrokerSettingsService implements OnModuleInit {
     this.ensureDefaultsPersisted()
       .then(() => this.loadCacheFromDatabase())
       .catch((err: Error) =>
-        console.error('[BrokerSettings] Background init failed:', err.message),
+        this.logger.error(`Background init failed: ${err.message}`),
       );
   }
 

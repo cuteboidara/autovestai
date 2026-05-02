@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -128,6 +129,8 @@ interface ProviderAnalytics {
 
 @Injectable()
 export class CopyTradingService {
+  private readonly logger = new Logger(CopyTradingService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly brokerSettingsService: BrokerSettingsService,
@@ -471,7 +474,9 @@ export class CopyTradingService {
 
     this.emailService
       .sendCopyStarted(userId, provider.displayName)
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send copy started email to ${userId}: ${err.message}`);
+      });
 
     return this.getCopyRelationById(userId, relation.id);
   }
@@ -589,7 +594,9 @@ export class CopyTradingService {
 
     this.emailService
       .sendCopyStopped(userId, provider?.displayName ?? 'Unknown')
-      .catch(() => {});
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to send copy stopped email to ${userId}: ${err.message}`);
+      });
 
     return { success: true };
   }

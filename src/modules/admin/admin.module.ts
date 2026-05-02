@@ -10,6 +10,8 @@ import { KycModule } from '../kyc/kyc.module';
 import { PricingModule } from '../pricing/pricing.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { ComplaintsModule } from '../complaints/complaints.module';
+import { ReportingModule } from '../reporting/reporting.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
@@ -20,6 +22,8 @@ import { AdminService } from './admin.service';
     AffiliatesModule,
     AuditModule,
     BrokerSettingsModule,
+    ComplaintsModule,
+    ReportingModule,
     DealingDeskModule,
     KycModule,
     PricingModule,

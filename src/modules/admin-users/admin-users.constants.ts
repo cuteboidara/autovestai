@@ -36,6 +36,8 @@ export const SUPER_ADMIN_PERMISSION_KEYS = [
   'users.manage',
   'users.credit',
   'dealingdesk.manage',
+  'support.manage',
+  'reports.view',
 ] as const;
 
 export const ADMIN_PERMISSION_KEYS = [
@@ -46,8 +48,8 @@ export type AdminPermissionKey = (typeof ADMIN_PERMISSION_KEYS)[number];
 
 export const DEFAULT_ADMIN_ROLE_PERMISSIONS: Record<AdminRole, AdminPermissionKey[]> = {
   [AdminRole.SUPER_ADMIN]: [...SUPER_ADMIN_PERMISSION_KEYS],
-  [AdminRole.COMPLIANCE]: ['crm.read', 'crm.notes', 'kyc.approve', 'alerts.view'],
-  [AdminRole.SUPPORT]: ['crm.read', 'crm.notes', 'email.send'],
+  [AdminRole.COMPLIANCE]: ['crm.read', 'crm.notes', 'kyc.approve', 'alerts.view', 'reports.view'],
+  [AdminRole.SUPPORT]: ['crm.read', 'crm.notes', 'email.send', 'support.manage'],
   [AdminRole.RISK]: ['risk.view', 'positions.view', 'queues.manage'],
   [AdminRole.FINANCE]: [
     'transactions.view',

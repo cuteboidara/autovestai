@@ -29,6 +29,8 @@ export type EmailTemplate =
   | 'withdrawal_requested'
   | 'withdrawal_approved'
   | 'withdrawal_rejected'
+  | 'withdrawal_otp'
+  | 'complaint_resolved'
   | 'first_trade'
   | 'margin_call'
   | 'stop_out'
@@ -399,6 +401,50 @@ export class EmailService {
     });
   }
 
+  async sendComplaintResolved(
+    userId: string,
+    decision: string,
+    resolutionNote: string,
+  ): Promise<void> {
+    const user = await this.resolveUser(userId);
+    if (!user) return;
+
+    await this.send({
+      to: user.email,
+      template: 'complaint_resolved',
+      variables: this.buildTemplateVariables(user, { decision, resolutionNote }),
+    });
+  }
+
+  async sendWithdrawalOtp(userId: string, otp: string, ttlMinutes: number): Promise<void> {
+    const user = await this.resolveUser(userId);
+    if (!user) return;
+
+    await this.send({
+      to: user.email,
+      template: 'withdrawal_otp',
+      variables: this.buildTemplateVariables(user, { otp, ttlMinutes }),
+    });
+  }
+
+  /**
+   * Generic send by template key — used by NotificationQueueService for retry delivery.
+   */
+  async sendByTemplate(
+    userId: string,
+    templateKey: EmailTemplate,
+    payload: Record<string, string | number | undefined>,
+  ): Promise<void> {
+    const user = await this.resolveUser(userId);
+    if (!user) return;
+
+    await this.send({
+      to: user.email,
+      template: templateKey,
+      variables: this.buildTemplateVariables(user, payload),
+    });
+  }
+
   // --- Internals ---
 
   private buildTemplateVariables(
@@ -707,5 +753,27 @@ ${cta('#', 'View Copy Trading')}`,
 <p style="padding:12px 16px;background-color:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.2);border-radius:8px;color:#FBBF24;">${v(vars, 'message')}</p>
 <p>Please review your copy trading settings and take any necessary action.</p>
 ${cta('#', 'Review Settings')}`,
+  },
+
+  complaint_resolved: {
+    subject: () => 'Your Complaint Has Been Resolved — AutovestAI',
+    body: (vars) =>
+      `${greeting(vars)}
+<p>We have completed our review of your complaint. Here is our decision:</p>
+<table role="presentation" style="margin:16px 0;border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:100%;">
+<tr><td style="padding:10px 16px;color:#9CA3AF;font-size:13px;">Decision</td><td style="padding:10px 16px;color:#F9FAFB;font-size:13px;font-weight:600;">${v(vars, 'decision')}</td></tr>
+</table>
+<p style="padding:12px 16px;background-color:rgba(255,255,255,0.04);border-left:3px solid #F5A623;border-radius:4px;color:#D1D5DB;">${v(vars, 'resolutionNote')}</p>
+<p>If you are dissatisfied with our decision, you have the right to refer your complaint to the relevant Financial Ombudsman Service within 6 months of this decision.</p>`,
+  },
+
+  withdrawal_otp: {
+    subject: () => 'Withdrawal Verification Code — AutovestAI',
+    body: (vars) =>
+      `${greeting(vars)}
+<p>You have requested a withdrawal from your AutovestAI account. Use the verification code below to confirm:</p>
+<p style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;color:#F5A623;margin:24px 0;">${v(vars, 'otp')}</p>
+<p>This code expires in <strong style="color:#F9FAFB;">${v(vars, 'ttlMinutes')} minutes</strong>. Do not share this code with anyone.</p>
+<p>If you did not request a withdrawal, please contact support immediately at <a href="mailto:support@autovestai.com" style="color:#F5A623;text-decoration:none;">support@autovestai.com</a>.</p>`,
   },
 };

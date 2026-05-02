@@ -207,7 +207,13 @@ async function syncSuperAdminAccount(params: {
 async function seedDefaultSuperAdmin() {
   const email =
     process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase() || 'admin@autovestai.com';
-  const password = process.env.SUPER_ADMIN_PASSWORD?.trim() || 'changeme123';
+  const password = process.env.SUPER_ADMIN_PASSWORD?.trim();
+
+  if (!password) {
+    throw new Error(
+      'SUPER_ADMIN_PASSWORD environment variable is required. Set it before running the seed script.',
+    );
+  }
   const passwordHash = await bcrypt.hash(password, 12);
 
   await syncSuperAdminAccount({

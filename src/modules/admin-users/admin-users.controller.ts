@@ -15,6 +15,7 @@ import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { AdminUsersService } from './admin-users.service';
+import { TotpService } from '../auth/totp.service';
 import { AdminUserListQueryDto } from './dto/admin-user-list-query.dto';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
@@ -22,7 +23,10 @@ import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 @Roles(UserRole.ADMIN)
 @Controller('admin/admin-users')
 export class AdminUsersController {
-  constructor(private readonly adminUsersService: AdminUsersService) {}
+  constructor(
+    private readonly adminUsersService: AdminUsersService,
+    private readonly totpService: TotpService,
+  ) {}
 
   @Permissions('admin-users.manage')
   @Get()
@@ -83,5 +87,33 @@ export class AdminUsersController {
       dto.currentPassword,
       dto.newPassword,
     );
+  }
+
+  @Post('me/2fa/setup')
+  async setup2Fa(@CurrentUser() admin: AuthenticatedUser) {
+    const secret = this.totpService.generateSecret();
+    const qrCodeDataUrl = await this.totpService.generateQrCodeDataUrl(
+      admin.email,
+      secret,
+    );
+    // Store the secret temporarily — confirmed in the next step
+    await this.adminUsersService.storePending2FaSecret(admin.id, secret);
+    return { qrCodeDataUrl };
+  }
+
+  @Post('me/2fa/confirm')
+  confirm2Fa(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: { totpCode: string },
+  ) {
+    return this.adminUsersService.confirm2Fa(admin.id, dto.totpCode);
+  }
+
+  @Post('me/2fa/disable')
+  disable2Fa(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: { totpCode: string },
+  ) {
+    return this.adminUsersService.disable2Fa(admin.id, dto.totpCode);
   }
 }
