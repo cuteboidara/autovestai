@@ -1,181 +1,166 @@
-# AutovestAI Platform
+# AutovestAI
 
-AutovestAI is a broker operations stack composed of:
+**Full-stack trading and broker operations infrastructure built around real-time market data, execution, risk, treasury operations, and administrative controls.**
 
-- a NestJS trading and backoffice API
-- a Next.js client terminal and admin backoffice
-- PostgreSQL, Redis, BullMQ, and Socket.IO realtime services
+AutovestAI is an engineering project exploring the infrastructure behind a modern multi-asset trading platform — from the client terminal through execution and position management to backoffice operations, treasury reconciliation, surveillance, and system readiness.
 
-The current codebase includes pricing, order execution, positions, liquidation, copy trading, affiliates, dealing desk controls, KYC, audit logging, RBAC, surveillance, health/readiness checks, and session/device security.
+**Live:** https://autovestai.io
 
-## Stack
+---
 
-- Backend: NestJS, Prisma, PostgreSQL, Redis, BullMQ, Socket.IO
-- Frontend: Next.js App Router, TypeScript, Tailwind CSS, Zustand, Socket.IO client
-- Infra: Docker, docker-compose
+## Architecture
 
-## Local Setup
-
-1. Copy backend env values from [.env.example](/C:/Users/daram/autovestai/.env.example) into `.env`.
-2. Copy frontend env values from [frontend/.env.example](/C:/Users/daram/autovestai/frontend/.env.example) into `frontend/.env.local`.
-3. Install backend dependencies:
-
-```bash
-npm install
+```text
+                         ┌─────────────────────┐
+                         │   Market Providers  │
+                         │ Binance · TwelveData│
+                         │ CoinGecko · FX etc. │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+┌─────────────────┐       ┌─────────────────────┐
+│  Next.js Client │◄─────►│     NestJS API      │
+│                 │       │                     │
+│ Trading Terminal│       │ Pricing             │
+│ Wallet          │       │ Execution           │
+│ Positions       │       │ Risk / Liquidation  │
+│ Account         │       │ Copy Trading        │
+└─────────────────┘       └──────────┬──────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+              PostgreSQL          Redis           BullMQ
+              + Prisma          realtime         workers
+                    │
+                    ▼
+             Operational Data
+                    │
+          ┌─────────┴──────────┐
+          ▼                    ▼
+    Admin Backoffice      Socket.IO Layer
+    Risk · Treasury       Quotes · Positions
+    KYC · Surveillance    Exposure · Wallets
 ```
 
-4. Install frontend dependencies:
+---
 
-```bash
-cd frontend
-npm install
-cd ..
+## Core Systems
+
+### Trading Engine
+
+The backend implements core broker-domain workflows including:
+
+- real-time pricing
+- order execution
+- position lifecycle management
+- leverage controls
+- liquidation
+- exposure monitoring
+- copy trading
+- dealing-desk controls
+
+### Real-Time Infrastructure
+
+Socket.IO and external market-data streams power real-time updates for:
+
+- quotes
+- candles
+- positions
+- wallet state
+- exposure
+- hedge state
+
+The pricing layer includes stale-quote detection and configurable reconnection behaviour.
+
+### Treasury & Reconciliation
+
+AutovestAI includes an operational reconciliation system designed to compare observed treasury balances against internal client liabilities.
+
+The system tracks:
+
+- treasury balance snapshots
+- internal client liabilities
+- pending withdrawals
+- approved-but-not-sent outflows
+- reconciliation history
+- operational deficits and warnings
+
+```text
+Gross Difference
+= Treasury Balance - Internal Client Liabilities
+
+Operational Difference
+= Treasury Balance
+- Internal Client Liabilities
+- Approved Unsent Withdrawals
 ```
 
-5. Generate Prisma client and apply schema changes:
+Reconciliation runs are persisted for administrative review and investigation.
 
-```bash
-npx prisma generate
-npx prisma migrate dev --name local_setup
+### Backoffice & Risk Controls
+
+The administrative system includes:
+
+- RBAC and permission-aware actions
+- KYC workflows
+- immutable audit logging
+- surveillance alerts
+- case management
+- treasury monitoring
+- reconciliation console
+- operational readiness checks
+- affiliate management
+- dealing-desk controls
+
+### Authentication & Security
+
+Security controls include:
+
+- JWT access and refresh-token architecture
+- server-side session persistence
+- device fingerprint tracking
+- permission-based admin authorization
+- rate limiting on sensitive routes
+- structured request logging
+- request IDs
+- Helmet security middleware
+- explicit CORS configuration
+
+---
+
+## Asset Activation Pipeline
+
+The repository includes a Python-based activation layer for transforming broker contract specifications into a normalized instrument registry.
+
+```text
+Contract Specification PDF
+          │
+          ▼
+      PDF Parser
+          │
+          ▼
+ Instrument Extraction
+          │
+          ▼
+ Symbol Normalization
+          │
+          ▼
+ Provider Mapping
+          │
+          ▼
+ Normalized Instrument Registry
 ```
 
-6. Start the backend:
+The pipeline:
 
-```bash
-npm run start:dev
-```
-
-7. Start the frontend:
-
-```bash
-cd frontend
-npm run dev
-```
-
-## Docker Compose
-
-For local containerized development:
-
-```bash
-docker compose up --build
-```
-
-Services exposed by [docker-compose.yml](/C:/Users/daram/autovestai/docker-compose.yml):
-
-- API: `http://localhost:3000`
-- Frontend: `http://localhost:3001`
-- PostgreSQL: `localhost:5432`
-- Redis: `localhost:6379`
-
-## Environment Notes
-
-Backend env:
-
-- `DATABASE_URL`
-- `REDIS_URL`
-- `REDIS_REQUIRED_ON_STARTUP`
-- `FRONTEND_URL`
-- `CORS_ORIGINS`
-- `JWT_SECRET`
-- `JWT_REFRESH_SECRET`
-- `JWT_EXPIRES_IN`
-- `JWT_REFRESH_EXPIRES_IN`
-- `BINANCE_WS_URL`
-- `XAU_BASE_PRICE`
-- `MAX_LEVERAGE`
-- `HELMET_ENABLED`
-- `FRONTEND_TRADINGVIEW_ASSETS_ENABLED`
-- `TREASURY_MASTER_WALLET_ADDRESS`
-- `TREASURY_ASSET`
-- `TREASURY_NETWORK`
-- `DEPOSIT_WALLET_USDT_TRC20`
-- `DEPOSIT_WALLET_USDT_ERC20`
-- `DEPOSIT_WALLET_USDT_BEP20`
-- `DEPOSIT_WALLET_BTC_BTC`
-- `DEPOSIT_WALLET_ETH_ERC20`
-- `DEPOSIT_WALLET_BNB_BEP20`
-- `TREASURY_EXPLORER_BASE_URL`
-- `TREASURY_MONITORING_MODE`
-- `TREASURY_SNAPSHOT_STALE_HOURS`
-- `TREASURY_PENDING_WITHDRAWAL_WARNING_THRESHOLD`
-- `TREASURY_RECONCILIATION_TOLERANCE`
-- `RECONCILIATION_TOLERANCE`
-- `RECONCILIATION_STALE_SNAPSHOT_HOURS`
-- `RECONCILIATION_HIGH_PENDING_WITHDRAWALS_THRESHOLD`
-- `RECONCILIATION_APPROVED_OUTFLOW_THRESHOLD`
-- `RECONCILIATION_ENABLE_SCHEDULED_RUNS`
-- `RECONCILIATION_SCHEDULE_INTERVAL_HOURS`
-
-Frontend env:
-
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_WS_URL`
-- `NEXT_PUBLIC_TRADINGVIEW_ASSETS_ENABLED`
-
-## Railway Deposit Wallet Fallback
-
-If no active rows exist in the `DepositWallet` table yet, the backend deposit wallet endpoint falls
-back to Railway environment variables using the pattern:
-
-- `DEPOSIT_WALLET_<COIN>_<NETWORK>`
-
-Examples:
-
-- `DEPOSIT_WALLET_USDT_TRC20`
-- `DEPOSIT_WALLET_USDT_ERC20`
-- `DEPOSIT_WALLET_USDT_BEP20`
-- `DEPOSIT_WALLET_BTC_BTC`
-- `DEPOSIT_WALLET_ETH_ERC20`
-- `DEPOSIT_WALLET_BNB_BEP20`
-
-Optional metadata can also be supplied with:
-
-- `DEPOSIT_WALLET_LABEL_<COIN>_<NETWORK>`
-- `DEPOSIT_WALLET_MIN_<COIN>_<NETWORK>`
-
-Legacy aliases such as `HOT_WALLET_<COIN>_<NETWORK>` and `WALLET_ADDRESS_<COIN>_<NETWORK>` are
-also detected by the backend when present.
-
-## Backend Operations
-
-Common backend commands:
-
-```bash
-npx prisma generate
-npx prisma migrate deploy
-npm run lint
-npm run build
-npm run test
-```
-
-## Asset Activation
-
-The repo now includes a Python activation layer that turns the contract-specification PDF into a complete normalized instrument registry for the broker universe.
-
-Run it with:
-
-```bash
-C:\Python312\python.exe -m app.activate_assets --pdf Contract-Specifications.pdf --output-dir activation_output
-```
-
-What it does:
-
-- parses the source PDF through the local `pdf-parse` Node helper
-- extracts every contract row by PDF section
+- extracts contract rows by document section
 - normalizes broker symbols into canonical instruments
-- maps each instrument to one or more free public data providers
-- writes activation artifacts under `activation_output/`
+- maps instruments to available market-data providers
+- identifies unresolved or partial mappings
+- generates machine-readable activation artifacts
+- provides normalized data for Prisma seeding
 
-Generated files:
-
-- `activation_output/parsed_pdf_assets.json`
-- `activation_output/parsed_pdf_assets.csv`
-- `activation_output/instruments_master.json`
-- `activation_output/instruments_master.csv`
-- `activation_output/unresolved_mappings.json`
-- `activation_output/activation_report.json`
-
-Free providers modeled by the activation layer:
+Supported/provider mappings include:
 
 - Yahoo Finance
 - Stooq
@@ -183,47 +168,192 @@ Free providers modeled by the activation layer:
 - Twelve Data
 - Financial Modeling Prep
 - CoinGecko
-- Binance public endpoints
+- Binance
 - ExchangeRate.host
 - FRED
 
-Notes:
+Generated artifacts include JSON and CSV instrument registries, unresolved mappings, and activation reports.
 
-- Some CFD/index/commodity symbols use documented benchmark or futures proxies and are marked `partial`.
-- Some Mideast exchange suffixes are inferred heuristically and are also marked `partial` for manual review.
-- The backend symbol loader now prefers `activation_output/instruments_master.json` when present, so Prisma seeding can consume the generated registry directly.
+---
 
-Health and readiness endpoints:
+## Technology
 
-- `GET /health`
-- `GET /health/live`
-- `GET /health/ready`
-- `GET /admin/metrics`
-- `GET /admin/readiness`
-- `GET /admin/treasury/summary`
-- `GET /admin/treasury/balance-snapshots`
-- `POST /admin/treasury/balance-snapshots`
-- `GET /admin/treasury/movements`
-- `GET /admin/treasury/reconciliation`
-- `GET /admin/treasury/liabilities-breakdown`
-- `POST /admin/reconciliation/run`
-- `GET /admin/reconciliation/latest`
-- `GET /admin/reconciliation/runs`
-- `GET /admin/reconciliation/runs/:id`
+### Backend
 
-Security and controls currently implemented:
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+- Redis
+- BullMQ
+- Socket.IO
 
-- immutable audit logging
-- refresh-token sessions stored server-side
-- device fingerprint tracking
-- permission-based admin authorization
-- rate limiting on sensitive routes
-- structured request logging and request IDs
-- surveillance alerts and case management
+### Frontend
 
-## Frontend Operations
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Zustand
+- Socket.IO Client
 
-Common frontend commands:
+### Data & Infrastructure
+
+- Docker
+- Docker Compose
+- PostgreSQL
+- Redis
+- Prisma migrations
+- REST APIs
+- WebSockets
+- external market-data providers
+
+### Additional Engineering
+
+- Python asset-processing pipeline
+- background jobs
+- health/readiness monitoring
+- treasury reconciliation
+- real-time market feeds
+
+---
+
+## Repository Structure
+
+```text
+autovestai/
+├── app/                 # Asset activation tooling
+├── activation_output/   # Generated instrument registries
+├── docs/                # Technical documentation
+├── frontend/            # Next.js client + admin applications
+├── prisma/              # Database schema and migrations
+├── scripts/             # Operational/development scripts
+├── src/                 # NestJS backend
+├── tests/               # Backend tests
+└── docker-compose.yml
+```
+
+---
+
+## Health & Operational Readiness
+
+The backend exposes health and administrative readiness endpoints including:
+
+```text
+GET  /health
+GET  /health/live
+GET  /health/ready
+
+GET  /admin/metrics
+GET  /admin/readiness
+
+GET  /admin/treasury/summary
+GET  /admin/treasury/balance-snapshots
+POST /admin/treasury/balance-snapshots
+
+GET  /admin/reconciliation/latest
+GET  /admin/reconciliation/runs
+POST /admin/reconciliation/run
+```
+
+These endpoints support infrastructure monitoring as well as operational treasury and reconciliation workflows.
+
+---
+
+## Local Development
+
+### 1. Clone
+
+```bash
+git clone https://github.com/cuteboidara/autovestai.git
+cd autovestai
+```
+
+### 2. Configure the backend
+
+```bash
+cp .env.example .env
+```
+
+Populate the required local credentials.
+
+Never commit real credentials, wallet mnemonics, private keys, or production secrets.
+
+### 3. Configure the frontend
+
+```bash
+cp frontend/.env.example frontend/.env.local
+```
+
+### 4. Install dependencies
+
+Backend:
+
+```bash
+npm install
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### 5. Prepare the database
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name local_setup
+```
+
+### 6. Run
+
+Backend:
+
+```bash
+npm run start:dev
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+---
+
+## Docker
+
+The development stack can also be started with:
+
+```bash
+docker compose up --build
+```
+
+Default services:
+
+| Service | Address |
+|---|---|
+| API | `http://localhost:3000` |
+| Frontend | `http://localhost:3001` |
+| PostgreSQL | `localhost:5432` |
+| Redis | `localhost:6379` |
+
+---
+
+## Testing & Build
+
+Backend:
+
+```bash
+npm run lint
+npm run build
+npm run test
+```
+
+Frontend:
 
 ```bash
 cd frontend
@@ -232,50 +362,26 @@ npm run build
 npm run test
 ```
 
-Frontend highlights:
+---
 
-- protected public/client/admin route groups
-- realtime quote, candle, position, wallet, exposure, and hedge updates
-- profile session management UI
-- admin surveillance queue
-- admin readiness page
-- admin treasury dashboard with manual balance snapshots and reconciliation warnings
-- admin reconciliation console with persisted run history and operational deficit checks
-- permission-aware admin navigation and actions
+## Production Considerations
 
-## Reconciliation
+Production deployments should:
 
-The reconciliation engine records treasury-vs-liabilities runs over time for owner/admin review.
+- use independently generated high-entropy secrets
+- keep PostgreSQL and Redis on private networks
+- run database migrations before application startup
+- explicitly configure allowed CORS origins
+- terminate TLS at the edge/ingress
+- secure wallet and treasury credentials outside source control
+- configure production-grade monitoring and alerting
+- verify system readiness before enabling client access
+- use licensed market/charting assets where required
 
-- Gross difference: `treasuryBalance - internalClientLiabilities`
-- Operational difference: `treasuryBalance - internalClientLiabilities - approvedButNotSentWithdrawalsTotal`
-- Internal wallet ledger remains the source of truth for liabilities
-- Treasury balance remains an observed custody layer
+---
 
-Recommended alpha ops flow:
+## Status
 
-1. Record or refresh a treasury balance snapshot.
-2. Review pending withdrawals and approved-but-not-sent outflows.
-3. Run reconciliation from the admin console.
-4. Investigate any `WARNING` or `ERROR` run before releasing more outflows.
+AutovestAI is a software engineering project demonstrating the architecture and operational systems involved in building trading-platform infrastructure.
 
-Detailed notes live in [docs/reconciliation.md](/C:/Users/daram/autovestai/docs/reconciliation.md).
-
-## TradingView Assets
-
-The terminal can run with a live fallback chart. If you have licensed TradingView Charting Library assets, place them under:
-
-- [frontend/public/tradingview/charting_library](/C:/Users/daram/autovestai/frontend/public/tradingview/charting_library)
-
-Set `FRONTEND_TRADINGVIEW_ASSETS_ENABLED=true` and `NEXT_PUBLIC_TRADINGVIEW_ASSETS_ENABLED=true` when those assets are present.
-
-## Production Notes
-
-- Use strong secrets for `JWT_SECRET` and `JWT_REFRESH_SECRET`.
-- Run Prisma migrations before starting the API.
-- Keep PostgreSQL and Redis on private networks in production.
-- Terminate TLS at the edge or ingress.
-- Configure `CORS_ORIGINS` explicitly for deployed frontend domains.
-- Mount persistent volumes for PostgreSQL and Redis.
-- Provide a real TradingView asset bundle if the licensed widget is required.
-- Review the admin readiness page before enabling live client access.
+It should not be interpreted as a representation that every external financial, brokerage, custody, market-data, or payment integration is licensed or operating in production.
